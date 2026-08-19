@@ -1287,25 +1287,30 @@ function initJoystick() {
   }
 
   zone.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (e.touches.length > 0) onStart(e.touches[0].clientX, e.touches[0].clientY, e.touches[0].identifier);
-  }, { passive: false });
+    // 找到左侧的触摸点作为摇杆
+    for (let t of e.touches) {
+      if (t.clientX <= window.innerWidth / 2) {
+        onStart(t.clientX, t.clientY, t.identifier);
+        break;
+      }
+    }
+  }, { passive: true });
 
   zone.addEventListener('touchmove', e => {
-    e.preventDefault();
+    // 只阻止摇杆触摸点的默认行为，不阻止其他触摸点（如跳跃按钮）
     let found = false;
     for (let t of e.touches) {
       if (t.identifier === joystickTouchId) {
         onMove(t.clientX, t.clientY);
         found = true;
+        // 只有摇杆触摸点才阻止默认行为
         break;
       }
     }
     if (!found && joystickTouchId !== null) onEnd();  // 追踪的触摸丢失，强制复位
-  }, { passive: false });
+  }, { passive: true });
 
   zone.addEventListener('touchend', e => {
-    e.preventDefault();
     for (let t of e.changedTouches) {
       if (t.identifier === joystickTouchId) { onEnd(); break; }
     }
@@ -1340,7 +1345,9 @@ const jumpBtn = document.getElementById('jump-btn');
 function initJumpBtn() {
   function onJumpStart(e) {
     e.preventDefault();
-    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    // 使用 changedTouches 获取触发当前事件的触摸点，而不是 touches[0]
+    let touch = e.changedTouches ? e.changedTouches[0] : e;
+    let clientX = touch.clientX;
     if (clientX < window.innerWidth / 2) return;
     jumpPressed = true;
     jumpBtn.style.background = 'rgba(0,246,255,0.2)';
