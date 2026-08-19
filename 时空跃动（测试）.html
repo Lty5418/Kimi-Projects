@@ -482,6 +482,7 @@ html, body {
 ::-webkit-scrollbar-track { background: #121212; }
 ::-webkit-scrollbar-thumb { background: #707070; border-radius: 3px; }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div id="game-container">
@@ -647,46 +648,59 @@ html, body {
 
 <script>
 
-// ==================== Supabase REST API ====================
+// ==================== Supabase 客户端 ====================
 const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmd2trZXh2YnhwYnR4bnJnenFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNDk1MjgsImV4cCI6MjEwMjYyNTUyOH0.NcZR4y0a79djJYzaerIzRCZZiFdjLxUa2iaeHHnNHSQ';
 
-async function supabaseGet(table, params) {
-  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
-  Object.entries(params || {}).forEach(([k, v]) => url.searchParams.set(k, v));
-  try {
-    const res = await fetch(url, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+// 使用 Supabase 官方客户端（自动处理 CORS、认证、重试）
+let supabaseClient = null;
+function getSupabase() {
+  if (!supabaseClient) {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
     });
-    if (!res.ok) throw new Error(`GET ${table}: ${res.status}`);
-    return res.json();
-  } catch (e) {
-    if (e.message && e.message.includes('Failed to fetch')) {
-      throw new Error('网络请求被阻止，可能是 CORS 限制。请尝试在支持 CORS 的环境中运行，或使用本地存储功能。');
+  }
+  return supabaseClient;
+}
+
+async function supabaseGet(table, params) {
+  try {
+    const sb = getSupabase();
+    let query = sb.from(table).select(params && params.select ? params.select : '*');
+    // 处理过滤条件
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (k === 'select' || k === 'order' || k === 'limit') return;
+        if (typeof v === 'string' && v.startsWith('eq.')) {
+          query = query.eq(k, v.slice(3));
+        }
+      });
     }
-    throw e;
+    if (params && params.order) {
+      const [col, dir] = params.order.split('.');
+      query = query.order(col, { ascending: dir !== 'desc' });
+    }
+    if (params && params.limit) {
+      query = query.limit(parseInt(params.limit));
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    console.error('Supabase GET 失败:', e);
+    throw new Error('获取数据失败: ' + (e.message || '网络错误'));
   }
 }
 
 async function supabasePost(table, data) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error(`POST ${table}: ${res.status}`);
-    return res.status === 204 ? [] : res.json();
+    const sb = getSupabase();
+    const { error } = await sb.from(table).insert(data);
+    if (error) throw error;
+    return [];
   } catch (e) {
-    if (e.message && e.message.includes('Failed to fetch')) {
-      throw new Error('网络请求被阻止，可能是 CORS 限制。请尝试在支持 CORS 的环境中运行，或使用本地存储功能。');
-    }
-    throw e;
+    console.error('Supabase POST 失败:', e);
+    throw new Error('保存数据失败: ' + (e.message || '网络错误'));
   }
 }
 
