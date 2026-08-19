@@ -483,7 +483,7 @@ html, body {
 ::-webkit-scrollbar-thumb { background: #707070; border-radius: 3px; }
 </style>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  
 </head>
 <body>
 <div id="game-container">
@@ -653,76 +653,61 @@ html, body {
 const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_K1m62ACFX6tf6DpH6vO8Xw_z0BXtkRV';
 
-// 使用 Supabase 官方客户端（推荐方式）
-let supabaseClient = null;
-function getSupabase() {
-  if (!supabaseClient) {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { 
-        persistSession: false, 
-        autoRefreshToken: false,
-        detectSessionInUrl: false
-      }
-    });
+// 使用原生 fetch 调用 Supabase REST API（publishable key 只用 apikey header）
+function buildRestUrl(table, params) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  if (!params) return url;
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    url.searchParams.set(k, String(v));
+  });
+  return url;
+}
+
+async function supabaseGet(table, params = {}) {
+  const url = buildRestUrl(table, params);
+  const res = await fetch(url, {
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'omit',
+    headers: { apikey: SUPABASE_KEY }
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`GET ${table}: ${res.status} ${errText}`);
   }
-  return supabaseClient;
+  return res.json();
+}
+
+async function supabasePost(table, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'omit',
+    headers: {
+      apikey: SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`POST ${table}: ${res.status} ${errText}`);
+  }
+  if (res.status === 204) return [];
+  return res.json().catch(() => []);
 }
 
 // 健康检查：测试 Supabase 连接
 async function checkSupabaseHealth() {
   try {
-    const sb = getSupabase();
-    const { data, error } = await sb.from('levels').select('id').limit(1);
-    if (error) {
-      console.error('Supabase 健康检查失败:', error);
-      return { ok: false, error: error.message, code: error.code };
-    }
-    console.log('Supabase 健康检查通过:', data);
+    const data = await supabaseGet('levels', { select: 'id', limit: 1 });
+    console.log('✅ Supabase 连接正常');
     return { ok: true, data };
   } catch (e) {
-    console.error('Supabase 健康检查异常:', e);
+    console.warn('⚠️ Supabase 连接异常:', e.message);
     return { ok: false, error: e.message };
-  }
-}
-
-async function supabaseGet(table, params) {
-  try {
-    const sb = getSupabase();
-    let query = sb.from(table).select(params && params.select ? params.select : '*');
-    // 处理过滤条件
-    if (params) {
-      Object.entries(params).forEach(([k, v]) => {
-        if (k === 'select' || k === 'order' || k === 'limit') return;
-        if (typeof v === 'string' && v.startsWith('eq.')) {
-          query = query.eq(k, v.slice(3));
-        }
-      });
-    }
-    if (params && params.order) {
-      const [col, dir] = params.order.split('.');
-      query = query.order(col, { ascending: dir !== 'desc' });
-    }
-    if (params && params.limit) {
-      query = query.limit(parseInt(params.limit));
-    }
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
-  } catch (e) {
-    console.error('Supabase GET 失败:', e);
-    throw new Error('获取数据失败: ' + (e.message || '网络错误'));
-  }
-}
-
-async function supabasePost(table, data) {
-  try {
-    const sb = getSupabase();
-    const { error } = await sb.from(table).insert(data);
-    if (error) throw error;
-    return [];
-  } catch (e) {
-    console.error('Supabase POST 失败:', e);
-    throw new Error('保存数据失败: ' + (e.message || '网络错误'));
   }
 }
 
@@ -2469,15 +2454,15 @@ document.getElementById('btn-share-close').addEventListener('click', () => {
 
 // ==================== 初始化 ====================
 // Supabase 健康检查
-if (typeof checkSupabaseHealth === 'function') {
+setTimeout(() => {
   checkSupabaseHealth().then(result => {
     if (result.ok) {
       console.log('✅ Supabase 连接正常');
     } else {
-      console.warn('⚠️ Supabase 连接异常:', result.error, result.code || '');
+      console.warn('⚠️ Supabase 连接异常:', result.error);
     }
   });
-}
+}, 1000);
 
 initStorage();
 
