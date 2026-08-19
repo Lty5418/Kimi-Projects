@@ -691,6 +691,37 @@ html, body {
   border-radius: 4px;
 }
 
+/* ===== 点赞按钮 ===== */
+.like-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid #707070;
+  color: #8D9390;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.like-btn:hover {
+  border-color: #FFD1D4;
+  color: #FFD1D4;
+}
+.like-btn.liked {
+  background: rgba(255, 209, 212, 0.1);
+  border-color: #FFD1D4;
+  color: #FFD1D4;
+}
+.like-btn .like-icon {
+  font-size: 14px;
+}
+.like-btn .like-count {
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* ===== 通用 ===== */
 .hidden { display: none !important; }
 ::-webkit-scrollbar { width: 6px; }
@@ -1051,6 +1082,23 @@ async function supabasePost(table, data) {
   }
   if (res.status === 204) return [];
   return res.json().catch(() => []);
+}
+
+async function supabasePatch(table, id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH', mode: 'cors', credentials: 'omit',
+    headers: {
+      apikey: SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`PATCH ${table}: ${res.status} ${errText}`);
+  }
+  return true;
 }
 
 async function checkSupabaseHealth() {
@@ -2597,6 +2645,10 @@ async function renderPublicLevels(filter = '') {
       <div class="level-actions">
         <button class="btn btn-small" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
         <button class="btn btn-small" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
+        <button class="like-btn ${(() => { const liked = JSON.parse(localStorage.getItem('bwjump_liked') || '[]'); return liked.includes(l.id) ? 'liked' : ''; })()}" onclick="toggleLike(${l.id}, this)">
+          <span class="like-icon">${(() => { const liked = JSON.parse(localStorage.getItem('bwjump_liked') || '[]'); return liked.includes(l.id) ? '♥' : '♡'; })()}</span>
+          <span class="like-count">${l.likes || 0}</span>
+        </button>
       </div>
     </div>
   `}).join('');
@@ -2672,6 +2724,61 @@ window.deleteMyLevel = function(idx) {
   if (confirm('确定删除这个关卡吗？')) {
     localLevels.splice(idx, 1); saveLocalLevels();
     renderMyLevels();
+  }
+};
+
+window.toggleLike = async function(levelId, btn) {
+  // 从按钮当前状态判断（而不是 localStorage）
+  const isLiked = btn.classList.contains('liked');
+  const iconSpan = btn.querySelector('.like-icon');
+  const countSpan = btn.querySelector('.like-count');
+  let currentCount = parseInt(countSpan.textContent) || 0;
+
+  // 防止重复点击
+  if (btn.dataset.processing === 'true') return;
+  btn.dataset.processing = 'true';
+
+  try {
+    let liked = JSON.parse(localStorage.getItem('bwjump_liked') || '[]');
+
+    if (isLiked) {
+      // === 取消点赞 ===
+      btn.classList.remove('liked');
+      iconSpan.textContent = '♡';
+      countSpan.textContent = Math.max(0, currentCount - 1);
+      liked = liked.filter(id => id !== levelId);
+
+      await supabasePatch('levels', levelId, { likes: Math.max(0, currentCount - 1) });
+    } else {
+      // === 点赞 ===
+      btn.classList.add('liked');
+      iconSpan.textContent = '♥';
+      countSpan.textContent = currentCount + 1;
+      if (!liked.includes(levelId)) liked.push(levelId);
+
+      await supabasePatch('levels', levelId, { likes: currentCount + 1 });
+    }
+
+    // 成功后更新 localStorage 和缓存
+    localStorage.setItem('bwjump_liked', JSON.stringify(liked));
+    const level = publicLevelsCache.find(l => l.id === levelId);
+    if (level) {
+      level.likes = isLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+    }
+  } catch (e) {
+    // 失败时回滚UI
+    alert('操作失败: ' + e.message);
+    if (isLiked) {
+      btn.classList.add('liked');
+      iconSpan.textContent = '♥';
+      countSpan.textContent = currentCount;
+    } else {
+      btn.classList.remove('liked');
+      iconSpan.textContent = '♡';
+      countSpan.textContent = currentCount;
+    }
+  } finally {
+    btn.dataset.processing = 'false';
   }
 };
 // ==================== 大厅标签切换 ====================
