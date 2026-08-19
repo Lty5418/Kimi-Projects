@@ -2480,13 +2480,29 @@ async function shareLevelToLobby(levelData, code) {
   try {
     const existing = await supabaseGet('levels', { code: `eq.${code}`, select: '*', limit: 1 });
     if (existing && existing.length > 0) throw new Error('该关卡已存在于大厅中');
-    await supabasePost('levels', {
+    const result = await supabasePost('levels', {
       name: levelData.name || '未命名关卡',
       author: currentUser ? currentUser.username : '匿名',
       code: code,
       likes: 0,
       created_at: new Date().toISOString()
     });
+    // FIX: 分享成功后同步到本地
+    const newLevel = {
+      name: levelData.name || '未命名关卡',
+      code: code,
+      date: new Date().toLocaleString(),
+      shared: true,
+      level_id: result[0]?.id || null
+    };
+    // 检查本地是否已有相同编码的关卡
+    const existingLocal = localLevels.findIndex(l => l.code === code);
+    if (existingLocal >= 0) {
+      localLevels[existingLocal] = newLevel;
+    } else {
+      localLevels.push(newLevel);
+    }
+    saveLocalLevels();
     return true;
   } catch (e) { throw e; }
 }
@@ -2718,15 +2734,48 @@ async function renderPublicLevels(filter = '') {
   `}).join('');
 }
 
-function renderMyLevels(filter = '') {
+async function renderMyLevels(filter = '') {
   const container = document.getElementById('my-levels-list');
-  let displayLevels = localLevels;
-  let indices = localLevels.map((_, i) => i);
+
+  // FIX: 合并本地关卡和云端该用户的关卡
+  let allMyLevels = [...localLevels];
+
+  // 从云端获取当前用户分享的关卡
+  if (currentUser && currentUser.username) {
+    try {
+      const cloudLevels = await supabaseGet('levels', {
+        author: `eq.${currentUser.username}`,
+        select: '*',
+        order: 'created_at.desc'
+      });
+      // 合并云端关卡（去重：以 code 为准）
+      if (cloudLevels && cloudLevels.length > 0) {
+        const localCodes = new Set(localLevels.map(l => l.code));
+        for (const cl of cloudLevels) {
+          if (!localCodes.has(cl.code)) {
+            allMyLevels.push({
+              name: cl.name,
+              code: cl.code,
+              date: cl.created_at ? new Date(cl.created_at).toLocaleString() : '未知时间',
+              shared: true,
+              level_id: cl.id
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.error('获取云端关卡失败:', e);
+    }
+  }
+
+  let displayLevels = allMyLevels;
+  let indices = allMyLevels.map((_, i) => i);
+
   if (filter.trim()) {
     const keyword = filter.trim().toLowerCase();
     displayLevels = [];
     indices = [];
-    localLevels.forEach((l, i) => {
+    allMyLevels.forEach((l, i) => {
       if (l.name && l.name.toLowerCase().includes(keyword)) {
         displayLevels.push(l);
         indices.push(i);
@@ -2742,11 +2791,9 @@ function renderMyLevels(filter = '') {
   }
 
   container.innerHTML = displayLevels.map((l, idx) => {
-    // FIX: 改进传送门检测
     let hasPortal = false;
     try {
       const decoded = decodeLevel(l.code);
-      // FIX: 使用改进后的 levelHasPortal 函数
       hasPortal = levelHasPortal(decoded);
     } catch(e) { hasPortal = false; }
 
@@ -2755,10 +2802,12 @@ function renderMyLevels(filter = '') {
       warningHtml = `<div class="level-warning">&#9888; 警告：此关卡缺少传送门，无法通关！</div>`;
     }
 
+    const sharedBadge = l.shared ? ' <span style="color:#00F6FF;font-size:11px;font-weight:400;">[已分享]</span>' : '';
+
     return `
     <div class="level-card">
       <div class="level-info">
-        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
+        <h4>${l.name}${sharedBadge}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
         <p>${l.date || l.created_at ? new Date(l.date || l.created_at).toLocaleString() : '未知时间'}</p>
         ${warningHtml}
       </div>
@@ -2784,9 +2833,24 @@ window.copyLevelCode = async function(code) {
   alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
 };
 
-window.deleteMyLevel = function(idx) {
+window.deleteMyLevel = async function(idx) {
   if (confirm('确定删除这个关卡吗？')) {
-    localLevels.splice(idx, 1); saveLocalLevels();
+    const level = localLevels[idx];
+    // FIX: 如果关卡已分享到云端，同时删除云端记录
+    if (level && level.level_id) {
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${level.level_id}`, {
+          method: 'DELETE',
+          mode: 'cors',
+          credentials: 'omit',
+          headers: { apikey: SUPABASE_KEY }
+        });
+      } catch (e) {
+        console.error('删除云端关卡失败:', e);
+      }
+    }
+    localLevels.splice(idx, 1);
+    saveLocalLevels();
     renderMyLevels();
   }
 };
