@@ -102,7 +102,40 @@ html, body {
   font-size: 14px; color: #8D9390;
   letter-spacing: 4px; margin-bottom: 60px;
 }
+.dev-info {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(141,147,144,0.5);
+  cursor: pointer;
+  transition: color 0.3s;
+  letter-spacing: 2px;
+}
+.dev-info:hover {
+  color: #A0DAF7;
+}
 
+
+
+/* ===== 开发人员界面 ===== */
+#dev-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 105;
+  background: #121212;
+}
+#dev-screen .screen-title {
+  font-size: 28px; font-weight: 900;
+  letter-spacing: 6px; margin-bottom: 8px;
+  color: #FFFFFF;
+}
+#dev-screen .screen-subtitle {
+  font-size: 12px; color: #8D9390;
+  letter-spacing: 3px; margin-bottom: 40px;
+}
 
 /* ===== 关卡选择 ===== */
 #level-select-screen {
@@ -430,61 +463,8 @@ html, body {
   flex-wrap: wrap;
 }
 
-/* FIX v15: 折叠式工具栏 - 修复布局 */
+/* ===== 折叠按钮 ===== */
 .toolbar-fold-btn, .bottom-fold-btn {
-  display: none;
-  padding: 6px 10px;
-  background: #121212;
-  border: 1px solid #707070;
-  color: #8D9390;
-  cursor: pointer;
-  font-size: 12px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-.toolbar-fold-btn:hover, .bottom-fold-btn:hover {
-  color: #FFFFFF;
-  border-color: #A0DAF7;
-}
-
-/* 工具分组默认水平排列 */
-.tool-group-main, .tool-group-action, .tool-group-zoom,
-.bottom-group-name, .bottom-group-code, .bottom-group-share {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-/* 折叠状态 - 隐藏分组但保持布局 */
-.editor-toolbar.collapsed .tool-group-main,
-.editor-toolbar.collapsed .tool-group-action,
-.editor-toolbar.collapsed .tool-group-zoom {
-  display: none;
-}
-.editor-bottom.collapsed .bottom-group-code,
-.editor-bottom.collapsed .bottom-group-share {
-  display: none;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .editor-toolbar { padding: 8px; gap: 4px; }
-  .editor-toolbar .tool-btn { padding: 6px 10px; font-size: 12px; }
-  .editor-coords { font-size: 10px; padding: 0 6px; }
-  #level-name-input { width: 100px; font-size: 11px; }
-  #level-code-output { min-width: 120px; font-size: 11px; }
-}
-
-@media (max-width: 600px) {
-  .toolbar-fold-btn { display: flex; }
-  .bottom-fold-btn { display: flex; }
-  .editor-toolbar { flex-wrap: nowrap; }
-  .editor-bottom { flex-wrap: nowrap; }
-  /* 移动端移除画布边框节省空间 */
-  #editor-canvas { border: none; }
-}
-.bottom-fold-btn {
   display: none;
   padding: 6px 12px;
   background: #121212;
@@ -493,62 +473,31 @@ html, body {
   cursor: pointer;
   font-size: 12px;
   border-radius: 4px;
-  margin-left: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.bottom-fold-btn:hover { color: #FFFFFF; border-color: #A0DAF7; }
-
-.editor-bottom.folded .bottom-group-code,
-.editor-bottom.folded .bottom-group-share {
-  display: none;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .editor-toolbar { padding: 8px; gap: 4px; }
-  .editor-toolbar .tool-btn { padding: 6px 10px; font-size: 12px; }
-  .editor-coords { font-size: 10px; padding: 0 6px; }
-  #level-name-input { width: 100px; font-size: 11px; }
-  #level-code-output { min-width: 120px; font-size: 11px; }
+.toolbar-fold-btn:hover, .bottom-fold-btn:hover {
+  color: #FFFFFF;
+  border-color: #A0DAF7;
 }
 
-@media (max-width: 600px) {
-  .toolbar-fold-btn { display: inline-block; }
-  .bottom-fold-btn { display: inline-block; }
-  .editor-toolbar { flex-wrap: nowrap; }
-  .editor-toolbar .tool-group-main,
-  .editor-toolbar .tool-group-action,
-  .editor-toolbar .tool-group-zoom {
-    display: none;
-    width: 100%;
-    padding-top: 6px;
-    border-top: 1px solid #2a2a2a;
-    margin-top: 6px;
-  }
-  .editor-toolbar.expanded .tool-group-main,
-  .editor-toolbar.expanded .tool-group-action,
-  .editor-toolbar.expanded .tool-group-zoom {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .editor-bottom { flex-wrap: nowrap; }
-  .editor-bottom .bottom-group-code,
-  .editor-bottom .bottom-group-share {
-    display: none;
-    width: 100%;
-    padding-top: 6px;
-    border-top: 1px solid #2a2a2a;
-    margin-top: 6px;
-  }
-  .editor-bottom.expanded .bottom-group-code,
-  .editor-bottom.expanded .bottom-group-share {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-  }
+/* ===== 工具分组 ===== */
+.tool-group-main, .tool-group-action, .tool-group-zoom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
+/* ===== 底栏分组 ===== */
+.bottom-group-name, .bottom-group-code, .bottom-group-share, .bottom-group-import {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ===== 编码输出框 ===== */
 #level-code-output {
   flex: 1; background: #121212;
   border: 1px solid #707070; color: #B3F4A8;
@@ -558,6 +507,68 @@ html, body {
   min-width: 200px;
 }
 
+/* ===== 移动端适配 ===== */
+@media (max-width: 768px) {
+  .editor-toolbar { padding: 8px; gap: 4px; }
+  .editor-toolbar .tool-btn { padding: 6px 10px; font-size: 12px; }
+  .editor-coords { font-size: 10px; padding: 0 6px; }
+  #level-name-input { width: 100px; font-size: 11px; }
+  #level-code-output { min-width: 120px; font-size: 11px; }
+}
+
+@media (max-width: 600px) {
+  /* 显示折叠按钮 */
+  .toolbar-fold-btn { display: flex; }
+  .bottom-fold-btn { display: flex; }
+
+  /* 工具栏和底栏不换行 */
+  .editor-toolbar { flex-wrap: nowrap; }
+  .editor-bottom { flex-wrap: nowrap; }
+
+  /* 移除画布边框 */
+  #editor-canvas { border: none; }
+
+  /* 默认隐藏工具分组 */
+  .editor-toolbar .tool-group-main,
+  .editor-toolbar .tool-group-action,
+  .editor-toolbar .tool-group-zoom {
+    display: none;
+    width: 100%;
+    padding-top: 6px;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 6px;
+  }
+
+  /* 展开时显示工具分组 */
+  .editor-toolbar.expanded .tool-group-main,
+  .editor-toolbar.expanded .tool-group-action,
+  .editor-toolbar.expanded .tool-group-zoom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* 默认隐藏底栏分组 */
+  .editor-bottom .bottom-group-code,
+  .editor-bottom .bottom-group-share,
+  .editor-bottom .bottom-group-import {
+    display: none;
+    width: 100%;
+    padding-top: 6px;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 6px;
+  }
+
+  /* 展开时显示底栏分组 */
+  .editor-bottom.expanded .bottom-group-code,
+  .editor-bottom.expanded .bottom-group-share,
+  .editor-bottom.expanded .bottom-group-import {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+}
 /* ===== 游戏画布 ===== */
 #game-canvas {
   position: absolute; inset: 0;
@@ -785,9 +796,27 @@ html, body {
       <button class="btn btn-small" id="btn-editor">关卡编辑器</button>
       <button class="btn btn-small" id="btn-lobby">关卡大厅</button>
     </div>
+    <div class="dev-info" id="dev-info">开发人员</div>
   </div>
 
-  <!-- ========== 关卡选择界面 ========== -->
+    <!-- ========== 开发人员界面 ========== -->
+  <div id="dev-screen">
+    <button class="back-btn" id="btn-dev-back">&larr; 返回</button>
+    <div class="screen-title">开发人员</div>
+    <div class="screen-subtitle">DEVELOPERS</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:24px;margin-top:40px;">
+      <div style="background:#1a1a1a;border:1px solid #707070;border-radius:8px;padding:24px 40px;text-align:center;min-width:200px;">
+        <div style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:4px;margin-bottom:8px;">lty</div>
+        <div style="font-size:12px;color:#8D9390;letter-spacing:2px;">核心开发</div>
+      </div>
+      <div style="background:#1a1a1a;border:1px solid #707070;border-radius:8px;padding:24px 40px;text-align:center;min-width:200px;">
+        <div style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:4px;margin-bottom:8px;">kimi</div>
+        <div style="font-size:12px;color:#8D9390;letter-spacing:2px;">AI 辅助开发</div>
+      </div>
+    </div>
+  </div>
+
+<!-- ========== 关卡选择界面 ========== -->
   <div id="level-select-screen">
     <button class="back-btn" id="btn-level-back">&larr; 返回</button>
     <div class="screen-title">选择关卡</div>
@@ -909,7 +938,13 @@ html, body {
         <textarea id="level-code-output" rows="2" readonly placeholder="点击生成编码..."></textarea>
         <button class="btn btn-small" id="btn-copy-code">复制</button>
       </div>
-      <div class="bottom-group-share">
+            <div class="bottom-group-import">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <span style="font-size:12px;color:#8D9390;">导入:</span>
+        <input type="text" id="level-code-input" placeholder="粘贴已有编码..." style="background:#121212;border:1px solid #707070;color:#fff;padding:6px 10px;font-size:12px;width:160px;border-radius:4px;outline:none;">
+        <button class="btn btn-small" id="btn-import-code">导入</button>
+      </div>
+<div class="bottom-group-share">
         <button class="btn btn-small" id="btn-share-level">分享到大厅</button>
       </div>
     </div>
@@ -1891,11 +1926,11 @@ function updateEditorLayout() {
   const isMobile = window.innerWidth <= 600;
 
   if (isMobile) {
-    toolbar.classList.add('collapsed');
-    bottom.classList.add('collapsed');
+    toolbar.classList.remove('expanded');
+    bottom.classList.remove('expanded');
   } else {
-    toolbar.classList.remove('collapsed');
-    bottom.classList.remove('collapsed');
+    toolbar.classList.add('expanded');
+    bottom.classList.add('expanded');
   }
 }
 
@@ -1908,12 +1943,12 @@ window.addEventListener('resize', updateEditorLayout);
 // 折叠按钮点击事件
 document.getElementById('btn-toolbar-fold').addEventListener('click', () => {
   const toolbar = document.getElementById('editor-toolbar');
-  toolbar.classList.toggle('collapsed');
+  toolbar.classList.toggle('expanded');
 });
 
 document.getElementById('btn-bottom-fold').addEventListener('click', () => {
   const bottom = document.getElementById('editor-bottom');
-  bottom.classList.toggle('collapsed');
+  bottom.classList.toggle('expanded');
 });
 // ==================== 输入处理 ====================
 document.addEventListener('keydown', e => {
@@ -2330,7 +2365,7 @@ async function getSharedLevels() {
 
 // ==================== 界面切换 ====================
 function showScreen(id) {
-  ['start-screen', 'auth-screen', 'lobby-screen', 'editor-screen', 'level-select-screen'].forEach(sid => {
+  ['start-screen', 'auth-screen', 'lobby-screen', 'editor-screen', 'level-select-screen', 'dev-screen'].forEach(sid => {
     let el = document.getElementById(sid);
     if (el) el.style.display = sid === id ? 'flex' : 'none';
   });
@@ -2529,7 +2564,7 @@ async function renderPublicLevels(filter = '') {
     return `
     <div class="level-card">
       <div class="level-info">
-        <h4>${l.name}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
+        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
         <p>作者: ${l.author} | ${l.created_at ? new Date(l.created_at).toLocaleString() : '未知时间'}</p>
         ${warningHtml}
       </div>
@@ -2581,7 +2616,7 @@ function renderMyLevels(filter = '') {
     return `
     <div class="level-card">
       <div class="level-info">
-        <h4>${l.name}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
+        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
         <p>${l.date || l.created_at ? new Date(l.date || l.created_at).toLocaleString() : '未知时间'}</p>
         ${warningHtml}
       </div>
@@ -2750,6 +2785,64 @@ setTimeout(() => {
     else console.warn('Supabase 连接异常:', result.error);
   });
 }, 1000);
+
+// ==================== 开发人员界面 ====================
+document.getElementById('dev-info').addEventListener('click', () => {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('dev-screen').style.display = 'flex';
+});
+
+document.getElementById('btn-dev-back').addEventListener('click', () => {
+  document.getElementById('dev-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'flex';
+});
+
+// ==================== 编辑器导入编码 ====================
+document.getElementById('btn-import-code').addEventListener('click', () => {
+  const code = document.getElementById('level-code-input').value.trim();
+  if (!code) { alert('请输入关卡编码'); return; }
+  const level = decodeLevel(code);
+  if (!level) { alert('关卡编码无效，请检查输入'); return; }
+
+  editorCells.clear();
+  editorTestWon = false;
+
+  const nameInput = document.getElementById('level-name-input');
+  if (nameInput) nameInput.value = level.name || '';
+
+  const ox = level.spawn ? level.spawn.x : 0;
+  const oy = level.spawn ? level.spawn.y : 0;
+  editorSpawn = { x: ox, y: oy };
+
+  for (let l of level.lands || []) {
+    for (let dy = 0; dy < l.h; dy++) {
+      for (let dx = 0; dx < l.w; dx++) {
+        const gx = l.x + dx + ox;
+        const gy = l.y + dy + oy;
+        editorCells.set(gx + ',' + gy, TILE_LAND);
+      }
+    }
+  }
+
+  for (let s of level.spikes || []) {
+    const gx = s.x + ox;
+    const gy = s.y + oy;
+    editorCells.set(gx + ',' + gy, TILE_SPIKE);
+  }
+
+  if (level.portal) {
+    const px = level.portal.x + ox;
+    const py = level.portal.y + oy;
+    editorCells.set(px + ',' + py, TILE_PORTAL);
+    editorPortal = { x: px, y: py };
+  }
+
+  editorCells.set(ox + ',' + oy, TILE_SPAWN);
+
+  renderEditor();
+  document.getElementById('level-code-input').value = '';
+  alert('关卡已导入到编辑器');
+});
 
 initStorage();
 
