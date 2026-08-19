@@ -103,6 +103,7 @@ html, body {
   letter-spacing: 4px; margin-bottom: 60px;
 }
 
+
 /* ===== 关卡选择 ===== */
 #level-select-screen {
   position: absolute; inset: 0;
@@ -371,6 +372,8 @@ html, body {
   z-index: 80;
   background: #121212;
 }
+
+/* ===== 编辑器折叠式工具栏（移动端） ===== */
 .editor-toolbar {
   display: flex; gap: 6px; padding: 10px;
   background: #1a1a1a;
@@ -422,6 +425,126 @@ html, body {
   display: flex; gap: 10px; align-items: center;
   flex-wrap: wrap;
 }
+
+/* FIX v15: 折叠式工具栏 - 修复布局 */
+.toolbar-fold-btn, .bottom-fold-btn {
+  display: none;
+  padding: 6px 10px;
+  background: #121212;
+  border: 1px solid #707070;
+  color: #8D9390;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.toolbar-fold-btn:hover, .bottom-fold-btn:hover {
+  color: #FFFFFF;
+  border-color: #A0DAF7;
+}
+
+/* 工具分组默认水平排列 */
+.tool-group-main, .tool-group-action, .tool-group-zoom,
+.bottom-group-name, .bottom-group-code, .bottom-group-share {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* 折叠状态 - 隐藏分组但保持布局 */
+.editor-toolbar.collapsed .tool-group-main,
+.editor-toolbar.collapsed .tool-group-action,
+.editor-toolbar.collapsed .tool-group-zoom {
+  display: none;
+}
+.editor-bottom.collapsed .bottom-group-code,
+.editor-bottom.collapsed .bottom-group-share {
+  display: none;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .editor-toolbar { padding: 8px; gap: 4px; }
+  .editor-toolbar .tool-btn { padding: 6px 10px; font-size: 12px; }
+  .editor-coords { font-size: 10px; padding: 0 6px; }
+  #level-name-input { width: 100px; font-size: 11px; }
+  #level-code-output { min-width: 120px; font-size: 11px; }
+}
+
+@media (max-width: 600px) {
+  .toolbar-fold-btn { display: flex; }
+  .bottom-fold-btn { display: flex; }
+  .editor-toolbar { flex-wrap: nowrap; }
+  .editor-bottom { flex-wrap: nowrap; }
+  /* 移动端移除画布边框节省空间 */
+  #editor-canvas { border: none; }
+}
+.bottom-fold-btn {
+  display: none;
+  padding: 6px 12px;
+  background: #121212;
+  border: 1px solid #707070;
+  color: #8D9390;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+.bottom-fold-btn:hover { color: #FFFFFF; border-color: #A0DAF7; }
+
+.editor-bottom.folded .bottom-group-code,
+.editor-bottom.folded .bottom-group-share {
+  display: none;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .editor-toolbar { padding: 8px; gap: 4px; }
+  .editor-toolbar .tool-btn { padding: 6px 10px; font-size: 12px; }
+  .editor-coords { font-size: 10px; padding: 0 6px; }
+  #level-name-input { width: 100px; font-size: 11px; }
+  #level-code-output { min-width: 120px; font-size: 11px; }
+}
+
+@media (max-width: 600px) {
+  .toolbar-fold-btn { display: inline-block; }
+  .bottom-fold-btn { display: inline-block; }
+  .editor-toolbar { flex-wrap: nowrap; }
+  .editor-toolbar .tool-group-main,
+  .editor-toolbar .tool-group-action,
+  .editor-toolbar .tool-group-zoom {
+    display: none;
+    width: 100%;
+    padding-top: 6px;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 6px;
+  }
+  .editor-toolbar.expanded .tool-group-main,
+  .editor-toolbar.expanded .tool-group-action,
+  .editor-toolbar.expanded .tool-group-zoom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .editor-bottom { flex-wrap: nowrap; }
+  .editor-bottom .bottom-group-code,
+  .editor-bottom .bottom-group-share {
+    display: none;
+    width: 100%;
+    padding-top: 6px;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 6px;
+  }
+  .editor-bottom.expanded .bottom-group-code,
+  .editor-bottom.expanded .bottom-group-share {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+}
+
 #level-code-output {
   flex: 1; background: #121212;
   border: 1px solid #707070; color: #B3F4A8;
@@ -744,33 +867,47 @@ html, body {
 
   <!-- ========== 关卡编辑器 ========== -->
   <div id="editor-screen">
-    <div class="editor-toolbar">
-      <div class="tool-btn active" data-tool="land">陆地</div>
-      <div class="tool-btn" data-tool="spike">尖刺</div>
-      <div class="tool-btn" data-tool="portal">传送门</div>
-      <div class="tool-btn" data-tool="spawn">出生点</div>
-      <div class="tool-btn" data-tool="eraser">橡皮擦</div>
-      <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
-      <div class="tool-btn" id="btn-editor-test">测试</div>
-      <div class="tool-btn" id="btn-editor-save">生成编码</div>
-      <div class="tool-btn" id="btn-editor-clear">清空</div>
-      <div class="tool-btn" id="btn-editor-back">返回</div>
-      <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
-      <div class="tool-btn" id="btn-zoom-out">&minus;</div>
-      <div class="tool-btn" id="btn-zoom-in">+</div>
+    <div class="editor-toolbar" id="editor-toolbar">
+      <div class="toolbar-fold-btn" id="btn-toolbar-fold">&#9776; 工具</div>
+      <div class="tool-group-main">
+        <div class="tool-btn active" data-tool="land">陆地</div>
+        <div class="tool-btn" data-tool="spike">尖刺</div>
+        <div class="tool-btn" data-tool="portal">传送门</div>
+        <div class="tool-btn" data-tool="spawn">出生点</div>
+        <div class="tool-btn" data-tool="eraser">橡皮擦</div>
+      </div>
+      <div class="tool-group-action">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <div class="tool-btn" id="btn-editor-test">测试</div>
+        <div class="tool-btn" id="btn-editor-save">生成编码</div>
+        <div class="tool-btn" id="btn-editor-clear">清空</div>
+        <div class="tool-btn" id="btn-editor-back">返回</div>
+      </div>
+      <div class="tool-group-zoom">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <div class="tool-btn" id="btn-zoom-out">&minus;</div>
+        <div class="tool-btn" id="btn-zoom-in">+</div>
+      </div>
       <div class="editor-coords" id="editor-coords">X:0 Y:0 | 100%</div>
     </div>
     <div class="editor-canvas-wrap">
       <canvas id="editor-canvas" width="800" height="600"></canvas>
     </div>
-    <div class="editor-bottom">
-      <span style="font-size:12px;color:#8D9390;">关卡名:</span>
-      <input type="text" id="level-name-input" placeholder="输入关卡名称..." style="background:#121212;border:1px solid #707070;color:#fff;padding:6px 10px;font-size:12px;width:140px;border-radius:4px;outline:none;">
-      <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
-      <span style="font-size:12px;color:#8D9390;">编码:</span>
-      <textarea id="level-code-output" rows="2" readonly placeholder="点击生成编码..."></textarea>
-      <button class="btn btn-small" id="btn-copy-code">复制</button>
-      <button class="btn btn-small" id="btn-share-level">分享到大厅</button>
+    <div class="editor-bottom" id="editor-bottom">
+      <div class="bottom-fold-btn" id="btn-bottom-fold">&#9776; 编码</div>
+      <div class="bottom-group-name">
+        <span style="font-size:12px;color:#8D9390;">关卡名:</span>
+        <input type="text" id="level-name-input" placeholder="输入关卡名称..." style="background:#121212;border:1px solid #707070;color:#fff;padding:6px 10px;font-size:12px;width:140px;border-radius:4px;outline:none;">
+      </div>
+      <div class="bottom-group-code">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <span style="font-size:12px;color:#8D9390;">编码:</span>
+        <textarea id="level-code-output" rows="2" readonly placeholder="点击生成编码..."></textarea>
+        <button class="btn btn-small" id="btn-copy-code">复制</button>
+      </div>
+      <div class="bottom-group-share">
+        <button class="btn btn-small" id="btn-share-level">分享到大厅</button>
+      </div>
     </div>
   </div>
 
@@ -1742,6 +1879,38 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown') { editorViewY += panSpeed; updateEditorCoords(); renderEditor(); }
 });
 
+
+// FIX v14: 编辑器折叠功能 - 实时响应屏幕宽度
+function updateEditorLayout() {
+  const toolbar = document.getElementById('editor-toolbar');
+  const bottom = document.getElementById('editor-bottom');
+  const isMobile = window.innerWidth <= 600;
+
+  if (isMobile) {
+    toolbar.classList.add('collapsed');
+    bottom.classList.add('collapsed');
+  } else {
+    toolbar.classList.remove('collapsed');
+    bottom.classList.remove('collapsed');
+  }
+}
+
+// 初始检测
+updateEditorLayout();
+
+// 实时响应窗口大小变化
+window.addEventListener('resize', updateEditorLayout);
+
+// 折叠按钮点击事件
+document.getElementById('btn-toolbar-fold').addEventListener('click', () => {
+  const toolbar = document.getElementById('editor-toolbar');
+  toolbar.classList.toggle('collapsed');
+});
+
+document.getElementById('btn-bottom-fold').addEventListener('click', () => {
+  const bottom = document.getElementById('editor-bottom');
+  bottom.classList.toggle('collapsed');
+});
 // ==================== 输入处理 ====================
 document.addEventListener('keydown', e => {
   keys[e.key] = true;
@@ -2440,6 +2609,26 @@ window.deleteMyLevel = function(idx) {
     renderMyLevels();
   }
 };
+// ==================== 大厅标签切换 ====================
+document.querySelectorAll('.lobby-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.lobby-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    document.getElementById('lobby-public').classList.toggle('hidden', target !== 'public');
+    document.getElementById('lobby-my').classList.toggle('hidden', target !== 'my');
+    document.getElementById('lobby-upload').classList.toggle('hidden', target !== 'upload');
+  });
+});
+
+document.getElementById('btn-upload-play').addEventListener('click', () => {
+  const code = document.getElementById('upload-code-input').value.trim();
+  if (!code) { alert('请输入关卡编码'); return; }
+  const level = decodeLevel(code);
+  if (level) { loadCustomLevel(level); startGame(); document.getElementById('upload-code-input').value = ''; }
+  else { alert('关卡编码无效，请检查输入'); }
+});
+
 // ==================== 搜索功能 ====================
 document.getElementById('btn-public-search').addEventListener('click', () => {
   renderPublicLevels(document.getElementById('public-search-input').value);
@@ -2463,6 +2652,23 @@ document.getElementById('btn-lobby-logout').addEventListener('click', () => {
   currentUser = null; localStorage.removeItem('bwjump_user');
   updateUserDisplay(); showScreen('start-screen');
 });
+async function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  }
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(textarea);
+  return ok;
+}
+
 // FIX v11: 分享至大厅时自动测试，通关后自动分享
 let shareAfterTest = false;
 
