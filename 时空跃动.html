@@ -1110,6 +1110,15 @@ async function checkSupabaseHealth() {
   }
 }
 
+// ==================== 密码哈希 ====================
+async function sha256(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ==================== 核心引擎 ====================
 const GRID_SIZE = 32;
 const TILE_LAND = 1;
@@ -1339,28 +1348,36 @@ function updatePhysics() {
     player.won = true;
     if (isEditorTest) editorTestWon = true;
     spawnParticles(player.x + player.w/2, player.y + player.h/2, '#F4F9A7', 30);
-    setTimeout(() => {
-      const nextBtn = document.getElementById('btn-next-level');
-      const backBtn = document.getElementById('btn-back-menu');
-      if (isEditorTest) {
-        nextBtn.textContent = '再测一次';
-        backBtn.textContent = '返回编辑器';
-        nextBtn.style.display = 'inline-block';
-      } else if (isFromLobby) {
-        nextBtn.textContent = '再玩一次';
-        backBtn.textContent = '返回大厅';
-        nextBtn.style.display = 'inline-block';
-      } else if (isCustomLevel || currentLevelIdx >= BUILTIN_LEVELS.length - 1) {
-        // FIX v12: 最后一关或自定义关卡，只显示返回按钮
-        nextBtn.style.display = 'none';
-        backBtn.textContent = '返回菜单';
-      } else {
-        nextBtn.textContent = '下一关';
-        backBtn.textContent = '返回菜单';
-        nextBtn.style.display = 'inline-block';
-      }
-      document.getElementById('win-modal').style.display = 'flex';
-    }, 500);
+
+    // FIX: 如果是分享测试流程，直接调用分享，不显示弹窗
+    if (isEditorTest && shareAfterTest) {
+      setTimeout(() => {
+        document.getElementById('win-modal').style.display = 'none';
+        doShareLevel();
+      }, 800);
+    } else {
+      setTimeout(() => {
+        const nextBtn = document.getElementById('btn-next-level');
+        const backBtn = document.getElementById('btn-back-menu');
+        if (isEditorTest) {
+          nextBtn.textContent = '再测一次';
+          backBtn.textContent = '返回编辑器';
+          nextBtn.style.display = 'inline-block';
+        } else if (isFromLobby) {
+          nextBtn.textContent = '再玩一次';
+          backBtn.textContent = '返回大厅';
+          nextBtn.style.display = 'inline-block';
+        } else if (isCustomLevel || currentLevelIdx >= BUILTIN_LEVELS.length - 1) {
+          nextBtn.style.display = 'none';
+          backBtn.textContent = '返回菜单';
+        } else {
+          nextBtn.textContent = '下一关';
+          backBtn.textContent = '返回菜单';
+          nextBtn.style.display = 'inline-block';
+        }
+        document.getElementById('win-modal').style.display = 'flex';
+      }, 500);
+    }
   }
 
   // Death boundary: 5 tiles below the lowest tile in the level
@@ -2389,8 +2406,17 @@ let publicLevelsCache = [];
 function initStorage() {
   let saved = localStorage.getItem('bwjump_levels');
   if (saved) { try { localLevels = JSON.parse(saved); } catch(e) {} }
+
+  // FIX: 一次性清除旧版本本地登录状态（仅执行一次）
+  if (!localStorage.getItem('bwjump_v6_migrated')) {
+    localStorage.removeItem('bwjump_user');
+    localStorage.removeItem('bwjump_users');
+    localStorage.setItem('bwjump_v6_migrated', 'true');
+  }
+
+  // 恢复云端登录状态
   let user = localStorage.getItem('bwjump_user');
-  if (user) { currentUser = JSON.parse(user); updateUserDisplay(); }
+  if (user) { try { currentUser = JSON.parse(user); updateUserDisplay(); } catch(e) {} }
 }
 
 function saveLocalLevels() { localStorage.setItem('bwjump_levels', JSON.stringify(localLevels)); }
@@ -2400,21 +2426,54 @@ function updateUserDisplay() {
   el.textContent = currentUser ? '用户: ' + currentUser.username : '未登录';
 }
 
-function mockAuth(username, password, isRegister) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      let users = JSON.parse(localStorage.getItem('bwjump_users') || '[]');
-      if (isRegister) {
-        if (users.find(u => u.username === username)) { reject('用户名已存在'); return; }
-        let user = {username, password, id: Date.now()};
-        users.push(user); localStorage.setItem('bwjump_users', JSON.stringify(users));
-        resolve(user);
-      } else {
-        let user = users.find(u => u.username === username && u.password === password);
-        if (user) resolve(user); else reject('用户名或密码错误');
-      }
-    }, 300);
-  });
+async function cloudAuth(username, password, isRegister) {
+  const passwordHash = await sha256(password);
+
+  if (isRegister) {
+    // 检查用户名是否已存在
+    const existing = await supabaseGet('users', { 
+      username: `eq.${username}`, 
+      select: 'id',
+      limit: 1 
+    });
+    if (existing && existing.length > 0) {
+      throw new Error('用户名已存在');
+    }
+
+    // 创建新用户
+    const result = await supabasePost('users', {
+      username,
+      password_hash: passwordHash
+    });
+
+    const newUser = { username, id: result[0]?.id || Date.now() };
+    // FIX: 注册成功后保存本地登录状态
+    currentUser = newUser;
+    localStorage.setItem('bwjump_user', JSON.stringify(newUser));
+    return newUser;
+  } else {
+    // 登录验证
+    const users = await supabaseGet('users', { 
+      username: `eq.${username}`, 
+      select: '*',
+      limit: 1 
+    });
+
+    if (!users || users.length === 0) {
+      throw new Error('用户名或密码错误');
+    }
+
+    const user = users[0];
+    if (user.password_hash !== passwordHash) {
+      throw new Error('用户名或密码错误');
+    }
+
+    const loginUser = { username: user.username, id: user.id };
+    // FIX: 登录成功后保存本地登录状态
+    currentUser = loginUser;
+    localStorage.setItem('bwjump_user', JSON.stringify(loginUser));
+    return loginUser;
+  }
 }
 
 async function shareLevelToLobby(levelData, code) {
@@ -2582,17 +2641,22 @@ document.getElementById('auth-switch').addEventListener('click', () => {
   document.getElementById('auth-msg').textContent = '';
 });
 
-document.getElementById('btn-auth-submit').addEventListener('click', () => {
+document.getElementById('btn-auth-submit').addEventListener('click', async () => {
   const username = document.getElementById('auth-username').value.trim();
   const password = document.getElementById('auth-password').value;
   if (!username || !password) { document.getElementById('auth-msg').textContent = '请填写用户名和密码'; return; }
-  mockAuth(username, password, authMode === 'register').then(user => {
-    currentUser = user; localStorage.setItem('bwjump_user', JSON.stringify(user));
+
+  document.getElementById('auth-msg').textContent = '处理中...';
+  try {
+    // cloudAuth 内部已处理 currentUser 和 localStorage
+    await cloudAuth(username, password, authMode === 'register');
     updateUserDisplay(); showScreen('lobby-screen'); refreshLobby();
     document.getElementById('auth-username').value = '';
     document.getElementById('auth-password').value = '';
     document.getElementById('auth-msg').textContent = '';
-  }).catch(err => { document.getElementById('auth-msg').textContent = err; });
+  } catch (err) {
+    document.getElementById('auth-msg').textContent = err.message || '操作失败';
+  }
 });
 
 document.getElementById('btn-auth-back').addEventListener('click', () => { showScreen('start-screen'); });
