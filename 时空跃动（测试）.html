@@ -658,10 +658,31 @@ let supabaseClient = null;
 function getSupabase() {
   if (!supabaseClient) {
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false }
+      auth: { 
+        persistSession: false, 
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
     });
   }
   return supabaseClient;
+}
+
+// 健康检查：测试 Supabase 连接
+async function checkSupabaseHealth() {
+  try {
+    const sb = getSupabase();
+    const { data, error } = await sb.from('levels').select('id').limit(1);
+    if (error) {
+      console.error('Supabase 健康检查失败:', error);
+      return { ok: false, error: error.message, code: error.code };
+    }
+    console.log('Supabase 健康检查通过:', data);
+    return { ok: true, data };
+  } catch (e) {
+    console.error('Supabase 健康检查异常:', e);
+    return { ok: false, error: e.message };
+  }
 }
 
 async function supabaseGet(table, params) {
@@ -2102,7 +2123,7 @@ function mockAuth(username, password, isRegister) {
 
 async function shareLevelToLobby(levelData, code) {
   try {
-    const existing = await supabaseGet('levels', { code: `eq.${code}`, select: 'id', limit: 1 });
+    const existing = await supabaseGet('levels', { code: `eq.${code}`, select: '*', limit: 1 });
     if (existing && existing.length > 0) {
       throw new Error('该关卡已存在于大厅中');
     }
@@ -2110,7 +2131,8 @@ async function shareLevelToLobby(levelData, code) {
       name: levelData.name || '未命名关卡',
       author: currentUser ? currentUser.username : '匿名',
       code: code,
-      likes: 0
+      likes: 0,
+      created_at: new Date().toISOString()
     });
     return true;
   } catch (e) {
@@ -2344,7 +2366,7 @@ async function renderPublicLevels() {
   }
   container.innerHTML = levels.map(l => `
     <div class="level-card">
-      <div class="level-info"><h4>${l.name}</h4><p>作者: ${l.author} | ${l.date}</p></div>
+      <div class="level-info"><h4>${l.name}</h4><p>作者: ${l.author} | ${l.created_at ? new Date(l.created_at).toLocaleString() : '未知时间'}</p></div>
       <div class="level-actions">
         <button class="btn" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
         <button class="btn" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
@@ -2361,7 +2383,7 @@ function renderMyLevels() {
   }
   container.innerHTML = localLevels.map((l, i) => `
     <div class="level-card">
-      <div class="level-info"><h4>${l.name}</h4><p>${l.date}</p></div>
+      <div class="level-info"><h4>${l.name}</h4><p>${l.date || l.created_at ? new Date(l.date || l.created_at).toLocaleString() : '未知时间'}</p></div>
       <div class="level-actions">
         <button class="btn" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
         <button class="btn" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
@@ -2446,6 +2468,17 @@ document.getElementById('btn-share-close').addEventListener('click', () => {
 });
 
 // ==================== 初始化 ====================
+// Supabase 健康检查
+if (typeof checkSupabaseHealth === 'function') {
+  checkSupabaseHealth().then(result => {
+    if (result.ok) {
+      console.log('✅ Supabase 连接正常');
+    } else {
+      console.warn('⚠️ Supabase 连接异常:', result.error, result.code || '');
+    }
+  });
+}
+
 initStorage();
 
 // 初始渲染一帧
