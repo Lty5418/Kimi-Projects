@@ -1363,30 +1363,56 @@ function movePlayer(dx, dy) {
           }
         }
       } else if (tile === TILE_SPIKE) {
-        // FIX v7: 三角形碰撞检测，检测玩家矩形的四个顶点是否在三角形内
+        // FIX v16: 矩形与三角形相交检测，修复中心对称时无法触发的问题
         let tileX = gx * GRID_SIZE;
         let tileY = gy * GRID_SIZE;
         // 三角形三个顶点（尖刺朝上）
         let ax = tileX + GRID_SIZE/2, ay = tileY + 4;
         let bx = tileX + GRID_SIZE - 4, by = tileY + GRID_SIZE - 4;
         let cx = tileX + 4, cy = tileY + GRID_SIZE - 4;
-        // 检测玩家矩形的四个顶点是否在三角形内
+
+        // 玩家矩形
+        let px = player.x, py = player.y;
+        let pw = player.w, ph = player.h;
+
+        // 方法1: 检测玩家矩形的四个顶点是否在三角形内
         let points = [
-          {x: player.x, y: player.y},
-          {x: player.x + player.w, y: player.y},
-          {x: player.x, y: player.y + player.h},
-          {x: player.x + player.w, y: player.y + player.h}
+          {x: px, y: py},
+          {x: px + pw, y: py},
+          {x: px, y: py + ph},
+          {x: px + pw, y: py + ph}
         ];
         let denom = (by - cy)*(ax - cx) + (cx - bx)*(ay - cy);
+        let hit = false;
         for (let pt of points) {
           let a = ((by - cy)*(pt.x - cx) + (cx - bx)*(pt.y - cy)) / denom;
           let b = ((cy - ay)*(pt.x - cx) + (ax - cx)*(pt.y - cy)) / denom;
           let c = 1 - a - b;
           if (a >= 0 && b >= 0 && c >= 0) {
-            playerDies();
-            break;
+            hit = true; break;
           }
         }
+
+        // 方法2: 检测三角形顶点是否在玩家矩形内（处理中心对称情况）
+        if (!hit) {
+          let triPoints = [{x: ax, y: ay}, {x: bx, y: by}, {x: cx, y: cy}];
+          for (let pt of triPoints) {
+            if (pt.x >= px && pt.x <= px + pw && pt.y >= py && pt.y <= py + ph) {
+              hit = true; break;
+            }
+          }
+        }
+
+        // 方法3: 检测矩形中心是否在三角形内（兜底）
+        if (!hit) {
+          let cx2 = px + pw/2, cy2 = py + ph/2;
+          let a = ((by - cy)*(cx2 - cx) + (cx - bx)*(cy2 - cy)) / denom;
+          let b = ((cy - ay)*(cx2 - cx) + (ax - cx)*(cy2 - cy)) / denom;
+          let c = 1 - a - b;
+          if (a >= 0 && b >= 0 && c >= 0) hit = true;
+        }
+
+        if (hit) playerDies();
       }
     }
   }
@@ -2097,9 +2123,9 @@ function encodeLevel() {
   // 格式: '5.prx.pry.name.landStr.spikeStr'
   // 如果无传送门，prx/pry 为空字符串
   if (hasPortal) {
-    return ['5', prx, pry, levelName, landCoords.join(''), spikeCoords.join('')].join('.');
+    return ['6', prx, pry, levelName, landCoords.join(''), spikeCoords.join('')].join('.');
   } else {
-    return ['5', '', '', levelName, landCoords.join(''), spikeCoords.join('')].join('.');
+    return ['6', '', '', levelName, landCoords.join(''), spikeCoords.join('')].join('.');
   }
 }
 
@@ -2175,7 +2201,7 @@ function decodeLevel(code) {
       };
     }
 
-    if (ver === '5') {
+    if (ver === '5' || ver === '6') {
       // FIX: v5 格式: '5.prx.pry.name.landStr.spikeStr'
       // prx/pry 可能为空字符串表示无传送门
       let hasPortal = parts[1] !== '' && parts[2] !== '';
@@ -2564,7 +2590,7 @@ async function renderPublicLevels(filter = '') {
     return `
     <div class="level-card">
       <div class="level-info">
-        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
+        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
         <p>作者: ${l.author} | ${l.created_at ? new Date(l.created_at).toLocaleString() : '未知时间'}</p>
         ${warningHtml}
       </div>
@@ -2616,7 +2642,7 @@ function renderMyLevels(filter = '') {
     return `
     <div class="level-card">
       <div class="level-info">
-        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
+        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
         <p>${l.date || l.created_at ? new Date(l.date || l.created_at).toLocaleString() : '未知时间'}</p>
         ${warningHtml}
       </div>
