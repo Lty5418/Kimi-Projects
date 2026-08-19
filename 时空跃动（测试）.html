@@ -482,7 +482,8 @@ html, body {
 ::-webkit-scrollbar-track { background: #121212; }
 ::-webkit-scrollbar-thumb { background: #707070; border-radius: 3px; }
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div id="game-container">
@@ -650,9 +651,9 @@ html, body {
 
 // ==================== Supabase 客户端 ====================
 const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmd2trZXh2YnhwYnR4bnJnenFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNDk1MjgsImV4cCI6MjEwMjYyNTUyOH0.NcZR4y0a79djJYzaerIzRCZZiFdjLxUa2iaeHHnNHSQ';
+const SUPABASE_KEY = 'sb_publishable_K1m62ACFX6tf6DpH6vO8Xw_z0BXtkRV';
 
-// 使用 Supabase 官方客户端（自动处理 CORS、认证、重试）
+// 使用 Supabase 官方客户端（推荐方式）
 let supabaseClient = null;
 function getSupabase() {
   if (!supabaseClient) {
