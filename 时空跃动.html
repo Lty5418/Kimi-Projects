@@ -482,6 +482,8 @@ html, body {
 ::-webkit-scrollbar-track { background: #121212; }
 ::-webkit-scrollbar-thumb { background: #707070; border-radius: 3px; }
 </style>
+
+  
 </head>
 <body>
 <div id="game-container">
@@ -646,6 +648,69 @@ html, body {
 </div>
 
 <script>
+
+// ==================== Supabase 客户端 ====================
+const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_K1m62ACFX6tf6DpH6vO8Xw_z0BXtkRV';
+
+// 使用原生 fetch 调用 Supabase REST API（publishable key 只用 apikey header）
+function buildRestUrl(table, params) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  if (!params) return url;
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    url.searchParams.set(k, String(v));
+  });
+  return url;
+}
+
+async function supabaseGet(table, params = {}) {
+  const url = buildRestUrl(table, params);
+  const res = await fetch(url, {
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'omit',
+    headers: { apikey: SUPABASE_KEY }
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`GET ${table}: ${res.status} ${errText}`);
+  }
+  return res.json();
+}
+
+async function supabasePost(table, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'omit',
+    headers: {
+      apikey: SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`POST ${table}: ${res.status} ${errText}`);
+  }
+  if (res.status === 204) return [];
+  return res.json().catch(() => []);
+}
+
+// 健康检查：测试 Supabase 连接
+async function checkSupabaseHealth() {
+  try {
+    const data = await supabaseGet('levels', { select: 'id', limit: 1 });
+    console.log('✅ Supabase 连接正常');
+    return { ok: true, data };
+  } catch (e) {
+    console.warn('⚠️ Supabase 连接异常:', e.message);
+    return { ok: false, error: e.message };
+  }
+}
+
 // ==================== 时空跃动 - 核心引擎 ====================
 
 const GRID_SIZE = 32;
@@ -739,8 +804,8 @@ let gameState = 'start';
 let currentLevelIdx = 0;
 let currentLevel = null;
 let isCustomLevel = false;
-let isEditorTest = false;  // 是否从编辑器测试进入
-let isFromLobby = false;   // 是否从大厅进入
+let isEditorTest = false;
+let isFromLobby = false;  // 是否从编辑器测试进入
 
 // ==================== Canvas & Context ====================
 const canvas = document.getElementById('game-canvas');
@@ -1170,23 +1235,23 @@ function initJoystick() {
   let centerX = 0, centerY = 0;
 
   function onStart(clientX, clientY, id) {
-    // 只响应屏幕左半边的触摸（避免与右半边跳跃按钮冲突）
-    if (clientX > window.innerWidth / 2) return false;
+    if (joystickTouchId !== null) return;
+    if (clientX > window.innerWidth / 2) return;
     const rect = zone.getBoundingClientRect();
     centerX = rect.left + rect.width / 2;
     centerY = rect.top + rect.height / 2;
     joystickTouchId = id;
     update(clientX, clientY);
-    return true;
   }
 
-  function onMove(clientX, clientY, id) {
-    if (joystickTouchId !== id) return;
+  function onMove(clientX, clientY) {
+    if (joystickTouchId === null) return;
+    if (clientX > window.innerWidth / 2) return;
     update(clientX, clientY);
   }
 
-  function onEnd(id) {
-    if (joystickTouchId !== id) return;
+  function onEnd() {
+    if (joystickTouchId === null) return;
     joystickTouchId = null;
     joystick.active = false;
     joystick.dx = 0;
@@ -1223,28 +1288,32 @@ function initJoystick() {
 
   zone.addEventListener('touchstart', e => {
     e.preventDefault();
-    for (let t of e.changedTouches) {
-      if (onStart(t.clientX, t.clientY, t.identifier)) break;
-    }
+    if (e.touches.length > 0) onStart(e.touches[0].clientX, e.touches[0].clientY, e.touches[0].identifier);
   }, { passive: false });
 
   zone.addEventListener('touchmove', e => {
     e.preventDefault();
-    for (let t of e.changedTouches) {
-      onMove(t.clientX, t.clientY, t.identifier);
+    let found = false;
+    for (let t of e.touches) {
+      if (t.identifier === joystickTouchId) {
+        onMove(t.clientX, t.clientY);
+        found = true;
+        break;
+      }
     }
+    if (!found && joystickTouchId !== null) onEnd();  // 追踪的触摸丢失，强制复位
   }, { passive: false });
 
   zone.addEventListener('touchend', e => {
     e.preventDefault();
     for (let t of e.changedTouches) {
-      onEnd(t.identifier);
+      if (t.identifier === joystickTouchId) { onEnd(); break; }
     }
   });
 
   zone.addEventListener('touchcancel', e => {
     for (let t of e.changedTouches) {
-      onEnd(t.identifier);
+      if (t.identifier === joystickTouchId) { onEnd(); break; }
     }
   });
 
@@ -1256,72 +1325,37 @@ function initJoystick() {
   });
   document.addEventListener('mousemove', e => {
     if (!mouseDown) return;
-    onMove(e.clientX, e.clientY, -1);
+    onMove(e.clientX, e.clientY);
   });
   document.addEventListener('mouseup', e => {
     if (!mouseDown) return;
     mouseDown = false;
-    onEnd(-1);
+    onEnd();
   });
 }
 initJoystick();
 
 // ==================== 跳跃按钮 ====================
 const jumpBtn = document.getElementById('jump-btn');
-let jumpTouchId = null;
-
 function initJumpBtn() {
-  function onJumpStart(e, id) {
+  function onJumpStart(e) {
     e.preventDefault();
-    // 只响应屏幕右半边的触摸（避免与左半边摇杆冲突）
-    // 必须用 changedTouches 找到当前触发事件的触摸点，不能用 touches[0]（可能是摇杆的手指）
-    let touch = null;
-    if (e.changedTouches) {
-      for (let t of e.changedTouches) {
-        if (t.identifier === id) { touch = t; break; }
-      }
-    }
-    let clientX = touch ? touch.clientX : e.clientX;
-    if (clientX < window.innerWidth / 2) return false;
-    jumpTouchId = id;
+    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    if (clientX < window.innerWidth / 2) return;
     jumpPressed = true;
     jumpBtn.style.background = 'rgba(0,246,255,0.2)';
-    return true;
   }
-  function onJumpEnd(e, id) {
+  function onJumpEnd(e) {
     e.preventDefault();
-    if (jumpTouchId !== id) return;
-    jumpTouchId = null;
     jumpPressed = false;
     jumpBtn.style.background = 'rgba(0,246,255,0.08)';
   }
-  jumpBtn.addEventListener('touchstart', e => {
-    e.preventDefault();
-    for (let t of e.changedTouches) {
-      if (onJumpStart(e, t.identifier)) break;
-    }
-  }, { passive: false });
-  jumpBtn.addEventListener('touchend', e => {
-    e.preventDefault();
-    for (let t of e.changedTouches) {
-      onJumpEnd(e, t.identifier);
-    }
-  });
-  jumpBtn.addEventListener('touchcancel', e => {
-    for (let t of e.changedTouches) {
-      onJumpEnd(e, t.identifier);
-    }
-  });
-  jumpBtn.addEventListener('mousedown', e => {
-    e.preventDefault();
-    onJumpStart(e, -1);
-  });
-  jumpBtn.addEventListener('mouseup', e => {
-    onJumpEnd(e, -1);
-  });
-  jumpBtn.addEventListener('mouseleave', e => {
-    onJumpEnd(e, -1);
-  });
+  jumpBtn.addEventListener('touchstart', onJumpStart, { passive: false });
+  jumpBtn.addEventListener('touchend', onJumpEnd);
+  jumpBtn.addEventListener('touchcancel', onJumpEnd);
+  jumpBtn.addEventListener('mousedown', onJumpStart);
+  jumpBtn.addEventListener('mouseup', onJumpEnd);
+  jumpBtn.addEventListener('mouseleave', onJumpEnd);
 }
 initJumpBtn();
 
@@ -1812,28 +1846,18 @@ document.getElementById('btn-editor-save').addEventListener('touchend', (e) => {
   document.getElementById('level-code-output').value = code; });
 
 async function copyToClipboard(text) {
-  // 优先使用现代 Clipboard API
   if (navigator.clipboard && window.isSecureContext) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (err) {
-      console.log('Clipboard API 失败，降级到 execCommand');
-    }
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
   }
-  // 降级方案：execCommand（HTTP 环境、旧浏览器可用）
   const textarea = document.createElement('textarea');
   textarea.value = text;
   textarea.setAttribute('readonly', '');
   textarea.style.position = 'fixed';
   textarea.style.opacity = '0';
-  textarea.style.left = '-9999px';
   document.body.appendChild(textarea);
   textarea.select();
   let ok = false;
-  try {
-    ok = document.execCommand('copy');
-  } catch (e) {}
+  try { ok = document.execCommand('copy'); } catch (e) {}
   document.body.removeChild(textarea);
   return ok;
 }
@@ -1875,7 +1899,6 @@ function decodeLevel(code) {
     let ver = parts[0];
     if (ver === '4') {
       let prx = parseInt(parts[1]), pry = parseInt(parts[2]);
-      // 名字可能包含 '.'，智能分割
       let nameEndIdx = 3;
       for (let i = 3; i < parts.length; i++) {
         let p = parts[i];
@@ -2083,19 +2106,34 @@ function mockAuth(username, password, isRegister) {
   });
 }
 
-function shareLevelToLobby(levelData, code) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      let shared = JSON.parse(localStorage.getItem('bwjump_shared_v2') || '[]');
-      if (shared.some(l => l.code === code)) { resolve(false); return; }
-      shared.push({id: Date.now(), name: levelData.name || '未命名关卡', author: currentUser ? currentUser.username : '匿名', code, date: new Date().toLocaleString()});
-      localStorage.setItem('bwjump_shared_v2', JSON.stringify(shared));
-      resolve(true);
-    }, 200);
-  });
+async function shareLevelToLobby(levelData, code) {
+  try {
+    const existing = await supabaseGet('levels', { code: `eq.${code}`, select: '*', limit: 1 });
+    if (existing && existing.length > 0) {
+      throw new Error('该关卡已存在于大厅中');
+    }
+    await supabasePost('levels', {
+      name: levelData.name || '未命名关卡',
+      author: currentUser ? currentUser.username : '匿名',
+      code: code,
+      likes: 0,
+      created_at: new Date().toISOString()
+    });
+    return true;
+  } catch (e) {
+    console.error('分享失败:', e);
+    throw e;
+  }
 }
 
-function getSharedLevels() { return JSON.parse(localStorage.getItem('bwjump_shared_v2') || '[]'); }
+async function getSharedLevels() {
+  try {
+    return await supabaseGet('levels', { select: '*', order: 'created_at.desc' });
+  } catch (e) {
+    console.error('获取关卡失败:', e);
+    return [];
+  }
+}
 
 // ==================== 界面切换 ====================
 function showScreen(id) {
@@ -2268,7 +2306,7 @@ document.getElementById('btn-next-level').addEventListener('click', () => {
     loadLevel(currentLevelIdx + 1); resetPlayer();
   } else { exitGame(); }
 });
-document.getElementById('btn-next-level').addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); document.getElementById('win-modal').style.display = 'none'; if (isEditorTest) { isEditorTest = true; resetPlayer(); } else if (isFromLobby) { resetPlayer(); } else if (!isCustomLevel && currentLevelIdx < BUILTIN_LEVELS.length - 1) { loadLevel(currentLevelIdx + 1); resetPlayer(); } else { exitGame(); } });
+document.getElementById('btn-next-level').addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); document.getElementById('win-modal').style.display = 'none'; if (isEditorTest) { isEditorTest = true; resetPlayer(); } else if (!isCustomLevel && currentLevelIdx < BUILTIN_LEVELS.length - 1) { loadLevel(currentLevelIdx + 1); resetPlayer(); } else { exitGame(); } });
 
 document.getElementById('btn-back-menu').addEventListener('click', () => {
   document.getElementById('win-modal').style.display = 'none';
@@ -2302,18 +2340,18 @@ document.getElementById('btn-auth-submit').addEventListener('click', () => {
 document.getElementById('btn-auth-back').addEventListener('click', () => { showScreen('start-screen'); });
 
 // ==================== 大厅界面 ====================
-function refreshLobby() { renderPublicLevels(); renderMyLevels(); }
+async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
 
-function renderPublicLevels() {
+async function renderPublicLevels() {
   const container = document.getElementById('public-levels-list');
-  const levels = getSharedLevels();
+  const levels = await getSharedLevels();
   if (levels.length === 0) {
     container.innerHTML = '<p style="color:#666;text-align:center;padding:40px;">暂无分享关卡，快去编辑器创建并分享吧！</p>';
     return;
   }
   container.innerHTML = levels.map(l => `
     <div class="level-card">
-      <div class="level-info"><h4>${l.name}</h4><p>作者: ${l.author} | ${l.date}</p></div>
+      <div class="level-info"><h4>${l.name}</h4><p>作者: ${l.author} | ${l.created_at ? new Date(l.created_at).toLocaleString() : '未知时间'}</p></div>
       <div class="level-actions">
         <button class="btn" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
         <button class="btn" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
@@ -2330,7 +2368,7 @@ function renderMyLevels() {
   }
   container.innerHTML = localLevels.map((l, i) => `
     <div class="level-card">
-      <div class="level-info"><h4>${l.name}</h4><p>${l.date}</p></div>
+      <div class="level-info"><h4>${l.name}</h4><p>${l.date || l.created_at ? new Date(l.date || l.created_at).toLocaleString() : '未知时间'}</p></div>
       <div class="level-actions">
         <button class="btn" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
         <button class="btn" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
@@ -2355,14 +2393,7 @@ window.copyLevelCode = async function(code) {
 
 window.deleteMyLevel = function(idx) {
   if (confirm('确定删除这个关卡吗？')) {
-    let deletedCode = localLevels[idx].code;
     localLevels.splice(idx, 1); saveLocalLevels();
-    let shared = JSON.parse(localStorage.getItem('bwjump_shared_v2') || '[]');
-    let newShared = shared.filter(l => l.code !== deletedCode);
-    if (newShared.length !== shared.length) {
-      localStorage.setItem('bwjump_shared_v2', JSON.stringify(newShared));
-      renderPublicLevels();
-    }
     renderMyLevels();
   }
 };
@@ -2393,23 +2424,20 @@ document.getElementById('btn-lobby-logout').addEventListener('click', () => {
 });
 
 // ==================== 编辑器按钮（底部） ====================
-document.getElementById('btn-share-level').addEventListener('click', () => {
+document.getElementById('btn-share-level').addEventListener('click', async () => {
   const code = document.getElementById('level-code-output').value;
   if (!code) { alert('请先生成关卡编码'); return; }
   const levelData = buildLevelFromEditor();
-  shareLevelToLobby(levelData, code).then((success) => {
-    if (success) {
-      alert('关卡已分享到大厅！');
-      localLevels.push({name: levelData.name, code, date: new Date().toLocaleString()});
-      saveLocalLevels();
-    } else {
-      alert('该关卡已在大厅中');
-    }
-    document.getElementById('share-code-display').value = code;
-    document.getElementById('share-modal').style.display = 'flex';
-  });
+  try {
+    await shareLevelToLobby(levelData, code);
+    alert('关卡已分享到大厅！');
+    localLevels.push({name: levelData.name, code, date: new Date().toLocaleString()});
+    saveLocalLevels();
+  } catch (e) {
+    alert('分享失败: ' + (e.message || '网络错误'));
+  }
 });
-document.getElementById('btn-share-level').addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); const code = document.getElementById('level-code-output').value; if (!code) { alert('请先生成关卡编码'); return; } const levelData = buildLevelFromEditor(); shareLevelToLobby(levelData, code).then(() => { alert('关卡已分享到大厅！'); localLevels.push({name: levelData.name, code, date: new Date().toLocaleString()}); saveLocalLevels(); }); });
+document.getElementById('btn-share-level').addEventListener('touchend', async (e) => { e.preventDefault(); e.stopPropagation(); const code = document.getElementById('level-code-output').value; if (!code) { alert('请先生成关卡编码'); return; } const levelData = buildLevelFromEditor(); try { await shareLevelToLobby(levelData, code); alert('关卡已分享到大厅！'); localLevels.push({name: levelData.name, code, date: new Date().toLocaleString()}); saveLocalLevels(); } catch (e) { alert('分享失败: ' + (e.message || '网络错误')); } });
 
 // ==================== 分享弹窗按钮 ====================
 document.getElementById('btn-share-copy').addEventListener('click', async () => {
@@ -2425,6 +2453,17 @@ document.getElementById('btn-share-close').addEventListener('click', () => {
 });
 
 // ==================== 初始化 ====================
+// Supabase 健康检查
+setTimeout(() => {
+  checkSupabaseHealth().then(result => {
+    if (result.ok) {
+      console.log('✅ Supabase 连接正常');
+    } else {
+      console.warn('⚠️ Supabase 连接异常:', result.error);
+    }
+  });
+}, 1000);
+
 initStorage();
 
 // 初始渲染一帧
