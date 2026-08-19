@@ -1121,15 +1121,19 @@ function updatePhysics() {
       if (isEditorTest) {
         nextBtn.textContent = '再测一次';
         backBtn.textContent = '返回编辑器';
+        nextBtn.style.display = 'inline-block';
       } else if (isFromLobby) {
         nextBtn.textContent = '再玩一次';
         backBtn.textContent = '返回大厅';
+        nextBtn.style.display = 'inline-block';
       } else if (isCustomLevel || currentLevelIdx >= BUILTIN_LEVELS.length - 1) {
-        nextBtn.textContent = '返回菜单';
+        // FIX v12: 最后一关或自定义关卡，只显示返回按钮
+        nextBtn.style.display = 'none';
         backBtn.textContent = '返回菜单';
       } else {
         nextBtn.textContent = '下一关';
         backBtn.textContent = '返回菜单';
+        nextBtn.style.display = 'inline-block';
       }
       document.getElementById('win-modal').style.display = 'flex';
     }, 500);
@@ -2258,8 +2262,34 @@ document.getElementById('btn-lobby').addEventListener('click', () => {
 document.getElementById('btn-restart').addEventListener('click', () => { resetPlayer(); });
 document.getElementById('btn-exit').addEventListener('click', () => { exitGame(); });
 
-// FIX v6: btn-next-level 和 btn-back-menu 的事件处理已移到编辑器底部按钮段
-// 以支持分享时自动测试流程
+document.getElementById('btn-next-level').addEventListener('click', () => {
+  document.getElementById('win-modal').style.display = 'none';
+  if (isEditorTest) {
+    if (shareAfterTest && editorTestWon) {
+      shareAfterTest = false;
+      doShareLevel();
+    } else {
+      isEditorTest = true;
+      resetPlayer();
+    }
+  } else if (isFromLobby) {
+    resetPlayer();
+  } else if (!isCustomLevel && currentLevelIdx < BUILTIN_LEVELS.length - 1) {
+    loadLevel(currentLevelIdx + 1); resetPlayer();
+  } else {
+    exitGame();
+  }
+});
+
+document.getElementById('btn-back-menu').addEventListener('click', () => {
+  document.getElementById('win-modal').style.display = 'none';
+  if (shareAfterTest && editorTestWon) {
+    shareAfterTest = false;
+    doShareLevel();
+  } else {
+    exitGame();
+  }
+});
 // ==================== 认证界面 ====================
 let authMode = 'login';
 document.getElementById('auth-switch').addEventListener('click', () => {
@@ -2433,7 +2463,9 @@ document.getElementById('btn-lobby-logout').addEventListener('click', () => {
   currentUser = null; localStorage.removeItem('bwjump_user');
   updateUserDisplay(); showScreen('start-screen');
 });
-// FIX v7: 分享至大厅时自动测试，通关后自动分享
+// FIX v11: 分享至大厅时自动测试，通关后自动分享
+let shareAfterTest = false;
+
 document.getElementById('btn-share-level').addEventListener('click', async () => {
   const code = document.getElementById('level-code-output').value;
   if (!code) { alert('请先生成关卡编码'); return; }
@@ -2444,21 +2476,20 @@ document.getElementById('btn-share-level').addEventListener('click', async () =>
     return;
   }
 
-  // 进入测试模式
+  // 标记为分享流程，进入测试模式
+  shareAfterTest = true;
   editorTestWon = false;
   isEditorTest = true;
   loadCustomLevel(levelData);
   startGame();
 });
 
-// FIX v7: 通关后自动分享（当来自编辑器测试且通关时）
-// 修改 win-modal 显示逻辑
+// FIX v11: 通关后自动分享（仅当来自分享流程时）
 const originalWinModal = document.getElementById('win-modal');
 const winObserver = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
     if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-      if (originalWinModal.style.display === 'flex' && isEditorTest && editorTestWon) {
-        // 延迟一点让用户看到通关画面
+      if (originalWinModal.style.display === 'flex' && isEditorTest && editorTestWon && shareAfterTest) {
         setTimeout(() => {
           originalWinModal.style.display = 'none';
           doShareLevel();
