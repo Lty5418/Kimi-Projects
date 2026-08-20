@@ -574,7 +574,8 @@ html, body {
   /* 默认隐藏底栏分组 */
   .editor-bottom .bottom-group-code,
   .editor-bottom .bottom-group-share,
-  .editor-bottom .bottom-group-import {
+  .editor-bottom .bottom-group-import,
+  .editor-bottom .bottom-group-options {
     display: none;
     width: 100%;
     padding-top: 6px;
@@ -585,7 +586,8 @@ html, body {
   /* 展开时显示底栏分组 */
   .editor-bottom.expanded .bottom-group-code,
   .editor-bottom.expanded .bottom-group-share,
-  .editor-bottom.expanded .bottom-group-import {
+  .editor-bottom.expanded .bottom-group-import,
+  .editor-bottom.expanded .bottom-group-options {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
@@ -1233,6 +1235,16 @@ html, body {
       <div class="bottom-group-name">
         <span style="font-size:12px;color:#8D9390;">关卡名:</span>
         <input type="text" id="level-name-input" placeholder="输入关卡名称..." style="background:#121212;border:1px solid #707070;color:#fff;padding:6px 10px;font-size:12px;width:140px;border-radius:4px;outline:none;">
+      </div>
+      <div class="bottom-group-options" style="display:flex;align-items:center;gap:12px;margin-left:10px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#8D9390;cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="opt-show-indicator" checked style="accent-color:#00F6FF;">
+          传送门指示器
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#8D9390;cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="opt-show-minimap" checked style="accent-color:#00F6FF;">
+          小地图
+        </label>
       </div>
       <div class="bottom-group-code">
         <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
