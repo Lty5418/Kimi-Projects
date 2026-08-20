@@ -166,18 +166,33 @@ html, body {
   font-size: 28px;
   font-weight: 900;
   color: #707070;
-  transition: all 0.3s ease;
+  transition: 
+    width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.2s ease,
+    font-size 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease,
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
 }
-.lvl-card:hover { border-color: #A0DAF7; }
+.lvl-card:hover { 
+  border-color: #A0DAF7; 
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,246,255,0.1);
+}
 .lvl-card:active {
   background: #2a2a2a;
   border-color: #00A1FF;
-  transform: scale(0.95);
-  transition: all 0.08s ease;
+  transform: scale(0.96) translateY(0);
+  transition: transform 0.1s ease;
 }
 .lvl-card.on {
   width: 200px; height: 130px;
@@ -185,18 +200,29 @@ html, body {
   background: #1f1f1f;
   color: #FFFFFF;
   font-size: 40px;
-  box-shadow: 0 0 20px rgba(0,246,255,0.15);
+  box-shadow: 0 0 30px rgba(0,246,255,0.2), 0 4px 20px rgba(0,0,0,0.3);
+  transform: translateY(-4px);
 }
-.lvl-card .lvl-num { transition: all 0.25s ease; }
-.lvl-card.on .lvl-num { font-size: 44px; margin-bottom: 4px; }
+.lvl-card .lvl-num { 
+  transition: font-size 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              margin 0.25s ease,
+              transform 0.3s ease; 
+}
+.lvl-card.on .lvl-num { 
+  font-size: 44px; 
+  margin-bottom: 4px;
+  transform: scale(1.05);
+}
 .lvl-card .lvl-info {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.25s ease 0.08s;
+  transform: translateY(12px) scale(0.9);
+  transition: 
+    opacity 0.3s ease 0.1s,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s;
   pointer-events: none;
   position: absolute;
   bottom: 14px;
@@ -204,9 +230,10 @@ html, body {
 }
 .lvl-card.on .lvl-info {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   position: static;
   margin-top: 2px;
+  pointer-events: auto;
 }
 .lvl-card .lvl-name {
   font-size: 15px;
@@ -214,6 +241,10 @@ html, body {
   color: #FFFFFF;
   letter-spacing: 2px;
   white-space: nowrap;
+  transition: letter-spacing 0.3s ease;
+}
+.lvl-card.on .lvl-name {
+  letter-spacing: 3px;
 }
 .lvl-card .lvl-tag {
   font-size: 11px;
@@ -223,10 +254,21 @@ html, body {
   border-radius: 3px;
   text-transform: uppercase;
   letter-spacing: 1px;
+  transition: all 0.25s ease;
+}
+.lvl-card.on .lvl-tag {
+  border-color: #00F6FF;
+  color: #00F6FF;
+  background: rgba(0,246,255,0.08);
 }
 .lvl-card.off {
-  opacity: 0.25;
-  transform: scale(0.85);
+  opacity: 0.2;
+  transform: scale(0.82);
+  filter: grayscale(0.5);
+  transition: 
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 0.3s ease;
 }
 
 /* ===== 登录/注册界面 ===== */
@@ -852,26 +894,145 @@ html, body {
     <button class="back-btn" id="btn-level-back">&larr; 返回</button>
     <div class="screen-title">选择关卡</div>
     <div class="screen-subtitle">SELECT LEVEL</div>
-    <div id="level-cards" style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:50px;flex-wrap:wrap;">
+    <div id="level-cards" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:30px;flex-wrap:wrap;max-width:90%;">
       <div class="lvl-card" id="lvl-0">
         <span class="lvl-num">1</span>
         <span class="lvl-info">
-          <span class="lvl-name">初识黑白</span>
+          <span class="lvl-name">起跳平台</span>
           <span class="lvl-tag">入门</span>
         </span>
       </div>
       <div class="lvl-card" id="lvl-1">
         <span class="lvl-num">2</span>
         <span class="lvl-info">
-          <span class="lvl-name">尖刺走廊</span>
-          <span class="lvl-tag">进阶</span>
+          <span class="lvl-name">第一个坎</span>
+          <span class="lvl-tag">入门</span>
         </span>
       </div>
       <div class="lvl-card" id="lvl-2">
         <span class="lvl-num">3</span>
         <span class="lvl-info">
-          <span class="lvl-name">高空连跳</span>
+          <span class="lvl-name">连续小跳</span>
+          <span class="lvl-tag">入门</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-3">
+        <span class="lvl-num">4</span>
+        <span class="lvl-info">
+          <span class="lvl-name">初见尖刺</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-4">
+        <span class="lvl-num">5</span>
+        <span class="lvl-info">
+          <span class="lvl-name">尖刺间隙</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-5">
+        <span class="lvl-num">6</span>
+        <span class="lvl-info">
+          <span class="lvl-name">需要二段</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-6">
+        <span class="lvl-num">7</span>
+        <span class="lvl-info">
+          <span class="lvl-name">高空恐惧</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-7">
+        <span class="lvl-num">8</span>
+        <span class="lvl-info">
+          <span class="lvl-name">回环路线</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-8">
+        <span class="lvl-num">9</span>
+        <span class="lvl-info">
+          <span class="lvl-name">极限距离</span>
           <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-9">
+        <span class="lvl-num">10</span>
+        <span class="lvl-info">
+          <span class="lvl-name">二段极限</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-10">
+        <span class="lvl-num">11</span>
+        <span class="lvl-info">
+          <span class="lvl-name">头顶即死</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-11">
+        <span class="lvl-num">12</span>
+        <span class="lvl-info">
+          <span class="lvl-name">窄缝求生</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-12">
+        <span class="lvl-num">13</span>
+        <span class="lvl-info">
+          <span class="lvl-name">连续极限二段</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-13">
+        <span class="lvl-num">14</span>
+        <span class="lvl-info">
+          <span class="lvl-name">踩边而过</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-14">
+        <span class="lvl-num">15</span>
+        <span class="lvl-info">
+          <span class="lvl-name">尖刺回廊</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-15">
+        <span class="lvl-num">16</span>
+        <span class="lvl-info">
+          <span class="lvl-name">高空二段</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-16">
+        <span class="lvl-num">17</span>
+        <span class="lvl-info">
+          <span class="lvl-name">无地可落</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-17">
+        <span class="lvl-num">18</span>
+        <span class="lvl-info">
+          <span class="lvl-name">踩边二段</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-18">
+        <span class="lvl-num">19</span>
+        <span class="lvl-info">
+          <span class="lvl-name">无地可落</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-19">
+        <span class="lvl-num">20</span>
+        <span class="lvl-info">
+          <span class="lvl-name">不可能任务</span>
+          <span class="lvl-tag">极限</span>
         </span>
       </div>
     </div>
@@ -1134,39 +1295,124 @@ const COLORS = {
 
 const BUILTIN_LEVELS = [
   {
-    name: "初识黑白", w: 40, h: 20,
-    spawn: {x: 0, y: 0}, portal: {x: 32, y: -4},
-    lands: [
-      {x:-3,y:3,w:8,h:2}, {x:7,y:1,w:4,h:1}, {x:13,y:-1,w:4,h:1},
-      {x:19,y:-3,w:4,h:1}, {x:25,y:-5,w:4,h:1}, {x:30,y:-3,w:6,h:2}
-    ],
-    spikes: [{x:11,y:0}]
+    name: "起跳平台", w: 30, h: 15,
+    spawn: {x: 0, y: 0}, portal: {x: 18, y: -2},
+    lands: [{x:-3,y:3,w:5,h:1}, {x:5,y:2,w:2,h:1}, {x:10,y:1,w:2,h:1}, {x:15,y:0,w:2,h:1}, {x:18,y:-2,w:3,h:1}],
+    spikes: []
   },
   {
-    name: "尖刺走廊", w: 50, h: 20,
-    spawn: {x: 0, y: 0}, portal: {x: 44, y: -5},
-    lands: [
-      {x:-2,y:2,w:6,h:2}, {x:6,y:0,w:3,h:1}, {x:11,y:-2,w:3,h:1},
-      {x:16,y:0,w:3,h:1}, {x:21,y:-3,w:3,h:1}, {x:26,y:-1,w:3,h:1},
-      {x:31,y:-4,w:3,h:1}, {x:36,y:-2,w:3,h:1}, {x:41,y:-4,w:6,h:2}
-    ],
-    spikes: [
-      {x:9,y:-1}, {x:14,y:-3}, {x:19,y:-1},
-      {x:24,y:-4}, {x:29,y:-2}, {x:34,y:-5}
-    ]
+    name: "第一个坎", w: 30, h: 15,
+    spawn: {x: 0, y: 0}, portal: {x: 20, y: -3},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:1,h:1}, {x:6,y:1,w:2,h:1}, {x:11,y:0,w:1,h:1}, {x:15,y:-1,w:2,h:1}, {x:20,y:-3,w:3,h:1}],
+    spikes: [{x:3,y:4}]
   },
   {
-    name: "高空连跳", w: 50, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 43, y: -15},
-    lands: [
-      {x:-2,y:2,w:5,h:2}, {x:5,y:-1,w:3,h:1}, {x:10,y:-4,w:3,h:1},
-      {x:15,y:-7,w:3,h:1}, {x:20,y:-10,w:3,h:1}, {x:25,y:-7,w:3,h:1},
-      {x:30,y:-11,w:3,h:1}, {x:35,y:-13,w:3,h:1}, {x:40,y:-14,w:7,h:2}
-    ],
-    spikes: [
-      {x:8,y:-2}, {x:13,y:-5}, {x:18,y:-8},
-      {x:23,y:-11}, {x:28,y:-8}, {x:33,y:-12}
-    ]
+    name: "连续小跳", w: 35, h: 15,
+    spawn: {x: 0, y: 0}, portal: {x: 26, y: -4},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:2,w:1,h:1}, {x:6,y:1,w:1,h:1}, {x:9,y:0,w:1,h:1}, {x:12,y:-1,w:1,h:1}, {x:15,y:-2,w:1,h:1}, {x:18,y:-3,w:1,h:1}, {x:22,y:-2,w:1,h:1}, {x:26,y:-4,w:3,h:1}],
+    spikes: []
+  },
+  {
+    name: "初见尖刺", w: 35, h: 15,
+    spawn: {x: 0, y: 0}, portal: {x: 24, y: -2},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:3,h:1}, {x:8,y:1,w:2,h:1}, {x:13,y:0,w:1,h:1}, {x:17,y:-1,w:2,h:1}, {x:21,y:-2,w:1,h:1}, {x:24,y:-2,w:3,h:1}],
+    spikes: [{x:6,y:3}, {x:11,y:0}, {x:16,y:-1}]
+  },
+  {
+    name: "尖刺间隙", w: 40, h: 15,
+    spawn: {x: 0, y: 0}, portal: {x: 30, y: -3},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:1,h:1}, {x:7,y:2,w:1,h:1}, {x:11,y:1,w:1,h:1}, {x:15,y:0,w:1,h:1}, {x:19,y:-1,w:1,h:1}, {x:23,y:-2,w:1,h:1}, {x:27,y:-2,w:1,h:1}, {x:30,y:-3,w:3,h:1}],
+    spikes: [{x:4,y:3}, {x:5,y:3}, {x:8,y:2}, {x:9,y:2}, {x:12,y:1}, {x:13,y:1}, {x:16,y:0}, {x:17,y:0}, {x:20,y:-1}, {x:21,y:-1}, {x:24,y:-2}, {x:25,y:-2}]
+  },
+  {
+    name: "需要二段", w: 40, h: 18,
+    spawn: {x: 0, y: 0}, portal: {x: 30, y: -6},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:4,y:0,w:1,h:1}, {x:8,y:-3,w:1,h:1}, {x:12,y:-5,w:1,h:1}, {x:16,y:-3,w:1,h:1}, {x:20,y:-6,w:1,h:1}, {x:24,y:-4,w:1,h:1}, {x:28,y:-6,w:1,h:1}, {x:30,y:-6,w:3,h:1}],
+    spikes: [{x:6,y:0}, {x:10,y:-3}, {x:14,y:-5}, {x:18,y:-3}, {x:22,y:-6}]
+  },
+  {
+    name: "高空恐惧", w: 40, h: 22,
+    spawn: {x: 0, y: 0}, portal: {x: 32, y: -12},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:0,w:1,h:1}, {x:6,y:-3,w:1,h:1}, {x:9,y:-6,w:1,h:1}, {x:12,y:-9,w:1,h:1}, {x:16,y:-7,w:1,h:1}, {x:20,y:-11,w:1,h:1}, {x:24,y:-9,w:1,h:1}, {x:28,y:-12,w:1,h:1}, {x:32,y:-12,w:3,h:1}],
+    spikes: [{x:5,y:0}, {x:8,y:-3}, {x:11,y:-6}, {x:14,y:-9}, {x:18,y:-7}, {x:22,y:-11}, {x:26,y:-9}]
+  },
+  {
+    name: "回环路线", w: 45, h: 20,
+    spawn: {x: 0, y: 0}, portal: {x: 35, y: -8},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:1,w:2,h:1}, {x:8,y:-1,w:1,h:1}, {x:12,y:-3,w:1,h:1}, {x:10,y:0,w:1,h:1}, {x:7,y:-2,w:1,h:1}, {x:4,y:-4,w:1,h:1}, {x:8,y:-6,w:1,h:1}, {x:13,y:-5,w:1,h:1}, {x:18,y:-7,w:1,h:1}, {x:23,y:-6,w:1,h:1}, {x:28,y:-8,w:1,h:1}, {x:35,y:-8,w:3,h:1}],
+    spikes: [{x:5,y:1}, {x:9,y:-1}, {x:11,y:-3}, {x:6,y:-2}, {x:9,y:-6}, {x:15,y:-5}, {x:20,y:-7}, {x:25,y:-6}]
+  },
+  {
+    name: "极限距离", w: 50, h: 20,
+    spawn: {x: 0, y: 0}, portal: {x: 40, y: -10},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:1,w:1,h:1}, {x:8,y:-2,w:1,h:1}, {x:13,y:-5,w:1,h:1}, {x:18,y:-8,w:1,h:1}, {x:22,y:-6,w:1,h:1}, {x:26,y:-10,w:1,h:1}, {x:30,y:-8,w:1,h:1}, {x:35,y:-11,w:1,h:1}, {x:40,y:-10,w:3,h:1}],
+    spikes: [{x:5,y:1}, {x:6,y:1}, {x:10,y:-2}, {x:11,y:-2}, {x:15,y:-5}, {x:16,y:-5}, {x:20,y:-8}, {x:23,y:-6}, {x:24,y:-6}, {x:28,y:-10}, {x:32,y:-8}, {x:33,y:-8}]
+  },
+  {
+    name: "二段极限", w: 50, h: 25,
+    spawn: {x: 0, y: 0}, portal: {x: 42, y: -15},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-1,w:1,h:1}, {x:7,y:-5,w:1,h:1}, {x:11,y:-9,w:1,h:1}, {x:15,y:-7,w:1,h:1}, {x:19,y:-12,w:1,h:1}, {x:23,y:-10,w:1,h:1}, {x:27,y:-15,w:1,h:1}, {x:31,y:-13,w:1,h:1}, {x:36,y:-16,w:1,h:1}, {x:42,y:-15,w:3,h:1}],
+    spikes: [{x:5,y:-1}, {x:6,y:-1}, {x:9,y:-5}, {x:10,y:-5}, {x:13,y:-9}, {x:17,y:-7}, {x:18,y:-7}, {x:21,y:-12}, {x:22,y:-12}, {x:25,y:-10}, {x:29,y:-15}, {x:30,y:-15}, {x:33,y:-13}, {x:38,y:-16}, {x:39,y:-16}]
+  },
+  {
+    name: "头顶即死", w: 45, h: 22,
+    spawn: {x: 0, y: 0}, portal: {x: 36, y: -12},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:4,y:3,w:6,h:1}, {x:4,y:-2,w:6,h:1}, {x:12,y:0,w:2,h:1}, {x:12,y:-4,w:2,h:1}, {x:17,y:-2,w:2,h:1}, {x:17,y:-6,w:2,h:1}, {x:22,y:-4,w:2,h:1}, {x:22,y:-8,w:2,h:1}, {x:27,y:-6,w:2,h:1}, {x:27,y:-10,w:2,h:1}, {x:32,y:-8,w:2,h:1}, {x:36,y:-12,w:3,h:1}],
+    spikes: [{x:7,y:2}, {x:8,y:2}, {x:14,y:0}, {x:19,y:-2}, {x:24,y:-4}, {x:29,y:-6}]
+  },
+  {
+    name: "窄缝求生", w: 50, h: 25,
+    spawn: {x: 0, y: 0}, portal: {x: 40, y: -16},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:1,w:1,h:4}, {x:5,y:0,w:1,h:1}, {x:8,y:-3,w:1,h:4}, {x:10,y:-4,w:1,h:1}, {x:13,y:-7,w:1,h:4}, {x:15,y:-8,w:1,h:1}, {x:18,y:-11,w:1,h:4}, {x:20,y:-12,w:1,h:1}, {x:23,y:-14,w:1,h:3}, {x:26,y:-13,w:1,h:1}, {x:30,y:-16,w:1,h:1}, {x:35,y:-15,w:1,h:1}, {x:40,y:-16,w:3,h:1}],
+    spikes: [{x:4,y:1}, {x:4,y:2}, {x:4,y:3}, {x:9,y:-3}, {x:9,y:-2}, {x:9,y:-1}, {x:14,y:-7}, {x:14,y:-6}, {x:14,y:-5}, {x:19,y:-11}, {x:19,y:-10}, {x:19,y:-9}, {x:24,y:-14}, {x:24,y:-13}]
+  },
+  {
+    name: "连续极限二段", w: 55, h: 28,
+    spawn: {x: 0, y: 0}, portal: {x: 48, y: -20},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-2,w:1,h:1}, {x:7,y:-6,w:1,h:1}, {x:11,y:-10,w:1,h:1}, {x:15,y:-8,w:1,h:1}, {x:19,y:-13,w:1,h:1}, {x:23,y:-11,w:1,h:1}, {x:27,y:-17,w:1,h:1}, {x:31,y:-15,w:1,h:1}, {x:35,y:-20,w:1,h:1}, {x:39,y:-18,w:1,h:1}, {x:43,y:-21,w:1,h:1}, {x:48,y:-20,w:3,h:1}],
+    spikes: [{x:5,y:-2}, {x:6,y:-2}, {x:9,y:-6}, {x:10,y:-6}, {x:13,y:-10}, {x:17,y:-8}, {x:18,y:-8}, {x:21,y:-13}, {x:22,y:-13}, {x:25,y:-11}, {x:26,y:-11}, {x:29,y:-17}, {x:30,y:-17}, {x:33,y:-15}, {x:37,y:-20}, {x:38,y:-20}, {x:41,y:-18}, {x:42,y:-18}, {x:45,y:-21}, {x:46,y:-21}]
+  },
+  {
+    name: "踩边而过", w: 50, h: 25,
+    spawn: {x: 0, y: 0}, portal: {x: 42, y: -16},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:0,w:1,h:1}, {x:7,y:-3,w:1,h:1}, {x:10,y:-1,w:1,h:1}, {x:13,y:-6,w:1,h:1}, {x:16,y:-4,w:1,h:1}, {x:20,y:-9,w:1,h:1}, {x:24,y:-7,w:1,h:1}, {x:28,y:-12,w:1,h:1}, {x:32,y:-10,w:1,h:1}, {x:36,y:-15,w:1,h:1}, {x:42,y:-16,w:3,h:1}],
+    spikes: [{x:5,y:0}, {x:6,y:0}, {x:8,y:-3}, {x:9,y:-3}, {x:11,y:-1}, {x:14,y:-6}, {x:15,y:-6}, {x:17,y:-4}, {x:22,y:-9}, {x:23,y:-9}, {x:25,y:-7}, {x:30,y:-12}, {x:31,y:-12}, {x:33,y:-10}, {x:38,y:-15}, {x:39,y:-15}, {x:40,y:-15}]
+  },
+  {
+    name: "尖刺回廊", w: 55, h: 25,
+    spawn: {x: 0, y: 0}, portal: {x: 48, y: -14},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:1,w:1,h:1}, {x:6,y:-1,w:1,h:1}, {x:9,y:1,w:1,h:1}, {x:12,y:-2,w:1,h:1}, {x:15,y:0,w:1,h:1}, {x:18,y:-3,w:1,h:1}, {x:21,y:-1,w:1,h:1}, {x:24,y:-4,w:1,h:1}, {x:27,y:-2,w:1,h:1}, {x:30,y:-5,w:1,h:1}, {x:33,y:-3,w:1,h:1}, {x:36,y:-7,w:1,h:1}, {x:40,y:-10,w:1,h:1}, {x:44,y:-12,w:1,h:1}, {x:48,y:-14,w:3,h:1}],
+    spikes: [{x:4,y:1}, {x:5,y:1}, {x:7,y:-1}, {x:8,y:-1}, {x:10,y:1}, {x:13,y:-2}, {x:14,y:-2}, {x:16,y:0}, {x:17,y:0}, {x:19,y:-3}, {x:20,y:-3}, {x:22,y:-1}, {x:23,y:-1}, {x:25,y:-4}, {x:26,y:-4}, {x:28,y:-2}, {x:29,y:-2}, {x:31,y:-5}, {x:32,y:-5}, {x:34,y:-3}, {x:35,y:-3}, {x:38,y:-7}, {x:39,y:-7}, {x:42,y:-10}, {x:43,y:-10}, {x:46,y:-12}, {x:47,y:-12}]
+  },
+  {
+    name: "高空二段", w: 50, h: 28,
+    spawn: {x: 0, y: 0}, portal: {x: 42, y: -20},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-3,w:1,h:1}, {x:7,y:-7,w:1,h:1}, {x:11,y:-11,w:1,h:1}, {x:15,y:-8,w:1,h:1}, {x:19,y:-14,w:1,h:1}, {x:23,y:-11,w:1,h:1}, {x:27,y:-18,w:1,h:1}, {x:31,y:-15,w:1,h:1}, {x:35,y:-20,w:1,h:1}, {x:38,y:-18,w:1,h:1}, {x:42,y:-20,w:3,h:1}],
+    spikes: [{x:5,y:-3}, {x:6,y:-3}, {x:9,y:-7}, {x:10,y:-7}, {x:13,y:-11}, {x:17,y:-8}, {x:18,y:-8}, {x:21,y:-14}, {x:22,y:-14}, {x:25,y:-11}, {x:26,y:-11}, {x:29,y:-18}, {x:30,y:-18}, {x:33,y:-15}, {x:34,y:-15}, {x:36,y:-20}, {x:37,y:-20}, {x:40,y:-18}, {x:41,y:-18}]
+  },
+  {
+    name: "顶头二段", w: 50, h: 28,
+    spawn: {x: 0, y: 0}, portal: {x: 42, y: -18},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:4,y:3,w:5,h:1}, {x:4,y:-3,w:5,h:1}, {x:11,y:0,w:3,h:1}, {x:11,y:-5,w:3,h:1}, {x:17,y:-2,w:3,h:1}, {x:17,y:-8,w:3,h:1}, {x:23,y:-5,w:3,h:1}, {x:23,y:-11,w:3,h:1}, {x:29,y:-8,w:3,h:1}, {x:29,y:-14,w:3,h:1}, {x:35,y:-12,w:3,h:1}, {x:42,y:-18,w:3,h:1}],
+    spikes: [{x:7,y:2}, {x:8,y:2}, {x:13,y:0}, {x:14,y:0}, {x:19,y:-2}, {x:20,y:-2}, {x:25,y:-5}, {x:26,y:-5}, {x:31,y:-8}, {x:32,y:-8}, {x:37,y:-12}, {x:38,y:-12}, {x:39,y:-12}]
+  },
+  {
+    name: "踩边二段", w: 55, h: 30,
+    spawn: {x: 0, y: 0}, portal: {x: 48, y: -22},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-2,w:1,h:1}, {x:7,y:-6,w:1,h:1}, {x:10,y:-4,w:1,h:1}, {x:13,y:-9,w:1,h:1}, {x:16,y:-7,w:1,h:1}, {x:20,y:-12,w:1,h:1}, {x:23,y:-10,w:1,h:1}, {x:27,y:-15,w:1,h:1}, {x:30,y:-13,w:1,h:1}, {x:34,y:-18,w:1,h:1}, {x:38,y:-20,w:1,h:1}, {x:42,y:-18,w:1,h:1}, {x:48,y:-22,w:3,h:1}],
+    spikes: [{x:5,y:-2}, {x:6,y:-2}, {x:8,y:-6}, {x:9,y:-6}, {x:11,y:-4}, {x:14,y:-9}, {x:15,y:-9}, {x:17,y:-7}, {x:22,y:-12}, {x:23,y:-12}, {x:24,y:-10}, {x:28,y:-15}, {x:29,y:-15}, {x:31,y:-13}, {x:36,y:-18}, {x:37,y:-18}, {x:40,y:-20}, {x:41,y:-20}, {x:43,y:-18}, {x:45,y:-22}, {x:46,y:-22}, {x:47,y:-22}]
+  },
+  {
+    name: "无地可落", w: 60, h: 35,
+    spawn: {x: 0, y: 0}, portal: {x: 52, y: -26},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-4,w:1,h:1}, {x:7,y:-8,w:1,h:1}, {x:11,y:-6,w:1,h:1}, {x:15,y:-12,w:1,h:1}, {x:19,y:-10,w:1,h:1}, {x:23,y:-16,w:1,h:1}, {x:27,y:-14,w:1,h:1}, {x:31,y:-20,w:1,h:1}, {x:35,y:-18,w:1,h:1}, {x:39,y:-23,w:1,h:1}, {x:43,y:-21,w:1,h:1}, {x:47,y:-26,w:1,h:1}, {x:52,y:-26,w:3,h:1}],
+    spikes: [{x:5,y:-4}, {x:6,y:-4}, {x:9,y:-8}, {x:10,y:-8}, {x:13,y:-6}, {x:14,y:-6}, {x:17,y:-12}, {x:18,y:-12}, {x:21,y:-10}, {x:22,y:-10}, {x:25,y:-16}, {x:26,y:-16}, {x:29,y:-14}, {x:30,y:-14}, {x:33,y:-20}, {x:34,y:-20}, {x:37,y:-18}, {x:38,y:-18}, {x:41,y:-23}, {x:42,y:-23}, {x:45,y:-21}, {x:46,y:-21}, {x:49,y:-26}, {x:50,y:-26}, {x:51,y:-26}]
+  },
+  {
+    name: "不可能任务", w: 65, h: 38,
+    spawn: {x: 0, y: 0}, portal: {x: 56, y: -30},
+    lands: [{x:-3,y:3,w:2,h:1}, {x:2,y:-3,w:1,h:1}, {x:6,y:-7,w:1,h:1}, {x:9,y:-5,w:1,h:1}, {x:12,y:-10,w:1,h:1}, {x:15,y:-8,w:1,h:1}, {x:19,y:-14,w:1,h:1}, {x:22,y:-12,w:1,h:1}, {x:26,y:-18,w:1,h:1}, {x:29,y:-16,w:1,h:1}, {x:33,y:-22,w:1,h:1}, {x:36,y:-20,w:1,h:1}, {x:40,y:-25,w:1,h:1}, {x:44,y:-23,w:1,h:1}, {x:48,y:-28,w:1,h:1}, {x:52,y:-26,w:1,h:1}, {x:56,y:-30,w:3,h:1}],
+    spikes: [{x:4,y:-3}, {x:5,y:-3}, {x:7,y:-7}, {x:8,y:-7}, {x:10,y:-5}, {x:11,y:-5}, {x:13,y:-10}, {x:14,y:-10}, {x:16,y:-8}, {x:17,y:-8}, {x:20,y:-14}, {x:21,y:-14}, {x:23,y:-12}, {x:24,y:-12}, {x:27,y:-18}, {x:28,y:-18}, {x:30,y:-16}, {x:31,y:-16}, {x:34,y:-22}, {x:35,y:-22}, {x:37,y:-20}, {x:38,y:-20}, {x:41,y:-25}, {x:42,y:-25}, {x:43,y:-25}, {x:45,y:-23}, {x:46,y:-23}, {x:47,y:-23}, {x:49,y:-28}, {x:50,y:-28}, {x:51,y:-28}, {x:53,y:-26}, {x:54,y:-26}, {x:55,y:-26}]
   }
 ];
 
@@ -1588,7 +1834,244 @@ function render() {
   }
   ctx.globalAlpha = 1;
   ctx.restore();
+
+  // 传送门指示器（在屏幕坐标系绘制）
+  drawPortalIndicator();
+
+  // 更新小地图
+  updateMinimap();
 }
+
+
+// ==================== 小地图 & 传送门指示器 ====================
+
+// 小地图配置
+const MINIMAP_SIZE = 120;      // 小地图像素尺寸
+const MINIMAP_PADDING = 16;    // 距屏幕边缘距离
+const MINIMAP_SCALE = 0.15;    // 缩放比例（根据关卡大小动态调整）
+
+// 传送门指示器配置
+const PORTAL_INDICATOR_SIZE = 12;
+const PORTAL_INDICATOR_COLOR = '#F4F9A7';
+
+let minimapCanvas = null;
+let minimapCtx = null;
+
+function initMinimap() {
+  // 创建小地图 canvas（叠加在游戏 canvas 之上）
+  minimapCanvas = document.createElement('canvas');
+  minimapCanvas.id = 'minimap';
+  minimapCanvas.style.cssText = `
+    position: absolute;
+    top: ${MINIMAP_PADDING}px;
+    right: ${MINIMAP_PADDING}px;
+    width: ${MINIMAP_SIZE}px;
+    height: ${MINIMAP_SIZE}px;
+    border: 1px solid rgba(112, 112, 112, 0.5);
+    border-radius: 4px;
+    background: rgba(18, 18, 18, 0.85);
+    z-index: 45;
+    pointer-events: none;
+    display: none;
+  `;
+  minimapCanvas.width = MINIMAP_SIZE;
+  minimapCanvas.height = MINIMAP_SIZE;
+  document.getElementById('game-container').appendChild(minimapCanvas);
+  minimapCtx = minimapCanvas.getContext('2d');
+}
+
+function updateMinimap() {
+  if (!minimapCanvas || !minimapCtx || !currentLevel || gameState !== 'playing') return;
+
+  const ctx = minimapCtx;
+  const w = MINIMAP_SIZE;
+  const h = MINIMAP_SIZE;
+
+  // 清空
+  ctx.clearRect(0, 0, w, h);
+
+  // 计算关卡边界
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let y = 0; y < currentLevel.h; y++) {
+    for (let x = 0; x < currentLevel.w; x++) {
+      if (currentLevel.grid[y][x] !== 0) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  }
+
+  // 包含玩家和传送门
+  const px = Math.floor((player.x + player.w/2) / GRID_SIZE);
+  const py = Math.floor((player.y + player.h/2) / GRID_SIZE);
+  minX = Math.min(minX, px);
+  minY = Math.min(minY, py);
+  maxX = Math.max(maxX, px);
+  maxY = Math.max(maxY, py);
+
+  if (currentLevel.portal) {
+    minX = Math.min(minX, currentLevel.portal.x);
+    minY = Math.min(minY, currentLevel.portal.y);
+    maxX = Math.max(maxX, currentLevel.portal.x);
+    maxY = Math.max(maxY, currentLevel.portal.y);
+  }
+
+  // 添加边距
+  const pad = 5;
+  minX -= pad; minY -= pad;
+  maxX += pad; maxY += pad;
+
+  const levelW = maxX - minX;
+  const levelH = maxY - minY;
+
+  // 计算缩放，保持比例
+  const scaleX = w / levelW;
+  const scaleY = h / levelH;
+  const scale = Math.min(scaleX, scaleY) * 0.9; // 留边距
+
+  const offsetX = (w - levelW * scale) / 2;
+  const offsetY = (h - levelH * scale) / 2;
+
+  // 绘制地图内容
+  const tileSize = Math.max(1, GRID_SIZE * scale);
+
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile === 0) continue;
+
+      const mx = offsetX + (x - minX) * scale;
+      const my = offsetY + (y - minY) * scale;
+
+      if (tile === TILE_LAND) {
+        ctx.fillStyle = 'rgba(225, 227, 230, 0.6)';
+        ctx.fillRect(mx, my, tileSize + 0.5, tileSize + 0.5);
+      } else if (tile === TILE_SPIKE) {
+        ctx.fillStyle = 'rgba(255, 209, 212, 0.8)';
+        ctx.beginPath();
+        ctx.moveTo(mx + tileSize/2, my + 1);
+        ctx.lineTo(mx + tileSize - 1, my + tileSize - 1);
+        ctx.lineTo(mx + 1, my + tileSize - 1);
+        ctx.closePath();
+        ctx.fill();
+      } else if (tile === TILE_PORTAL) {
+        ctx.fillStyle = '#F4F9A7';
+        ctx.fillRect(mx + 1, my + 1, tileSize - 2, tileSize - 2);
+      } else if (tile === TILE_SPAWN) {
+        ctx.fillStyle = 'rgba(179, 244, 168, 0.6)';
+        ctx.fillRect(mx + 1, my + 1, tileSize - 2, tileSize - 2);
+      }
+    }
+  }
+
+  // 绘制玩家位置（闪烁点）
+  const playerMX = offsetX + (px - minX) * scale;
+  const playerMY = offsetY + (py - minY) * scale;
+  const pulse = (Math.sin(time * 6) + 1) / 2; // 0~1
+
+  ctx.fillStyle = `rgba(0, 246, 255, ${0.5 + pulse * 0.5})`;
+  ctx.beginPath();
+  ctx.arc(playerMX + tileSize/2, playerMY + tileSize/2, Math.max(2, tileSize * 0.6), 0, Math.PI * 2);
+  ctx.fill();
+
+  // 绘制玩家视野框
+  const viewW = (canvasW / GRID_SIZE) * scale;
+  const viewH = (canvasH / GRID_SIZE) * scale;
+  ctx.strokeStyle = 'rgba(0, 246, 255, 0.3)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(
+    playerMX + tileSize/2 - viewW/2,
+    playerMY + tileSize/2 - viewH/2,
+    viewW, viewH
+  );
+}
+
+// ==================== 传送门指示器 ====================
+function drawPortalIndicator() {
+  if (!currentLevel || !currentLevel.portal || player.won || player.dead) return;
+
+  const portalX = currentLevel.portal.x * GRID_SIZE + GRID_SIZE/2;
+  const portalY = currentLevel.portal.y * GRID_SIZE + GRID_SIZE/2;
+
+  // 计算传送门在屏幕上的位置
+  const screenPortalX = portalX - camera.x;
+  const screenPortalY = portalY - camera.y;
+
+  // 检查传送门是否在屏幕外
+  const margin = 40;
+  const isOffScreen = screenPortalX < margin || screenPortalX > canvasW - margin ||
+                       screenPortalY < margin || screenPortalY > canvasH - margin;
+
+  if (!isOffScreen) return; // 在屏幕内不显示指示器
+
+  // 计算指示器位置（屏幕边缘）
+  let indicatorX = screenPortalX;
+  let indicatorY = screenPortalY;
+
+  // 限制在屏幕内（带边距）
+  const edgeMargin = 30;
+  indicatorX = Math.max(edgeMargin, Math.min(canvasW - edgeMargin, indicatorX));
+  indicatorY = Math.max(edgeMargin, Math.min(canvasH - edgeMargin, indicatorY));
+
+  // 如果传送门在屏幕外，指示器应该贴在最近的边缘
+  if (screenPortalX < edgeMargin) indicatorX = edgeMargin;
+  if (screenPortalX > canvasW - edgeMargin) indicatorX = canvasW - edgeMargin;
+  if (screenPortalY < edgeMargin) indicatorY = edgeMargin;
+  if (screenPortalY > canvasH - edgeMargin) indicatorY = canvasH - edgeMargin;
+
+  // 计算角度
+  const dx = portalX - (player.x + player.w/2);
+  const dy = portalY - (player.y + player.h/2);
+  const angle = Math.atan2(dy, dx);
+
+  // 绘制指示器箭头
+  ctx.save();
+  ctx.translate(indicatorX, indicatorY);
+  ctx.rotate(angle);
+
+  // 外圈发光
+  const glowPulse = (Math.sin(time * 4) + 1) / 2;
+  ctx.shadowColor = '#F4F9A7';
+  ctx.shadowBlur = 10 + glowPulse * 10;
+
+  // 箭头主体
+  ctx.fillStyle = '#F4F9A7';
+  ctx.beginPath();
+  ctx.moveTo(8, 0);
+  ctx.lineTo(-4, -5);
+  ctx.lineTo(-4, 5);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+
+  // 距离文字
+  ctx.restore();
+
+  // 计算距离（格子数）
+  const dist = Math.sqrt(dx*dx + dy*dy) / GRID_SIZE;
+  const distText = Math.round(dist) + 'm';
+
+  ctx.fillStyle = '#F4F9A7';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // 文字背景
+  const textW = ctx.measureText(distText).width + 8;
+  ctx.fillStyle = 'rgba(18, 18, 18, 0.8)';
+  ctx.fillRect(indicatorX - textW/2, indicatorY + 12, textW, 16);
+
+  ctx.fillStyle = '#F4F9A7';
+  ctx.fillText(distText, indicatorX, indicatorY + 20);
+}
+
+
+
+
 
 function gameLoop() {
   if (gameState === 'playing') {
@@ -2531,6 +3014,7 @@ function startGame() {
   document.getElementById('joystick-zone').style.display = 'block';
   document.getElementById('jump-btn').style.display = 'flex';
   document.getElementById('win-modal').style.display = 'none';
+  if (minimapCanvas) minimapCanvas.style.display = 'block';
   resetPlayer();
 }
 
@@ -2540,6 +3024,7 @@ function exitGame() {
   document.getElementById('joystick-zone').style.display = 'none';
   document.getElementById('jump-btn').style.display = 'none';
   document.getElementById('win-modal').style.display = 'none';
+  if (minimapCanvas) minimapCanvas.style.display = 'none';
 
   if (isEditorTest) {
     isEditorTest = false;
@@ -2564,7 +3049,7 @@ document.getElementById('btn-start-game').addEventListener('click', () => {
 
 function resetLevelSelect() {
   selectedLevelIdx = -1;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 20; i++) {
     let card = document.getElementById('lvl-' + i);
     if (card) card.className = 'lvl-card';
   }
@@ -2572,20 +3057,22 @@ function resetLevelSelect() {
   document.getElementById('btn-level-start').style.pointerEvents = 'none';
 }
 
-for (let i = 0; i < 3; i++) {
-  let card = document.getElementById('lvl-' + i);
-  if (!card) continue;
-  card.addEventListener('click', function() {
-    if (selectedLevelIdx === i) { resetLevelSelect(); return; }
-    selectedLevelIdx = i;
-    for (let j = 0; j < 3; j++) {
-      let c = document.getElementById('lvl-' + j);
-      if (j === i) c.className = 'lvl-card on';
-      else c.className = 'lvl-card off';
-    }
-    document.getElementById('btn-level-start').style.opacity = '1';
-    document.getElementById('btn-level-start').style.pointerEvents = 'auto';
-  });
+for (let i = 0; i < 20; i++) {
+  (function(idx) {
+    let card = document.getElementById('lvl-' + idx);
+    if (!card) return;
+    card.addEventListener('click', function() {
+      if (selectedLevelIdx === idx) { resetLevelSelect(); return; }
+      selectedLevelIdx = idx;
+      for (let j = 0; j < 20; j++) {
+        let c = document.getElementById('lvl-' + j);
+        if (j === idx) c.className = 'lvl-card on';
+        else c.className = 'lvl-card off';
+      }
+      document.getElementById('btn-level-start').style.opacity = '1';
+      document.getElementById('btn-level-start').style.pointerEvents = 'auto';
+    });
+  })(i);
 }
 
 document.getElementById('btn-level-start').addEventListener('click', () => {
@@ -2677,7 +3164,7 @@ document.getElementById('btn-auth-submit').addEventListener('click', async () =>
 
 document.getElementById('btn-auth-back').addEventListener('click', () => { showScreen('start-screen'); });
 
-// ==================== 大厅渲染 ====================
+// ==================== 大厅渲染（修复版）====================
 async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
 
 async function renderPublicLevels(filter = '') {
@@ -2702,11 +3189,9 @@ async function renderPublicLevels(filter = '') {
   }
 
   container.innerHTML = displayLevels.map(l => {
-    // FIX: 改进传送门检测
     let hasPortal = false;
     try {
       const decoded = decodeLevel(l.code);
-      // FIX: 使用改进后的 levelHasPortal 函数
       hasPortal = levelHasPortal(decoded);
     } catch(e) { hasPortal = false; }
 
@@ -2714,6 +3199,10 @@ async function renderPublicLevels(filter = '') {
     if (!hasPortal) {
       warningHtml = `<div class="level-warning">&#9888; 警告：此关卡缺少传送门，无法通关！</div>`;
     }
+
+    // FIX: 使用函数获取点赞状态，避免重复代码
+    const liked = JSON.parse(localStorage.getItem('bwjump_liked') || '[]');
+    const isLiked = liked.includes(l.id);
 
     return `
     <div class="level-card">
@@ -2725,8 +3214,8 @@ async function renderPublicLevels(filter = '') {
       <div class="level-actions">
         <button class="btn btn-small" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
         <button class="btn btn-small" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
-        <button class="like-btn ${(() => { const liked = JSON.parse(localStorage.getItem('bwjump_liked') || '[]'); return liked.includes(l.id) ? 'liked' : ''; })()}" onclick="toggleLike(${l.id}, this)">
-          <span class="like-icon">${(() => { const liked = JSON.parse(localStorage.getItem('bwjump_liked') || '[]'); return liked.includes(l.id) ? '♥' : '♡'; })()}</span>
+        <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${l.id}, this)">
+          <span class="like-icon">${isLiked ? '♥' : '♡'}</span>
           <span class="like-count">${l.likes || 0}</span>
         </button>
       </div>
@@ -2734,53 +3223,63 @@ async function renderPublicLevels(filter = '') {
   `}).join('');
 }
 
+// FIX: 重构我的关卡渲染，使用唯一标识符而不是索引
 async function renderMyLevels(filter = '') {
   const container = document.getElementById('my-levels-list');
 
-  // FIX: 合并本地关卡和云端该用户的关卡
-  let allMyLevels = [...localLevels];
-
-  // 从云端获取当前用户分享的关卡
+  // 获取云端该用户的关卡
+  let cloudLevels = [];
   if (currentUser && currentUser.username) {
     try {
-      const cloudLevels = await supabaseGet('levels', {
+      cloudLevels = await supabaseGet('levels', {
         author: `eq.${currentUser.username}`,
         select: '*',
         order: 'created_at.desc'
       });
-      // 合并云端关卡（去重：以 code 为准）
-      if (cloudLevels && cloudLevels.length > 0) {
-        const localCodes = new Set(localLevels.map(l => l.code));
-        for (const cl of cloudLevels) {
-          if (!localCodes.has(cl.code)) {
-            allMyLevels.push({
-              name: cl.name,
-              code: cl.code,
-              date: cl.created_at ? new Date(cl.created_at).toLocaleString() : '未知时间',
-              shared: true,
-              level_id: cl.id
-            });
-          }
-        }
-      }
     } catch (e) {
       console.error('获取云端关卡失败:', e);
     }
   }
 
-  let displayLevels = allMyLevels;
-  let indices = allMyLevels.map((_, i) => i);
+  // 构建统一的关卡列表，每个关卡带有 source 标识和唯一 id
+  let allMyLevels = [];
 
+  // 先加入本地关卡
+  for (let i = 0; i < localLevels.length; i++) {
+    const l = localLevels[i];
+    // 检查这个本地关卡是否也在云端
+    const cloudMatch = cloudLevels.find(cl => cl.code === l.code);
+    allMyLevels.push({
+      ...l,
+      _source: 'local',
+      _localIndex: i,
+      _cloudId: cloudMatch ? cloudMatch.id : null,
+      _id: 'local_' + i + '_' + (l.code ? l.code.slice(0, 20) : Date.now())
+    });
+  }
+
+  // 再加入云端独有的关卡（本地没有的）
+  for (const cl of cloudLevels) {
+    const existsLocal = localLevels.find(ll => ll.code === cl.code);
+    if (!existsLocal) {
+      allMyLevels.push({
+        name: cl.name,
+        code: cl.code,
+        date: cl.created_at ? new Date(cl.created_at).toLocaleString() : '未知时间',
+        shared: true,
+        level_id: cl.id,
+        _source: 'cloud',
+        _cloudId: cl.id,
+        _id: 'cloud_' + cl.id
+      });
+    }
+  }
+
+  // 过滤
+  let displayLevels = allMyLevels;
   if (filter.trim()) {
     const keyword = filter.trim().toLowerCase();
-    displayLevels = [];
-    indices = [];
-    allMyLevels.forEach((l, i) => {
-      if (l.name && l.name.toLowerCase().includes(keyword)) {
-        displayLevels.push(l);
-        indices.push(i);
-      }
-    });
+    displayLevels = allMyLevels.filter(l => l.name && l.name.toLowerCase().includes(keyword));
   }
 
   if (displayLevels.length === 0) {
@@ -2790,7 +3289,7 @@ async function renderMyLevels(filter = '') {
     return;
   }
 
-  container.innerHTML = displayLevels.map((l, idx) => {
+  container.innerHTML = displayLevels.map(l => {
     let hasPortal = false;
     try {
       const decoded = decodeLevel(l.code);
@@ -2802,19 +3301,24 @@ async function renderMyLevels(filter = '') {
       warningHtml = `<div class="level-warning">&#9888; 警告：此关卡缺少传送门，无法通关！</div>`;
     }
 
-    const sharedBadge = l.shared ? ' <span style="color:#00F6FF;font-size:11px;font-weight:400;">[已分享]</span>' : '';
+    const sharedBadge = l.shared || l._source === 'cloud' ? ' <span style="color:#00F6FF;font-size:11px;font-weight:400;">[已分享]</span>' : '';
+
+    // FIX: 使用 _id 作为删除标识，而不是索引
+    const deleteParam = l._source === 'local' 
+      ? `deleteMyLevel('local', ${l._localIndex}, ${l._cloudId || 'null'})`
+      : `deleteMyLevel('cloud', null, ${l._cloudId})`;
 
     return `
-    <div class="level-card">
+    <div class="level-card" data-id="${l._id}">
       <div class="level-info">
         <h4>${l.name}${sharedBadge}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
-        <p>${l.date || l.created_at ? new Date(l.date || l.created_at).toLocaleString() : '未知时间'}</p>
+        <p>${l.date || '未知时间'}</p>
         ${warningHtml}
       </div>
       <div class="level-actions">
         <button class="btn btn-small" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
         <button class="btn btn-small" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
-        <button class="btn btn-small btn-danger" onclick="deleteMyLevel(${indices[idx]})">删除</button>
+        <button class="btn btn-small btn-danger" onclick="${deleteParam}">删除</button>
       </div>
     </div>
   `}).join('');
@@ -2833,13 +3337,15 @@ window.copyLevelCode = async function(code) {
   alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
 };
 
-window.deleteMyLevel = async function(idx) {
-  if (confirm('确定删除这个关卡吗？')) {
-    const level = localLevels[idx];
-    // FIX: 如果关卡已分享到云端，同时删除云端记录
-    if (level && level.level_id) {
+// FIX: 重写删除逻辑，区分本地和云端
+window.deleteMyLevel = async function(source, localIndex, cloudId) {
+  if (!confirm('确定删除这个关卡吗？')) return;
+
+  try {
+    // 1. 如果有关联网云端记录，先删云端
+    if (cloudId) {
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${level.level_id}`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${cloudId}`, {
           method: 'DELETE',
           mode: 'cors',
           credentials: 'omit',
@@ -2849,20 +3355,29 @@ window.deleteMyLevel = async function(idx) {
         console.error('删除云端关卡失败:', e);
       }
     }
-    localLevels.splice(idx, 1);
-    saveLocalLevels();
+
+    // 2. 如果是本地关卡，从 localLevels 删除
+    if (source === 'local' && localIndex !== null && localIndex >= 0 && localIndex < localLevels.length) {
+      localLevels.splice(localIndex, 1);
+      saveLocalLevels();
+    }
+
+    // 3. 如果是纯云端关卡（本地没有），不需要操作 localLevels
+
+    // 4. 重新渲染
     renderMyLevels();
+  } catch (e) {
+    console.error('删除失败:', e);
+    alert('删除失败，请重试');
   }
 };
 
 window.toggleLike = async function(levelId, btn) {
-  // 从按钮当前状态判断（而不是 localStorage）
   const isLiked = btn.classList.contains('liked');
   const iconSpan = btn.querySelector('.like-icon');
   const countSpan = btn.querySelector('.like-count');
   let currentCount = parseInt(countSpan.textContent) || 0;
 
-  // 防止重复点击
   if (btn.dataset.processing === 'true') return;
   btn.dataset.processing = 'true';
 
@@ -2870,31 +3385,25 @@ window.toggleLike = async function(levelId, btn) {
     let liked = JSON.parse(localStorage.getItem('bwjump_liked') || '[]');
 
     if (isLiked) {
-      // === 取消点赞 ===
       btn.classList.remove('liked');
       iconSpan.textContent = '♡';
       countSpan.textContent = Math.max(0, currentCount - 1);
       liked = liked.filter(id => id !== levelId);
-
       await supabasePatch('levels', levelId, { likes: Math.max(0, currentCount - 1) });
     } else {
-      // === 点赞 ===
       btn.classList.add('liked');
       iconSpan.textContent = '♥';
       countSpan.textContent = currentCount + 1;
       if (!liked.includes(levelId)) liked.push(levelId);
-
       await supabasePatch('levels', levelId, { likes: currentCount + 1 });
     }
 
-    // 成功后更新 localStorage 和缓存
     localStorage.setItem('bwjump_liked', JSON.stringify(liked));
     const level = publicLevelsCache.find(l => l.id === levelId);
     if (level) {
       level.likes = isLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
     }
   } catch (e) {
-    // 失败时回滚UI
     alert('操作失败: ' + e.message);
     if (isLiked) {
       btn.classList.add('liked');
@@ -2909,49 +3418,7 @@ window.toggleLike = async function(levelId, btn) {
     btn.dataset.processing = 'false';
   }
 };
-// ==================== 大厅标签切换 ====================
-document.querySelectorAll('.lobby-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.lobby-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    const target = tab.dataset.tab;
-    document.getElementById('lobby-public').classList.toggle('hidden', target !== 'public');
-    document.getElementById('lobby-my').classList.toggle('hidden', target !== 'my');
-    document.getElementById('lobby-upload').classList.toggle('hidden', target !== 'upload');
-  });
-});
 
-document.getElementById('btn-upload-play').addEventListener('click', () => {
-  const code = document.getElementById('upload-code-input').value.trim();
-  if (!code) { alert('请输入关卡编码'); return; }
-  const level = decodeLevel(code);
-  if (level) { loadCustomLevel(level); startGame(); document.getElementById('upload-code-input').value = ''; }
-  else { alert('关卡编码无效，请检查输入'); }
-});
-
-// ==================== 搜索功能 ====================
-document.getElementById('btn-public-search').addEventListener('click', () => {
-  renderPublicLevels(document.getElementById('public-search-input').value);
-});
-document.getElementById('public-search-input').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') renderPublicLevels(document.getElementById('public-search-input').value);
-});
-
-document.getElementById('btn-my-search').addEventListener('click', () => {
-  renderMyLevels(document.getElementById('my-search-input').value);
-});
-document.getElementById('my-search-input').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') renderMyLevels(document.getElementById('my-search-input').value);
-});
-
-
-// ==================== 大厅界面按钮 ====================
-document.getElementById('btn-lobby-back').addEventListener('click', () => { showScreen('start-screen'); });
-
-document.getElementById('btn-lobby-logout').addEventListener('click', () => {
-  currentUser = null; localStorage.removeItem('bwjump_user');
-  updateUserDisplay(); showScreen('start-screen');
-});
 async function copyToClipboard(text) {
   if (navigator.clipboard && window.isSecureContext) {
     try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
@@ -3015,8 +3482,7 @@ async function doShareLevel() {
   try {
     await shareLevelToLobby(levelData, code);
     alert('关卡已分享到大厅！');
-    localLevels.push({name: levelData.name, code, date: new Date().toLocaleString()});
-    saveLocalLevels();
+    // shareLevelToLobby 内部已保存到 localLevels，无需重复添加
   } catch (e) {
     alert('分享失败: ' + (e.message || '网络错误'));
   } finally {
@@ -3106,6 +3572,8 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
 });
 
 initStorage();
+
+initMinimap();
 
 // Initial render
 ctx.fillStyle = COLORS.bg;
