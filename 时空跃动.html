@@ -2403,8 +2403,8 @@ function render() {
   }
   ctx.globalAlpha = 1;
   ctx.restore();
-  drawPortalIndicator();
-  updateMinimap();
+  if (currentLevel.showIndicator !== false) drawPortalIndicator();
+  if (currentLevel.showMinimap !== false) updateMinimap();
 }
 
 
