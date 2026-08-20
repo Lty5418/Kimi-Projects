@@ -141,9 +141,12 @@ html, body {
 #level-select-screen {
   position: absolute; inset: 0;
   display: none; flex-direction: column;
-  align-items: center; justify-content: center;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 60px;
   z-index: 110;
   background: #121212;
+  overflow: hidden;
 }
 #level-select-screen .screen-title {
   font-size: 28px; font-weight: 900;
@@ -155,7 +158,7 @@ html, body {
   letter-spacing: 3px; margin-bottom: 60px;
 }
 .lvl-card {
-  width: 80px; height: 80px;
+  width: 72px; height: 72px;
   background: #1a1a1a;
   border: 2px solid #707070;
   border-radius: 10px;
@@ -163,114 +166,92 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 900;
   color: #707070;
-  transition: 
-    width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-    height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-    background 0.25s ease,
-    border-color 0.25s ease,
-    color 0.2s ease,
-    font-size 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.3s ease,
-    opacity 0.3s ease,
-    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.25s ease-out;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
+  scroll-snap-align: center;
 }
 .lvl-card:hover { 
   border-color: #A0DAF7; 
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,246,255,0.1);
 }
 .lvl-card:active {
   background: #2a2a2a;
   border-color: #00A1FF;
-  transform: scale(0.96) translateY(0);
   transition: transform 0.1s ease;
-}
-.lvl-card.on {
-  width: 200px; height: 130px;
-  border-color: #00F6FF;
-  background: #1f1f1f;
-  color: #FFFFFF;
-  font-size: 40px;
-  box-shadow: 0 0 30px rgba(0,246,255,0.2), 0 4px 20px rgba(0,0,0,0.3);
-  transform: translateY(-4px);
 }
 .lvl-card .lvl-num { 
   transition: font-size 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
               margin 0.25s ease,
               transform 0.3s ease; 
 }
-.lvl-card.on .lvl-num { 
-  font-size: 44px; 
-  margin-bottom: 4px;
-  transform: scale(1.05);
-}
 .lvl-card .lvl-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   opacity: 0;
   transform: translateY(12px) scale(0.9);
-  transition: 
-    opacity 0.3s ease 0.1s,
-    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s;
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
   position: absolute;
-  bottom: 14px;
+  bottom: 10px;
   left: 0; right: 0;
-}
-.lvl-card.on .lvl-info {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  position: static;
-  margin-top: 2px;
-  pointer-events: auto;
+  width: 100%;
 }
 .lvl-card .lvl-name {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   color: #FFFFFF;
   letter-spacing: 2px;
   white-space: nowrap;
   transition: letter-spacing 0.3s ease;
 }
-.lvl-card.on .lvl-name {
-  letter-spacing: 3px;
-}
 .lvl-card .lvl-tag {
-  font-size: 11px;
+  font-size: 10px;
   color: #8D9390;
   border: 1px solid #707070;
-  padding: 2px 10px;
+  padding: 2px 8px;
   border-radius: 3px;
   text-transform: uppercase;
   letter-spacing: 1px;
   transition: all 0.25s ease;
 }
-.lvl-card.on .lvl-tag {
-  border-color: #00F6FF;
-  color: #00F6FF;
-  background: rgba(0,246,255,0.08);
+
+
+/* ===== 选关卡滚动容器 ===== */
+#level-cards {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
-.lvl-card.off {
-  opacity: 0.2;
-  transform: scale(0.82);
-  filter: grayscale(0.5);
-  transition: 
-    opacity 0.35s ease,
-    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-    filter 0.3s ease;
+#level-cards::-webkit-scrollbar { 
+  display: none; /* Chrome/Safari/Opera */
 }
 
+/* 滚动指示器 */
+.scroll-hint {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: rgba(141,147,144,0.4);
+  letter-spacing: 2px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.scroll-hint.visible {
+  opacity: 1;
+}
 /* ===== 登录/注册界面 ===== */
 #auth-screen {
   position: absolute; inset: 0;
@@ -721,16 +702,32 @@ html, body {
   display: none; flex-direction: column;
   align-items: center; justify-content: center;
   z-index: 70;
-  background: rgba(18,18,18,0.95);
+  background: rgba(18,18,18,0.92);
 }
-#share-modal h3 { font-size: 22px; margin-bottom: 16px; color: #DFC8F5; letter-spacing: 4px; }
+#share-modal h3 { 
+  font-size: 22px; 
+  margin-bottom: 24px; 
+  color: #E1E3E6; 
+  letter-spacing: 4px;
+  font-weight: 400;
+}
 #share-modal textarea {
-  width: 320px; height: 80px;
-  background: #1a1a1a; border: 1px solid #707070;
-  color: #B3F4A8; padding: 10px;
-  font-family: monospace; font-size: 12px;
-  resize: none; margin-bottom: 16px;
-  border-radius: 4px;
+  width: 340px; 
+  height: 100px;
+  background: #1a1a1a; 
+  border: 1px solid #3a3a3a;
+  color: #8D9390; 
+  padding: 14px;
+  font-family: "SF Mono", "Fira Code", monospace; 
+  font-size: 12px;
+  line-height: 1.6;
+  resize: none; 
+  margin-bottom: 24px;
+  border-radius: 6px;
+  outline: none;
+}
+#share-modal textarea:focus {
+  border-color: #707070;
 }
 
 /* ===== 点赞按钮 ===== */
@@ -769,6 +766,72 @@ html, body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #121212; }
 ::-webkit-scrollbar-thumb { background: #707070; border-radius: 3px; }
+
+/* 更新日志 */
+.changelog-info {
+  position: absolute;
+  bottom: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(141,147,144,0.5);
+  cursor: pointer;
+  transition: color 0.3s;
+  letter-spacing: 2px;
+}
+.changelog-info:hover {
+  color: #A0DAF7;
+}
+#changelog-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center;
+  z-index: 105;
+  background: #121212;
+  padding: 60px 20px 20px 20px;
+  overflow-y: auto;
+}
+#changelog-screen .screen-title {
+  font-size: 28px; font-weight: 900;
+  letter-spacing: 6px; margin-bottom: 8px;
+  color: #FFFFFF;
+}
+#changelog-screen .screen-subtitle {
+  font-size: 12px; color: #8D9390;
+  letter-spacing: 3px; margin-bottom: 40px;
+}
+.changelog-entry {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(112,112,112,0.3);
+}
+.changelog-time {
+  font-size: 13px;
+  color: #00F6FF;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.changelog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.changelog-list li {
+  font-size: 13px;
+  color: #8D9390;
+  line-height: 1.8;
+  padding-left: 16px;
+  position: relative;
+}
+.changelog-list li::before {
+  content: "›";
+  position: absolute;
+  left: 0;
+  color: #707070;
+}
 
 /* 发布遮罩 */
 #publish-overlay {
@@ -825,15 +888,16 @@ html, body {
   .level-info h4 { font-size: 14px; }
   #lobby-screen { padding: 60px 12px 12px 12px; }
   .lobby-tab { padding: 8px 14px; font-size: 13px; }
+  .lvl-card { width: 60px; height: 60px; font-size: 18px; }
+  #level-cards { padding-left: calc(50% - 30px) !important; padding-right: calc(50% - 30px) !important; }
 }
 
 @media (max-width: 480px) {
   #start-screen .title { font-size: 32px; letter-spacing: 6px; }
   .btn { padding: 8px 20px; font-size: 13px; letter-spacing: 2px; }
-  .lvl-card { width: 64px; height: 64px; font-size: 22px; }
-  .lvl-card.on { width: 160px; height: 110px; }
-  .lvl-card.on .lvl-num { font-size: 36px; }
-  .lvl-card .lvl-name { font-size: 13px; }
+  .lvl-card { width: 52px; height: 52px; font-size: 16px; }
+  .lvl-card .lvl-name { font-size: 11px; }
+  #level-cards { padding-left: calc(50% - 26px) !important; padding-right: calc(50% - 26px) !important; }
   #joystick-zone { width: 90px; height: 90px; left: 16px; bottom: 16px; }
   #joystick-thumb { width: 36px; height: 36px; top: 27px; left: 27px; }
   #jump-btn { width: 60px; height: 60px; right: 16px; bottom: 16px; font-size: 18px; }
@@ -854,6 +918,8 @@ html, body {
   #joystick-zone { width: 70px; height: 70px; }
   #joystick-thumb { width: 28px; height: 28px; top: 21px; left: 21px; }
   #jump-btn { width: 50px; height: 50px; font-size: 16px; }
+  .lvl-card { width: 48px; height: 48px; font-size: 14px; }
+  #level-cards { padding-left: calc(50% - 24px) !important; padding-right: calc(50% - 24px) !important; }
 }
 </style>
 </head>
@@ -870,6 +936,7 @@ html, body {
       <button class="btn btn-small" id="btn-lobby">关卡大厅</button>
     </div>
     <div class="dev-info" id="dev-info">开发人员</div>
+    <div class="changelog-info" id="changelog-info">更新日志</div>
   </div>
 
     <!-- ========== 开发人员界面 ========== -->
@@ -886,6 +953,47 @@ html, body {
         <div style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:4px;margin-bottom:8px;">kimi</div>
         <div style="font-size:12px;color:#8D9390;letter-spacing:2px;">AI 辅助开发</div>
       </div>
+      <div style="background:#1a1a1a;border:1px solid #707070;border-radius:8px;padding:24px 40px;text-align:center;min-width:200px;">
+        <div style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:4px;margin-bottom:8px;">DeepSeek</div>
+        <div style="font-size:12px;color:#8D9390;letter-spacing:2px;">AI 辅助开发</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 更新日志界面 ========== -->
+  <div id="changelog-screen">
+    <button class="back-btn" id="btn-changelog-back">&larr; 返回</button>
+    <div class="screen-title">更新日志</div>
+    <div class="screen-subtitle">CHANGELOG</div>
+    <div style="width:100%;max-width:480px;overflow-y:auto;flex:1;">
+      <div class="changelog-entry">
+        <div class="changelog-time">2026-08-20 18:35</div>
+        <ul class="changelog-list">
+          <li>选关界面进入时自动选中第1关并滚动到中央</li>
+          <li>传送门指示器简化为实心三角形箭头</li>
+        </ul>
+      </div>
+      <div class="changelog-entry">
+        <div class="changelog-time">2026-08-20 18:24</div>
+        <ul class="changelog-list">
+          <li>重写全部20个内置关卡，优化难度曲线</li>
+          <li>"头顶即死"和"顶头二段"添加天花板尖刺与隔断墙</li>
+          <li>"死亡螺旋"和"不可能任务"替换原有最终关卡</li>
+          <li>所有关卡统一使用 y=1 作为起始地面高度</li>
+        </ul>
+      </div>
+      <div class="changelog-entry">
+        <div class="changelog-time">2026-08-20 17:56</div>
+        <ul class="changelog-list">
+          <li>添加 DeepSeek 到开发人员列表</li>
+          <li>选关界面添加基于距离中心的平滑缩放</li>
+          <li>选关界面顶部添加关卡名显示，防止误选</li>
+          <li>小地图改为圆角玻璃质感面板，分层绘制所有元素</li>
+          <li>小地图尖刺使用红色方块+白色叉号，清晰可辨</li>
+          <li>传送门指示器简化为圆环+圆点+箭头</li>
+          <li>分享弹窗移除赛博朋克风格，改为灰色系简洁设计</li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -894,7 +1002,8 @@ html, body {
     <button class="back-btn" id="btn-level-back">&larr; 返回</button>
     <div class="screen-title">选择关卡</div>
     <div class="screen-subtitle">SELECT LEVEL</div>
-    <div id="level-cards" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:30px;flex-wrap:wrap;max-width:90%;">
+    <div id="selected-level-name" style="font-size:16px;color:#00F6FF;letter-spacing:3px;margin-bottom:16px;height:24px;opacity:0;transition:opacity 0.3s ease;text-align:center;font-weight:700;"></div>
+    <div id="level-cards" style="display:flex;align-items:center;gap:16px;margin-bottom:30px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:20px 0;padding-left:calc(50% - 36px);padding-right:calc(50% - 36px);scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;mask-image:linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);">
       <div class="lvl-card" id="lvl-0">
         <span class="lvl-num">1</span>
         <span class="lvl-info">
@@ -1010,7 +1119,7 @@ html, body {
       <div class="lvl-card" id="lvl-16">
         <span class="lvl-num">17</span>
         <span class="lvl-info">
-          <span class="lvl-name">无地可落</span>
+          <span class="lvl-name">顶头二段</span>
           <span class="lvl-tag">极限</span>
         </span>
       </div>
@@ -1037,6 +1146,7 @@ html, body {
       </div>
     </div>
     <button class="btn" id="btn-level-start" style="opacity:0.3;pointer-events:none;">开始游戏</button>
+    <div class="scroll-hint" id="scroll-hint">← 左右滑动选择关卡 →</div>
   </div>
 
   <!-- ========== 登录/注册界面 ========== -->
@@ -1295,124 +1405,571 @@ const COLORS = {
 
 const BUILTIN_LEVELS = [
   {
-    name: "起跳平台", w: 30, h: 15,
-    spawn: {x: 0, y: 0}, portal: {x: 18, y: -2},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:2,y:2,w:2,h:1}, {x:5,y:1,w:2,h:1}, {x:9,y:0,w:2,h:1}, {x:13,y:-1,w:2,h:1}, {x:16,y:-2,w:3,h:1}],
+    name: "起跳平台", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 14, y: 0},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:5,y:1,w:3,h:1},
+      {x:10,y:1,w:3,h:1},
+      {x:14,y:1,w:3,h:1}
+    ],
     spikes: []
   },
   {
-    name: "第一个坎", w: 30, h: 15,
-    spawn: {x: 0, y: 0}, portal: {x: 20, y: -3},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:2,w:2,h:1}, {x:7,y:1,w:2,h:1}, {x:11,y:0,w:2,h:1}, {x:15,y:-1,w:2,h:1}, {x:18,y:-2,w:2,h:1}, {x:20,y:-3,w:3,h:1}],
-    spikes: [{x:5,y:2}, {x:6,y:2}, {x:9,y:1}, {x:10,y:1}, {x:13,y:0}, {x:14,y:0}]
+    name: "第一个坎", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 16, y: -4},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:1,w:2,h:1},
+      {x:7,y:-1,w:2,h:1},
+      {x:11,y:-2,w:2,h:1},
+      {x:16,y:-3,w:3,h:1}
+    ],
+    spikes: [
+      {x:5,y:1}, {x:6,y:1},
+      {x:9,y:-1}, {x:10,y:-1},
+      {x:13,y:-2}, {x:14,y:-2}
+    ]
   },
   {
-    name: "连续小跳", w: 35, h: 15,
-    spawn: {x: 0, y: 0}, portal: {x: 26, y: -4},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:2,w:1,h:1}, {x:6,y:1,w:1,h:1}, {x:9,y:0,w:1,h:1}, {x:12,y:-1,w:1,h:1}, {x:15,y:-2,w:1,h:1}, {x:18,y:-3,w:1,h:1}, {x:21,y:-2,w:1,h:1}, {x:24,y:-3,w:1,h:1}, {x:26,y:-4,w:3,h:1}],
-    spikes: [{x:4,y:2}, {x:5,y:2}, {x:7,y:1}, {x:8,y:1}, {x:10,y:0}, {x:11,y:0}, {x:13,y:-1}, {x:14,y:-1}, {x:16,y:-2}, {x:17,y:-2}, {x:19,y:-3}, {x:20,y:-3}, {x:22,y:-2}, {x:23,y:-2}]
+    name: "连续小跳", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 26, y: -6},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:0,w:1,h:1},
+      {x:6,y:-1,w:1,h:1},
+      {x:9,y:-2,w:1,h:1},
+      {x:12,y:-3,w:1,h:1},
+      {x:15,y:-4,w:1,h:1},
+      {x:18,y:-5,w:1,h:1},
+      {x:21,y:-5,w:3,h:1},
+      {x:26,y:-5,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:0}, {x:5,y:0},
+      {x:7,y:-1}, {x:8,y:-1},
+      {x:10,y:-2}, {x:11,y:-2},
+      {x:13,y:-3}, {x:14,y:-3},
+      {x:16,y:-4}, {x:17,y:-4},
+      {x:19,y:-5}, {x:20,y:-5}
+    ]
   },
   {
-    name: "初见尖刺", w: 35, h: 15,
-    spawn: {x: 0, y: 0}, portal: {x: 24, y: -2},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:2,w:2,h:1}, {x:7,y:0,w:2,h:1}, {x:11,y:-1,w:2,h:1}, {x:15,y:0,w:2,h:1}, {x:19,y:-1,w:2,h:1}, {x:22,y:-2,w:2,h:1}, {x:24,y:-2,w:3,h:1}],
-    spikes: [{x:5,y:2}, {x:6,y:2}, {x:9,y:0}, {x:10,y:0}, {x:13,y:-1}, {x:14,y:-1}, {x:17,y:0}, {x:18,y:0}, {x:20,y:-1}, {x:21,y:-1}]
+    name: "初见尖刺", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 24, y: -4},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:1,w:2,h:1},
+      {x:7,y:0,w:2,h:1},
+      {x:11,y:-1,w:2,h:1},
+      {x:15,y:0,w:2,h:1},
+      {x:19,y:-1,w:2,h:1},
+      {x:23,y:-3,w:3,h:1}
+    ],
+    spikes: [
+      {x:5,y:1}, {x:6,y:1},
+      {x:9,y:0}, {x:10,y:0},
+      {x:13,y:-1}, {x:14,y:-1},
+      {x:17,y:0}, {x:18,y:0},
+      {x:21,y:-1}, {x:22,y:-1}
+    ]
   },
   {
-    name: "尖刺间隙", w: 40, h: 15,
-    spawn: {x: 0, y: 0}, portal: {x: 28, y: -3},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:2,w:1,h:1}, {x:6,y:1,w:1,h:1}, {x:10,y:0,w:1,h:1}, {x:14,y:-1,w:1,h:1}, {x:18,y:-2,w:1,h:1}, {x:22,y:-1,w:1,h:1}, {x:25,y:-2,w:1,h:1}, {x:28,y:-3,w:3,h:1}],
-    spikes: [{x:3,y:2}, {x:4,y:2}, {x:5,y:2}, {x:7,y:1}, {x:8,y:1}, {x:9,y:1}, {x:11,y:0}, {x:12,y:0}, {x:13,y:0}, {x:15,y:-1}, {x:16,y:-1}, {x:17,y:-1}, {x:19,y:-2}, {x:20,y:-2}, {x:21,y:-2}, {x:23,y:-1}, {x:24,y:-1}]
+    name: "尖刺间隙", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 30, y: -6},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:0,w:1,h:1},
+      {x:6,y:-1,w:1,h:1},
+      {x:9,y:-2,w:1,h:1},
+      {x:12,y:-3,w:1,h:1},
+      {x:15,y:-4,w:1,h:1},
+      {x:18,y:-5,w:1,h:1},
+      {x:21,y:-5,w:3,h:1},
+      {x:27,y:-5,w:3,h:1}
+    ],
+    spikes: [
+      {x:1,y:1}, {x:2,y:1},
+      {x:4,y:0}, {x:5,y:0},
+      {x:7,y:-1}, {x:8,y:-1},
+      {x:10,y:-2}, {x:11,y:-2},
+      {x:13,y:-3}, {x:14,y:-3},
+      {x:16,y:-4}, {x:17,y:-4},
+      {x:19,y:-5}, {x:20,y:-5},
+      {x:23,y:-5}, {x:24,y:-5}, {x:25,y:-5}, {x:26,y:-5}
+    ]
   },
   {
-    name: "需要二段", w: 40, h: 18,
-    spawn: {x: 0, y: 0}, portal: {x: 28, y: -6},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:0,w:1,h:1}, {x:6,y:-3,w:1,h:1}, {x:9,y:-5,w:1,h:1}, {x:12,y:-3,w:1,h:1}, {x:15,y:-6,w:1,h:1}, {x:18,y:-4,w:1,h:1}, {x:21,y:-6,w:1,h:1}, {x:25,y:-5,w:1,h:1}, {x:28,y:-6,w:3,h:1}],
-    spikes: [{x:3,y:0}, {x:4,y:0}, {x:5,y:0}, {x:7,y:-3}, {x:8,y:-3}, {x:10,y:-5}, {x:11,y:-5}, {x:13,y:-3}, {x:14,y:-3}, {x:16,y:-6}, {x:17,y:-6}, {x:19,y:-4}, {x:20,y:-4}, {x:22,y:-6}, {x:23,y:-6}, {x:24,y:-6}]
+    name: "需要二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 26, y: -12},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-3,w:1,h:1},
+      {x:7,y:-6,w:1,h:1},
+      {x:11,y:-9,w:1,h:1},
+      {x:15,y:-6,w:1,h:1},
+      {x:19,y:-10,w:1,h:1},
+      {x:23,y:-11,w:3,h:1},
+      {x:26,y:-11,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-3}, {x:5,y:-3}, {x:6,y:-3},
+      {x:8,y:-6}, {x:9,y:-6}, {x:10,y:-6},
+      {x:12,y:-9}, {x:13,y:-9}, {x:14,y:-9},
+      {x:16,y:-6}, {x:17,y:-6}, {x:18,y:-6},
+      {x:20,y:-10}, {x:21,y:-10}, {x:22,y:-10}
+    ]
   },
   {
-    name: "高空恐惧", w: 40, h: 22,
-    spawn: {x: 0, y: 0}, portal: {x: 30, y: -12},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-1,w:1,h:1}, {x:5,y:-4,w:1,h:1}, {x:8,y:-7,w:1,h:1}, {x:11,y:-10,w:1,h:1}, {x:14,y:-7,w:1,h:1}, {x:17,y:-11,w:1,h:1}, {x:20,y:-8,w:1,h:1}, {x:23,y:-12,w:1,h:1}, {x:26,y:-10,w:1,h:1}, {x:30,y:-12,w:3,h:1}],
-    spikes: [{x:3,y:-1}, {x:4,y:-1}, {x:6,y:-4}, {x:7,y:-4}, {x:9,y:-7}, {x:10,y:-7}, {x:12,y:-10}, {x:13,y:-10}, {x:15,y:-7}, {x:16,y:-7}, {x:18,y:-11}, {x:19,y:-11}, {x:21,y:-8}, {x:22,y:-8}, {x:24,y:-12}, {x:25,y:-12}, {x:27,y:-10}, {x:28,y:-10}, {x:29,y:-10}]
+    name: "高空恐惧", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 34, y: -17},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-4,w:1,h:1},
+      {x:7,y:-8,w:1,h:1},
+      {x:11,y:-12,w:1,h:1},
+      {x:15,y:-9,w:1,h:1},
+      {x:19,y:-14,w:1,h:1},
+      {x:23,y:-11,w:1,h:1},
+      {x:27,y:-16,w:1,h:1},
+      {x:31,y:-16,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4},
+      {x:8,y:-8}, {x:9,y:-8}, {x:10,y:-8},
+      {x:12,y:-12}, {x:13,y:-12}, {x:14,y:-12},
+      {x:16,y:-9}, {x:17,y:-9}, {x:18,y:-9},
+      {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
+      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11},
+      {x:28,y:-16}, {x:29,y:-16}, {x:30,y:-16}
+    ]
   },
   {
-    name: "回环路线", w: 45, h: 20,
-    spawn: {x: 0, y: 0}, portal: {x: 32, y: -8},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:1,w:2,h:1}, {x:6,y:-1,w:1,h:1}, {x:9,y:-3,w:1,h:1}, {x:7,y:0,w:1,h:1}, {x:4,y:-2,w:1,h:1}, {x:7,y:-4,w:1,h:1}, {x:11,y:-5,w:1,h:1}, {x:15,y:-6,w:1,h:1}, {x:19,y:-7,w:1,h:1}, {x:23,y:-6,w:1,h:1}, {x:26,y:-8,w:1,h:1}, {x:29,y:-7,w:1,h:1}, {x:32,y:-8,w:3,h:1}],
-    spikes: [{x:10,y:1}, {x:11,y:1}, {x:12,y:1}, {x:10,y:0}, {x:11,y:0}, {x:12,y:0}, {x:10,y:-1}, {x:11,y:-1}, {x:12,y:-1}, {x:5,y:1}, {x:5,y:0}, {x:8,y:-1}, {x:8,y:-2}, {x:5,y:-2}, {x:6,y:-2}, {x:8,y:-3}, {x:8,y:-4}, {x:8,y:-4}, {x:9,y:-4}, {x:12,y:-5}, {x:13,y:-5}, {x:14,y:-5}, {x:16,y:-6}, {x:17,y:-6}, {x:18,y:-6}, {x:20,y:-7}, {x:21,y:-7}, {x:22,y:-7}, {x:24,y:-6}, {x:25,y:-6}, {x:27,y:-8}, {x:28,y:-8}, {x:30,y:-7}, {x:31,y:-7}]
+    name: "回环路线", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 40, y: -16},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-1,w:1,h:1},
+      {x:7,y:-4,w:1,h:1},
+      {x:11,y:-7,w:1,h:1},
+      {x:15,y:-9,w:1,h:1},
+      {x:19,y:-7,w:1,h:1},
+      {x:23,y:-11,w:1,h:1},
+      {x:27,y:-9,w:1,h:1},
+      {x:31,y:-13,w:1,h:1},
+      {x:35,y:-11,w:1,h:1},
+      {x:39,y:-15,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-1}, {x:5,y:-1}, {x:6,y:-1},
+      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
+      {x:12,y:-7}, {x:13,y:-7}, {x:14,y:-7},
+      {x:16,y:-9}, {x:17,y:-9}, {x:18,y:-9},
+      {x:20,y:-7}, {x:21,y:-7}, {x:22,y:-7},
+      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11},
+      {x:28,y:-9}, {x:29,y:-9}, {x:30,y:-9},
+      {x:32,y:-13}, {x:33,y:-13}, {x:34,y:-13},
+      {x:36,y:-11}, {x:37,y:-11}, {x:38,y:-11}
+    ]
   },
   {
-    name: "极限距离", w: 50, h: 20,
-    spawn: {x: 0, y: 0}, portal: {x: 36, y: -10},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:0,w:1,h:1}, {x:6,y:-3,w:1,h:1}, {x:10,y:-6,w:1,h:1}, {x:13,y:-4,w:1,h:1}, {x:16,y:-7,w:1,h:1}, {x:19,y:-5,w:1,h:1}, {x:22,y:-9,w:1,h:1}, {x:26,y:-7,w:1,h:1}, {x:29,y:-10,w:1,h:1}, {x:32,y:-8,w:1,h:1}, {x:36,y:-10,w:3,h:1}],
-    spikes: [{x:3,y:0}, {x:4,y:0}, {x:5,y:0}, {x:7,y:-3}, {x:8,y:-3}, {x:9,y:-3}, {x:11,y:-6}, {x:12,y:-6}, {x:14,y:-4}, {x:15,y:-4}, {x:17,y:-7}, {x:18,y:-7}, {x:20,y:-5}, {x:21,y:-5}, {x:23,y:-9}, {x:24,y:-9}, {x:25,y:-9}, {x:27,y:-7}, {x:28,y:-7}, {x:30,y:-10}, {x:31,y:-10}, {x:33,y:-8}, {x:34,y:-8}, {x:35,y:-8}]
+    name: "极限距离", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -17},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-4,w:1,h:1},
+      {x:8,y:-8,w:1,h:1},
+      {x:13,y:-4,w:1,h:1},
+      {x:18,y:-10,w:1,h:1},
+      {x:23,y:-6,w:1,h:1},
+      {x:28,y:-13,w:1,h:1},
+      {x:33,y:-8,w:1,h:1},
+      {x:38,y:-16,w:1,h:1},
+      {x:43,y:-16,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4}, {x:7,y:-4},
+      {x:9,y:-8}, {x:10,y:-8}, {x:11,y:-8}, {x:12,y:-8},
+      {x:14,y:-4}, {x:15,y:-4}, {x:16,y:-4}, {x:17,y:-4},
+      {x:19,y:-10}, {x:20,y:-10}, {x:21,y:-10}, {x:22,y:-10},
+      {x:24,y:-6}, {x:25,y:-6}, {x:26,y:-6}, {x:27,y:-6},
+      {x:29,y:-13}, {x:30,y:-13}, {x:31,y:-13}, {x:32,y:-13},
+      {x:34,y:-8}, {x:35,y:-8}, {x:36,y:-8}, {x:37,y:-8},
+      {x:39,y:-16}, {x:40,y:-16}, {x:41,y:-16}, {x:42,y:-16}
+    ]
   },
   {
-    name: "二段极限", w: 50, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 38, y: -15},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-2,w:1,h:1}, {x:6,y:-5,w:1,h:1}, {x:9,y:-9,w:1,h:1}, {x:12,y:-6,w:1,h:1}, {x:15,y:-10,w:1,h:1}, {x:18,y:-7,w:1,h:1}, {x:21,y:-12,w:1,h:1}, {x:24,y:-9,w:1,h:1}, {x:27,y:-14,w:1,h:1}, {x:30,y:-11,w:1,h:1}, {x:33,y:-15,w:1,h:1}, {x:36,y:-13,w:1,h:1}, {x:38,y:-15,w:3,h:1}],
-    spikes: [{x:3,y:-2}, {x:4,y:-2}, {x:5,y:-2}, {x:7,y:-5}, {x:8,y:-5}, {x:10,y:-9}, {x:11,y:-9}, {x:13,y:-6}, {x:14,y:-6}, {x:16,y:-10}, {x:17,y:-10}, {x:19,y:-7}, {x:20,y:-7}, {x:22,y:-12}, {x:23,y:-12}, {x:25,y:-9}, {x:26,y:-9}, {x:28,y:-14}, {x:29,y:-14}, {x:31,y:-11}, {x:32,y:-11}, {x:34,y:-15}, {x:35,y:-15}, {x:37,y:-13}, {x:38,y:-13}]
+    name: "二段极限", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 46, y: -22},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-6,w:1,h:1},
+      {x:8,y:-12,w:1,h:1},
+      {x:13,y:-6,w:1,h:1},
+      {x:18,y:-14,w:1,h:1},
+      {x:23,y:-9,w:1,h:1},
+      {x:28,y:-17,w:1,h:1},
+      {x:33,y:-11,w:1,h:1},
+      {x:38,y:-20,w:1,h:1},
+      {x:43,y:-15,w:1,h:1},
+      {x:46,y:-21,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-6}, {x:5,y:-6}, {x:6,y:-6}, {x:7,y:-6},
+      {x:9,y:-12}, {x:10,y:-12}, {x:11,y:-12}, {x:12,y:-12},
+      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
+      {x:19,y:-14}, {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
+      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
+      {x:29,y:-17}, {x:30,y:-17}, {x:31,y:-17}, {x:32,y:-17},
+      {x:34,y:-11}, {x:35,y:-11}, {x:36,y:-11}, {x:37,y:-11},
+      {x:39,y:-20}, {x:40,y:-20}, {x:41,y:-20}, {x:42,y:-20},
+      {x:44,y:-15}, {x:45,y:-15}
+    ]
   },
   {
-    name: "头顶即死", w: 45, h: 22,
-    spawn: {x: 0, y: 0}, portal: {x: 34, y: -12},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:5,h:1}, {x:3,y:0,w:5,h:1}, {x:10,y:0,w:2,h:1}, {x:10,y:-3,w:2,h:1}, {x:14,y:-2,w:2,h:1}, {x:14,y:-5,w:2,h:1}, {x:18,y:-4,w:2,h:1}, {x:18,y:-7,w:2,h:1}, {x:22,y:-6,w:2,h:1}, {x:22,y:-9,w:2,h:1}, {x:26,y:-8,w:2,h:1}, {x:26,y:-11,w:2,h:1}, {x:30,y:-10,w:2,h:1}, {x:30,y:-13,w:2,h:1}, {x:34,y:-12,w:3,h:1}],
-    spikes: [{x:6,y:2}, {x:7,y:2}, {x:8,y:2}, {x:12,y:0}, {x:13,y:0}, {x:16,y:-2}, {x:17,y:-2}, {x:20,y:-4}, {x:21,y:-4}, {x:24,y:-6}, {x:25,y:-6}, {x:28,y:-8}, {x:29,y:-8}, {x:32,y:-10}, {x:33,y:-10}]
+    name: "头顶即死", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 42, y: -22},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:1,w:3,h:1}, {x:8,y:1,w:3,h:1}, {x:13,y:1,w:3,h:1},
+      {x:6,y:1,w:1,h:4}, {x:11,y:1,w:1,h:4},
+      {x:3,y:-4,w:3,h:1}, {x:8,y:-4,w:3,h:1}, {x:13,y:-4,w:3,h:1},
+      {x:6,y:-4,w:1,h:4}, {x:11,y:-4,w:1,h:4},
+      {x:3,y:-9,w:3,h:1}, {x:8,y:-9,w:3,h:1}, {x:13,y:-9,w:3,h:1},
+      {x:6,y:-9,w:1,h:4}, {x:11,y:-9,w:1,h:4},
+      {x:3,y:-14,w:3,h:1}, {x:8,y:-14,w:3,h:1}, {x:13,y:-14,w:3,h:1},
+      {x:16,y:-14,w:2,h:1}, {x:20,y:-16,w:2,h:1}, {x:24,y:-18,w:2,h:1},
+      {x:28,y:-20,w:2,h:1}, {x:32,y:-21,w:2,h:1}, {x:36,y:-21,w:2,h:1},
+      {x:40,y:-21,w:3,h:1}
+    ],
+    spikes: [
+      {x:3,y:2}, {x:4,y:2}, {x:5,y:2},
+      {x:8,y:2}, {x:9,y:2}, {x:10,y:2},
+      {x:13,y:2}, {x:14,y:2}, {x:15,y:2},
+      {x:3,y:-3}, {x:4,y:-3}, {x:5,y:-3},
+      {x:8,y:-3}, {x:9,y:-3}, {x:10,y:-3},
+      {x:13,y:-3}, {x:14,y:-3}, {x:15,y:-3},
+      {x:3,y:-13}, {x:4,y:-13}, {x:5,y:-13},
+      {x:8,y:-13}, {x:9,y:-13}, {x:10,y:-13},
+      {x:13,y:-13}, {x:14,y:-13}, {x:15,y:-13},
+      {x:6,y:3}, {x:7,y:3},
+      {x:11,y:3}, {x:12,y:3},
+      {x:6,y:-2}, {x:7,y:-2},
+      {x:11,y:-2}, {x:12,y:-2},
+      {x:6,y:-11}, {x:7,y:-11},
+      {x:11,y:-11}, {x:12,y:-11},
+      {x:18,y:-16}, {x:19,y:-16},
+      {x:22,y:-18}, {x:23,y:-18},
+      {x:26,y:-20}, {x:27,y:-20},
+      {x:30,y:-21}, {x:31,y:-21},
+      {x:34,y:-21}, {x:35,y:-21},
+      {x:38,y:-21}, {x:39,y:-21}
+    ]
   },
   {
-    name: "窄缝求生", w: 50, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 38, y: -16},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:1,w:1,h:4}, {x:4,y:0,w:1,h:1}, {x:7,y:-3,w:1,h:4}, {x:9,y:-4,w:1,h:1}, {x:12,y:-7,w:1,h:4}, {x:14,y:-8,w:1,h:1}, {x:17,y:-11,w:1,h:4}, {x:19,y:-12,w:1,h:1}, {x:22,y:-14,w:1,h:3}, {x:25,y:-13,w:1,h:1}, {x:28,y:-16,w:1,h:1}, {x:31,y:-15,w:1,h:1}, {x:35,y:-16,w:1,h:1}, {x:38,y:-16,w:3,h:1}],
-    spikes: [{x:3,y:1}, {x:3,y:2}, {x:3,y:3}, {x:8,y:-3}, {x:8,y:-2}, {x:8,y:-1}, {x:13,y:-7}, {x:13,y:-6}, {x:13,y:-5}, {x:18,y:-11}, {x:18,y:-10}, {x:18,y:-9}, {x:23,y:-14}, {x:23,y:-13}, {x:5,y:0}, {x:6,y:0}, {x:10,y:-4}, {x:11,y:-4}, {x:15,y:-8}, {x:16,y:-8}, {x:20,y:-12}, {x:21,y:-12}, {x:26,y:-13}, {x:27,y:-13}, {x:29,y:-16}, {x:30,y:-16}, {x:32,y:-15}, {x:33,y:-15}, {x:34,y:-15}, {x:36,y:-16}, {x:37,y:-16}]
+    name: "窄缝求生", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -24},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-2,w:1,h:5},
+      {x:5,y:-3,w:1,h:1},
+      {x:8,y:-6,w:1,h:5},
+      {x:10,y:-7,w:1,h:1},
+      {x:13,y:-10,w:1,h:5},
+      {x:15,y:-11,w:1,h:1},
+      {x:18,y:-14,w:1,h:5},
+      {x:20,y:-15,w:1,h:1},
+      {x:23,y:-18,w:1,h:4},
+      {x:26,y:-19,w:1,h:1},
+      {x:29,y:-21,w:1,h:1},
+      {x:32,y:-22,w:1,h:1},
+      {x:35,y:-22,w:1,h:1},
+      {x:38,y:-23,w:1,h:1},
+      {x:41,y:-23,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-2}, {x:4,y:-1}, {x:4,y:0}, {x:4,y:1},
+      {x:9,y:-6}, {x:9,y:-5}, {x:9,y:-4}, {x:9,y:-3},
+      {x:14,y:-10}, {x:14,y:-9}, {x:14,y:-8}, {x:14,y:-7},
+      {x:19,y:-14}, {x:19,y:-13}, {x:19,y:-12}, {x:19,y:-11},
+      {x:24,y:-18}, {x:24,y:-17}, {x:24,y:-16},
+      {x:6,y:-3}, {x:7,y:-3},
+      {x:11,y:-7}, {x:12,y:-7},
+      {x:16,y:-11}, {x:17,y:-11},
+      {x:21,y:-15}, {x:22,y:-15},
+      {x:27,y:-19}, {x:28,y:-19},
+      {x:30,y:-21}, {x:31,y:-21},
+      {x:33,y:-22}, {x:34,y:-22},
+      {x:36,y:-22}, {x:37,y:-22},
+      {x:39,y:-23}, {x:40,y:-23}
+    ]
   },
   {
-    name: "连续极限二段", w: 55, h: 28,
-    spawn: {x: 0, y: 0}, portal: {x: 44, y: -20},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-3,w:1,h:1}, {x:5,y:-7,w:1,h:1}, {x:8,y:-11,w:1,h:1}, {x:11,y:-8,w:1,h:1}, {x:14,y:-13,w:1,h:1}, {x:17,y:-10,w:1,h:1}, {x:20,y:-16,w:1,h:1}, {x:23,y:-13,w:1,h:1}, {x:26,y:-18,w:1,h:1}, {x:29,y:-15,w:1,h:1}, {x:32,y:-20,w:1,h:1}, {x:35,y:-17,w:1,h:1}, {x:38,y:-21,w:1,h:1}, {x:41,y:-19,w:1,h:1}, {x:44,y:-20,w:3,h:1}],
-    spikes: [{x:3,y:-3}, {x:4,y:-3}, {x:6,y:-7}, {x:7,y:-7}, {x:9,y:-11}, {x:10,y:-11}, {x:12,y:-8}, {x:13,y:-8}, {x:15,y:-13}, {x:16,y:-13}, {x:18,y:-10}, {x:19,y:-10}, {x:21,y:-16}, {x:22,y:-16}, {x:24,y:-13}, {x:25,y:-13}, {x:27,y:-18}, {x:28,y:-18}, {x:30,y:-15}, {x:31,y:-15}, {x:33,y:-20}, {x:34,y:-20}, {x:36,y:-17}, {x:37,y:-17}, {x:39,y:-21}, {x:40,y:-21}, {x:42,y:-19}, {x:43,y:-19}]
+    name: "连续极限二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 50, y: -30},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-6,w:1,h:1},
+      {x:8,y:-13,w:1,h:1},
+      {x:13,y:-6,w:1,h:1},
+      {x:18,y:-15,w:1,h:1},
+      {x:23,y:-9,w:1,h:1},
+      {x:28,y:-19,w:1,h:1},
+      {x:33,y:-13,w:1,h:1},
+      {x:38,y:-23,w:1,h:1},
+      {x:43,y:-17,w:1,h:1},
+      {x:48,y:-28,w:1,h:1},
+      {x:50,y:-29,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-6}, {x:5,y:-6}, {x:6,y:-6}, {x:7,y:-6},
+      {x:9,y:-13}, {x:10,y:-13}, {x:11,y:-13}, {x:12,y:-13},
+      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
+      {x:19,y:-15}, {x:20,y:-15}, {x:21,y:-15}, {x:22,y:-15},
+      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
+      {x:29,y:-19}, {x:30,y:-19}, {x:31,y:-19}, {x:32,y:-19},
+      {x:34,y:-13}, {x:35,y:-13}, {x:36,y:-13}, {x:37,y:-13},
+      {x:39,y:-23}, {x:40,y:-23}, {x:41,y:-23}, {x:42,y:-23},
+      {x:44,y:-17}, {x:45,y:-17}, {x:46,y:-17}, {x:47,y:-17},
+      {x:49,y:-28}
+    ]
   },
   {
-    name: "踩边而过", w: 50, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 38, y: -16},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-2,w:1,h:1}, {x:5,y:-5,w:1,h:1}, {x:8,y:-3,w:1,h:1}, {x:11,y:-7,w:1,h:1}, {x:14,y:-5,w:1,h:1}, {x:17,y:-10,w:1,h:1}, {x:20,y:-8,w:1,h:1}, {x:23,y:-12,w:1,h:1}, {x:26,y:-10,w:1,h:1}, {x:29,y:-15,w:1,h:1}, {x:32,y:-13,w:1,h:1}, {x:35,y:-16,w:1,h:1}, {x:38,y:-16,w:3,h:1}],
-    spikes: [{x:3,y:-2}, {x:6,y:-5}, {x:9,y:-3}, {x:12,y:-7}, {x:15,y:-5}, {x:18,y:-10}, {x:21,y:-8}, {x:24,y:-12}, {x:27,y:-10}, {x:30,y:-15}, {x:33,y:-13}, {x:36,y:-16}, {x:37,y:-16}]
+    name: "踩边而过", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -24},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-4,w:1,h:1},
+      {x:7,y:-9,w:1,h:1},
+      {x:11,y:-5,w:1,h:1},
+      {x:15,y:-12,w:1,h:1},
+      {x:19,y:-8,w:1,h:1},
+      {x:23,y:-15,w:1,h:1},
+      {x:27,y:-11,w:1,h:1},
+      {x:31,y:-18,w:1,h:1},
+      {x:35,y:-14,w:1,h:1},
+      {x:39,y:-20,w:1,h:1},
+      {x:43,y:-23,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4},
+      {x:8,y:-9}, {x:9,y:-9}, {x:10,y:-9},
+      {x:12,y:-5}, {x:13,y:-5}, {x:14,y:-5},
+      {x:16,y:-12}, {x:17,y:-12}, {x:18,y:-12},
+      {x:20,y:-8}, {x:21,y:-8}, {x:22,y:-8},
+      {x:24,y:-15}, {x:25,y:-15}, {x:26,y:-15},
+      {x:28,y:-11}, {x:29,y:-11}, {x:30,y:-11},
+      {x:32,y:-18}, {x:33,y:-18}, {x:34,y:-18},
+      {x:36,y:-14}, {x:37,y:-14}, {x:38,y:-14},
+      {x:40,y:-20}, {x:41,y:-20}, {x:42,y:-20}
+    ]
   },
   {
-    name: "尖刺回廊", w: 55, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 44, y: -14},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:1,w:1,h:1}, {x:5,y:-1,w:1,h:1}, {x:8,y:1,w:1,h:1}, {x:11,y:-2,w:1,h:1}, {x:14,y:0,w:1,h:1}, {x:17,y:-3,w:1,h:1}, {x:20,y:-1,w:1,h:1}, {x:23,y:-4,w:1,h:1}, {x:26,y:-2,w:1,h:1}, {x:29,y:-5,w:1,h:1}, {x:32,y:-3,w:1,h:1}, {x:35,y:-7,w:1,h:1}, {x:38,y:-10,w:1,h:1}, {x:41,y:-12,w:1,h:1}, {x:44,y:-14,w:3,h:1}],
-    spikes: [{x:3,y:1}, {x:4,y:1}, {x:6,y:-1}, {x:7,y:-1}, {x:9,y:1}, {x:10,y:1}, {x:12,y:-2}, {x:13,y:-2}, {x:15,y:0}, {x:16,y:0}, {x:18,y:-3}, {x:19,y:-3}, {x:21,y:-1}, {x:22,y:-1}, {x:24,y:-4}, {x:25,y:-4}, {x:27,y:-2}, {x:28,y:-2}, {x:30,y:-5}, {x:31,y:-5}, {x:33,y:-3}, {x:34,y:-3}, {x:36,y:-7}, {x:37,y:-7}, {x:39,y:-10}, {x:40,y:-10}, {x:42,y:-12}, {x:43,y:-12}]
+    name: "尖刺回廊", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 50, y: -20},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-1,w:1,h:1},
+      {x:7,y:-4,w:1,h:1},
+      {x:11,y:-2,w:1,h:1},
+      {x:15,y:-6,w:1,h:1},
+      {x:19,y:-4,w:1,h:1},
+      {x:23,y:-8,w:1,h:1},
+      {x:27,y:-6,w:1,h:1},
+      {x:31,y:-10,w:1,h:1},
+      {x:35,y:-8,w:1,h:1},
+      {x:39,y:-12,w:1,h:1},
+      {x:43,y:-10,w:1,h:1},
+      {x:47,y:-15,w:1,h:1},
+      {x:50,y:-19,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-1}, {x:5,y:-1}, {x:6,y:-1},
+      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
+      {x:12,y:-2}, {x:13,y:-2}, {x:14,y:-2},
+      {x:16,y:-6}, {x:17,y:-6}, {x:18,y:-6},
+      {x:20,y:-4}, {x:21,y:-4}, {x:22,y:-4},
+      {x:24,y:-8}, {x:25,y:-8}, {x:26,y:-8},
+      {x:28,y:-6}, {x:29,y:-6}, {x:30,y:-6},
+      {x:32,y:-10}, {x:33,y:-10}, {x:34,y:-10},
+      {x:36,y:-8}, {x:37,y:-8}, {x:38,y:-8},
+      {x:40,y:-12}, {x:41,y:-12}, {x:42,y:-12},
+      {x:44,y:-10}, {x:45,y:-10}, {x:46,y:-10},
+      {x:48,y:-15}, {x:49,y:-15}
+    ]
   },
   {
-    name: "高空二段", w: 50, h: 28,
-    spawn: {x: 0, y: 0}, portal: {x: 40, y: -20},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-4,w:1,h:1}, {x:5,y:-8,w:1,h:1}, {x:8,y:-12,w:1,h:1}, {x:11,y:-9,w:1,h:1}, {x:14,y:-14,w:1,h:1}, {x:17,y:-11,w:1,h:1}, {x:20,y:-17,w:1,h:1}, {x:23,y:-14,w:1,h:1}, {x:26,y:-19,w:1,h:1}, {x:29,y:-16,w:1,h:1}, {x:32,y:-20,w:1,h:1}, {x:35,y:-18,w:1,h:1}, {x:37,y:-20,w:1,h:1}, {x:40,y:-20,w:3,h:1}],
-    spikes: [{x:3,y:-4}, {x:4,y:-4}, {x:6,y:-8}, {x:7,y:-8}, {x:9,y:-12}, {x:10,y:-12}, {x:12,y:-9}, {x:13,y:-9}, {x:15,y:-14}, {x:16,y:-14}, {x:18,y:-11}, {x:19,y:-11}, {x:21,y:-17}, {x:22,y:-17}, {x:24,y:-14}, {x:25,y:-14}, {x:27,y:-19}, {x:28,y:-19}, {x:30,y:-16}, {x:31,y:-16}, {x:33,y:-20}, {x:34,y:-20}, {x:36,y:-18}, {x:37,y:-18}, {x:38,y:-20}, {x:39,y:-20}]
+    name: "高空二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 46, y: -30},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-7,w:1,h:1},
+      {x:8,y:-14,w:1,h:1},
+      {x:13,y:-8,w:1,h:1},
+      {x:18,y:-17,w:1,h:1},
+      {x:23,y:-11,w:1,h:1},
+      {x:28,y:-21,w:1,h:1},
+      {x:33,y:-15,w:1,h:1},
+      {x:38,y:-25,w:1,h:1},
+      {x:43,y:-19,w:1,h:1},
+      {x:46,y:-29,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-7}, {x:5,y:-7}, {x:6,y:-7}, {x:7,y:-7},
+      {x:9,y:-14}, {x:10,y:-14}, {x:11,y:-14}, {x:12,y:-14},
+      {x:14,y:-8}, {x:15,y:-8}, {x:16,y:-8}, {x:17,y:-8},
+      {x:19,y:-17}, {x:20,y:-17}, {x:21,y:-17}, {x:22,y:-17},
+      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11}, {x:27,y:-11},
+      {x:29,y:-21}, {x:30,y:-21}, {x:31,y:-21}, {x:32,y:-21},
+      {x:34,y:-15}, {x:35,y:-15}, {x:36,y:-15}, {x:37,y:-15},
+      {x:39,y:-25}, {x:40,y:-25}, {x:41,y:-25}, {x:42,y:-25},
+      {x:44,y:-19}, {x:45,y:-19}
+    ]
   },
   {
-    name: "顶头二段", w: 50, h: 28,
-    spawn: {x: 0, y: 0}, portal: {x: 40, y: -18},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:4,h:1}, {x:3,y:0,w:4,h:1}, {x:9,y:0,w:2,h:1}, {x:9,y:-3,w:2,h:1}, {x:13,y:-2,w:2,h:1}, {x:13,y:-5,w:2,h:1}, {x:17,y:-4,w:2,h:1}, {x:17,y:-7,w:2,h:1}, {x:21,y:-6,w:2,h:1}, {x:21,y:-9,w:2,h:1}, {x:25,y:-8,w:2,h:1}, {x:25,y:-11,w:2,h:1}, {x:29,y:-10,w:2,h:1}, {x:29,y:-13,w:2,h:1}, {x:33,y:-12,w:2,h:1}, {x:33,y:-15,w:2,h:1}, {x:37,y:-14,w:2,h:1}, {x:37,y:-17,w:2,h:1}, {x:40,y:-18,w:3,h:1}],
-    spikes: [{x:6,y:2}, {x:7,y:2}, {x:11,y:0}, {x:12,y:0}, {x:15,y:-2}, {x:16,y:-2}, {x:19,y:-4}, {x:20,y:-4}, {x:23,y:-6}, {x:24,y:-6}, {x:27,y:-8}, {x:28,y:-8}, {x:31,y:-10}, {x:32,y:-10}, {x:35,y:-12}, {x:36,y:-12}, {x:38,y:-14}, {x:39,y:-14}]
+    name: "顶头二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 46, y: -24},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:1,w:3,h:1}, {x:8,y:1,w:3,h:1}, {x:13,y:1,w:3,h:1},
+      {x:6,y:1,w:1,h:5}, {x:11,y:1,w:1,h:5},
+      {x:3,y:-5,w:3,h:1}, {x:8,y:-5,w:3,h:1}, {x:13,y:-5,w:3,h:1},
+      {x:6,y:-5,w:1,h:5}, {x:11,y:-5,w:1,h:5},
+      {x:3,y:-11,w:3,h:1}, {x:8,y:-11,w:3,h:1}, {x:13,y:-11,w:3,h:1},
+      {x:6,y:-11,w:1,h:5}, {x:11,y:-11,w:1,h:5},
+      {x:3,y:-17,w:3,h:1}, {x:8,y:-17,w:3,h:1}, {x:13,y:-17,w:3,h:1},
+      {x:16,y:-17,w:2,h:1}, {x:20,y:-19,w:2,h:1}, {x:24,y:-21,w:2,h:1},
+      {x:28,y:-22,w:2,h:1}, {x:32,y:-23,w:2,h:1}, {x:36,y:-23,w:2,h:1},
+      {x:40,y:-23,w:2,h:1}, {x:44,y:-23,w:3,h:1}
+    ],
+    spikes: [
+      {x:3,y:2}, {x:4,y:2}, {x:5,y:2},
+      {x:8,y:2}, {x:9,y:2}, {x:10,y:2},
+      {x:13,y:2}, {x:14,y:2}, {x:15,y:2},
+      {x:3,y:-4}, {x:4,y:-4}, {x:5,y:-4},
+      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
+      {x:13,y:-4}, {x:14,y:-4}, {x:15,y:-4},
+      {x:3,y:-16}, {x:4,y:-16}, {x:5,y:-16},
+      {x:8,y:-16}, {x:9,y:-16}, {x:10,y:-16},
+      {x:13,y:-16}, {x:14,y:-16}, {x:15,y:-16},
+      {x:6,y:3}, {x:7,y:3},
+      {x:11,y:3}, {x:12,y:3},
+      {x:6,y:-3}, {x:7,y:-3},
+      {x:11,y:-3}, {x:12,y:-3},
+      {x:6,y:-13}, {x:7,y:-13},
+      {x:11,y:-13}, {x:12,y:-13},
+      {x:18,y:-19}, {x:19,y:-19},
+      {x:22,y:-21}, {x:23,y:-21},
+      {x:26,y:-22}, {x:27,y:-22},
+      {x:30,y:-23}, {x:31,y:-23},
+      {x:34,y:-23}, {x:35,y:-23},
+      {x:38,y:-23}, {x:39,y:-23},
+      {x:42,y:-23}, {x:43,y:-23}
+    ]
   },
   {
-    name: "踩边二段", w: 55, h: 30,
-    spawn: {x: 0, y: 0}, portal: {x: 44, y: -22},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-3,w:1,h:1}, {x:5,y:-6,w:1,h:1}, {x:8,y:-4,w:1,h:1}, {x:11,y:-9,w:1,h:1}, {x:14,y:-7,w:1,h:1}, {x:17,y:-12,w:1,h:1}, {x:20,y:-10,w:1,h:1}, {x:23,y:-15,w:1,h:1}, {x:26,y:-13,w:1,h:1}, {x:29,y:-18,w:1,h:1}, {x:32,y:-16,w:1,h:1}, {x:35,y:-20,w:1,h:1}, {x:38,y:-18,w:1,h:1}, {x:41,y:-21,w:1,h:1}, {x:44,y:-22,w:3,h:1}],
-    spikes: [{x:3,y:-3}, {x:6,y:-6}, {x:9,y:-4}, {x:12,y:-9}, {x:15,y:-7}, {x:18,y:-12}, {x:21,y:-10}, {x:24,y:-15}, {x:27,y:-13}, {x:30,y:-18}, {x:33,y:-16}, {x:36,y:-20}, {x:39,y:-18}, {x:42,y:-21}, {x:43,y:-21}, {x:8,y:-3}, {x:8,y:-2}, {x:14,y:-6}, {x:14,y:-5}, {x:20,y:-9}, {x:20,y:-8}, {x:26,y:-12}, {x:26,y:-11}, {x:32,y:-15}, {x:32,y:-14}, {x:38,y:-17}, {x:38,y:-16}]
+    name: "踩边二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 50, y: -30},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-5,w:1,h:1},
+      {x:8,y:-11,w:1,h:1},
+      {x:13,y:-6,w:1,h:1},
+      {x:18,y:-14,w:1,h:1},
+      {x:23,y:-9,w:1,h:1},
+      {x:28,y:-18,w:1,h:1},
+      {x:33,y:-13,w:1,h:1},
+      {x:38,y:-22,w:1,h:1},
+      {x:43,y:-17,w:1,h:1},
+      {x:48,y:-28,w:1,h:1},
+      {x:50,y:-29,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-5}, {x:5,y:-5}, {x:6,y:-5}, {x:7,y:-5},
+      {x:9,y:-11}, {x:10,y:-11}, {x:11,y:-11}, {x:12,y:-11},
+      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
+      {x:19,y:-14}, {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
+      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
+      {x:29,y:-18}, {x:30,y:-18}, {x:31,y:-18}, {x:32,y:-18},
+      {x:34,y:-13}, {x:35,y:-13}, {x:36,y:-13}, {x:37,y:-13},
+      {x:39,y:-22}, {x:40,y:-22}, {x:41,y:-22}, {x:42,y:-22},
+      {x:44,y:-17}, {x:45,y:-17}, {x:46,y:-17}, {x:47,y:-17},
+      {x:49,y:-28}
+    ]
   },
   {
-    name: "无地可落", w: 60, h: 35,
-    spawn: {x: 0, y: 0}, portal: {x: 50, y: -26},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-5,w:1,h:1}, {x:5,y:-9,w:1,h:1}, {x:8,y:-7,w:1,h:1}, {x:11,y:-12,w:1,h:1}, {x:14,y:-10,w:1,h:1}, {x:17,y:-15,w:1,h:1}, {x:20,y:-13,w:1,h:1}, {x:23,y:-18,w:1,h:1}, {x:26,y:-16,w:1,h:1}, {x:29,y:-21,w:1,h:1}, {x:32,y:-19,w:1,h:1}, {x:35,y:-23,w:1,h:1}, {x:38,y:-21,w:1,h:1}, {x:41,y:-25,w:1,h:1}, {x:44,y:-23,w:1,h:1}, {x:47,y:-26,w:1,h:1}, {x:50,y:-26,w:3,h:1}],
-    spikes: [{x:3,y:-5}, {x:4,y:-5}, {x:6,y:-9}, {x:7,y:-9}, {x:9,y:-7}, {x:10,y:-7}, {x:12,y:-12}, {x:13,y:-12}, {x:15,y:-10}, {x:16,y:-10}, {x:18,y:-15}, {x:19,y:-15}, {x:21,y:-13}, {x:22,y:-13}, {x:24,y:-18}, {x:25,y:-18}, {x:27,y:-16}, {x:28,y:-16}, {x:30,y:-21}, {x:31,y:-21}, {x:33,y:-19}, {x:34,y:-19}, {x:36,y:-23}, {x:37,y:-23}, {x:39,y:-21}, {x:40,y:-21}, {x:42,y:-25}, {x:43,y:-25}, {x:45,y:-23}, {x:46,y:-23}, {x:48,y:-26}, {x:49,y:-26}]
+    name: "死亡螺旋", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 56, y: -40},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:2,y:-3,w:1,h:1},
+      {x:6,y:-7,w:1,h:1},
+      {x:11,y:-11,w:1,h:1},
+      {x:15,y:-9,w:1,h:1},
+      {x:19,y:-15,w:1,h:1},
+      {x:24,y:-19,w:1,h:1},
+      {x:28,y:-17,w:1,h:1},
+      {x:33,y:-23,w:1,h:1},
+      {x:38,y:-27,w:1,h:1},
+      {x:42,y:-25,w:1,h:1},
+      {x:46,y:-31,w:1,h:1},
+      {x:50,y:-34,w:1,h:1},
+      {x:54,y:-38,w:1,h:1},
+      {x:56,y:-39,w:3,h:1}
+    ],
+    spikes: [
+      {x:0,y:1},{x:1,y:1},{x:2,y:1},
+      {x:3,y:-3},{x:4,y:-3},{x:5,y:-3},
+      {x:7,y:-7},{x:8,y:-7},{x:9,y:-7},{x:10,y:-7},
+      {x:12,y:-11},{x:13,y:-11},{x:14,y:-11},
+      {x:16,y:-9},{x:17,y:-9},{x:18,y:-9},
+      {x:20,y:-15},{x:21,y:-15},{x:22,y:-15},{x:23,y:-15},
+      {x:25,y:-19},{x:26,y:-19},{x:27,y:-19},
+      {x:29,y:-17},{x:30,y:-17},{x:31,y:-17},{x:32,y:-17},
+      {x:34,y:-23},{x:35,y:-23},{x:36,y:-23},{x:37,y:-23},
+      {x:39,y:-27},{x:40,y:-27},{x:41,y:-27},
+      {x:43,y:-25},{x:44,y:-25},{x:45,y:-25},
+      {x:47,y:-31},{x:48,y:-31},{x:49,y:-31},
+      {x:51,y:-34},{x:52,y:-34},{x:53,y:-34},
+      {x:55,y:-38}
+    ]
   },
   {
-    name: "不可能任务", w: 65, h: 38,
-    spawn: {x: 0, y: 0}, portal: {x: 56, y: -30},
-    lands: [{x:-3,y:3,w:2,h:1}, {x:2,y:-3,w:1,h:1}, {x:5,y:-7,w:1,h:1}, {x:8,y:-5,w:1,h:1}, {x:11,y:-10,w:1,h:1}, {x:14,y:-8,w:1,h:1}, {x:17,y:-13,w:1,h:1}, {x:20,y:-11,w:1,h:1}, {x:23,y:-16,w:1,h:1}, {x:26,y:-14,w:1,h:1}, {x:29,y:-19,w:1,h:1}, {x:32,y:-17,w:1,h:1}, {x:35,y:-22,w:1,h:1}, {x:38,y:-20,w:1,h:1}, {x:41,y:-25,w:1,h:1}, {x:44,y:-23,w:1,h:1}, {x:47,y:-28,w:1,h:1}, {x:50,y:-26,w:1,h:1}, {x:53,y:-29,w:1,h:1}, {x:56,y:-30,w:3,h:1}],
-    spikes: [{x:3,y:-3}, {x:4,y:-3}, {x:6,y:-7}, {x:7,y:-7}, {x:9,y:-5}, {x:10,y:-5}, {x:12,y:-10}, {x:13,y:-10}, {x:15,y:-8}, {x:16,y:-8}, {x:18,y:-13}, {x:19,y:-13}, {x:21,y:-11}, {x:22,y:-11}, {x:24,y:-16}, {x:25,y:-16}, {x:27,y:-14}, {x:28,y:-14}, {x:30,y:-19}, {x:31,y:-19}, {x:33,y:-17}, {x:34,y:-17}, {x:36,y:-22}, {x:37,y:-22}, {x:39,y:-20}, {x:40,y:-20}, {x:42,y:-25}, {x:43,y:-25}, {x:45,y:-23}, {x:46,y:-23}, {x:48,y:-28}, {x:49,y:-28}, {x:51,y:-26}, {x:52,y:-26}, {x:54,y:-29}, {x:55,y:-29}]
+    name: "不可能任务", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 62, y: -42},
+    lands: [
+      {x:-2,y:1,w:3,h:1},
+      {x:2,y:-4,w:1,h:1},
+      {x:7,y:-11,w:1,h:1},
+      {x:12,y:-5,w:1,h:1},
+      {x:17,y:-14,w:1,h:1},
+      {x:22,y:-8,w:1,h:1},
+      {x:27,y:-19,w:1,h:1},
+      {x:32,y:-13,w:1,h:1},
+      {x:37,y:-24,w:1,h:1},
+      {x:42,y:-17,w:1,h:1},
+      {x:47,y:-29,w:1,h:1},
+      {x:52,y:-22,w:1,h:1},
+      {x:57,y:-35,w:1,h:1},
+      {x:60,y:-41,w:1,h:1},
+      {x:62,y:-41,w:3,h:1}
+    ],
+    spikes: [
+      {x:0,y:1},{x:1,y:1},{x:2,y:1},
+      {x:3,y:-4},{x:4,y:-4},{x:5,y:-4},{x:6,y:-4},
+      {x:8,y:-11},{x:9,y:-11},{x:10,y:-11},{x:11,y:-11},
+      {x:13,y:-5},{x:14,y:-5},{x:15,y:-5},{x:16,y:-5},
+      {x:18,y:-14},{x:19,y:-14},{x:20,y:-14},{x:21,y:-14},
+      {x:23,y:-8},{x:24,y:-8},{x:25,y:-8},{x:26,y:-8},
+      {x:28,y:-19},{x:29,y:-19},{x:30,y:-19},{x:31,y:-19},
+      {x:33,y:-13},{x:34,y:-13},{x:35,y:-13},{x:36,y:-13},
+      {x:38,y:-24},{x:39,y:-24},{x:40,y:-24},{x:41,y:-24},
+      {x:43,y:-17},{x:44,y:-17},{x:45,y:-17},{x:46,y:-17},
+      {x:48,y:-29},{x:49,y:-29},{x:50,y:-29},{x:51,y:-29},
+      {x:53,y:-22},{x:54,y:-22},{x:55,y:-22},{x:56,y:-22},
+      {x:58,y:-35},{x:59,y:-35},
+      {x:61,y:-41}
+    ]
   }
 ];
 
@@ -1839,12 +2396,12 @@ function render() {
 }
 
 
-// ==================== 小地图 V3（修复版）====================
-// 修复内容：
-// 1. 确保每个 tile 至少 2px 可见大小
-// 2. 提高颜色对比度，使用更亮的颜色
-// 3. 修复 tileSize 计算逻辑
-// 4. 添加边框高亮让方块更清晰
+// ==================== 小地图 V4（美观版）====================
+// 改进：
+// 1. 圆角玻璃质感面板
+// 2. 所有元素清晰显示（陆地、尖刺、传送门、出生点）
+// 3. 平滑的相机框动画
+// 4. 玩家光点带拖尾
 
 let minimapCanvas = null;
 let minimapCtx = null;
@@ -1852,9 +2409,9 @@ let minimapOffscreen = null;
 let minimapOffscreenCtx = null;
 let minimapDirty = true;
 let playerTrail = [];
-const TRAIL_LENGTH = 30;
-const MINIMAP_SIZE = 140;
-const MINIMAP_MARGIN = 16;
+const TRAIL_LENGTH = 20;
+const MINIMAP_SIZE = 160;
+const MINIMAP_MARGIN = 20;
 
 function initMinimap() {
   minimapCanvas = document.createElement('canvas');
@@ -1865,22 +2422,24 @@ function initMinimap() {
     right: ${MINIMAP_MARGIN}px;
     width: ${MINIMAP_SIZE}px;
     height: ${MINIMAP_SIZE}px;
-    border: 1px solid rgba(0, 246, 255, 0.3);
-    border-radius: 6px;
-    background: rgba(18, 18, 18, 0.95);
+    border-radius: 12px;
+    background: rgba(26, 26, 26, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     z-index: 45;
     pointer-events: none;
     display: none;
-    box-shadow: 0 0 15px rgba(0, 246, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
   `;
-  minimapCanvas.width = MINIMAP_SIZE;
-  minimapCanvas.height = MINIMAP_SIZE;
+  minimapCanvas.width = MINIMAP_SIZE * 2;
+  minimapCanvas.height = MINIMAP_SIZE * 2;
   document.getElementById('game-container').appendChild(minimapCanvas);
   minimapCtx = minimapCanvas.getContext('2d');
 
   minimapOffscreen = document.createElement('canvas');
-  minimapOffscreen.width = MINIMAP_SIZE;
-  minimapOffscreen.height = MINIMAP_SIZE;
+  minimapOffscreen.width = MINIMAP_SIZE * 2;
+  minimapOffscreen.height = MINIMAP_SIZE * 2;
   minimapOffscreenCtx = minimapOffscreen.getContext('2d');
 }
 
@@ -1888,15 +2447,15 @@ function buildMinimap() {
   if (!currentLevel || !minimapOffscreenCtx) return;
 
   const ctx = minimapOffscreenCtx;
-  const w = MINIMAP_SIZE;
-  const h = MINIMAP_SIZE;
+  const w = MINIMAP_SIZE * 2;
+  const h = MINIMAP_SIZE * 2;
 
-  // 清空 - 使用不透明背景
-  ctx.fillStyle = '#121212';
-  ctx.fillRect(0, 0, w, h);
+  // 清空背景
+  ctx.clearRect(0, 0, w, h);
 
   // 计算关卡边界
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let hasContent = false;
   for (let y = 0; y < currentLevel.h; y++) {
     for (let x = 0; x < currentLevel.w; x++) {
       if (currentLevel.grid[y][x] !== 0) {
@@ -1904,9 +2463,11 @@ function buildMinimap() {
         minY = Math.min(minY, y);
         maxX = Math.max(maxX, x);
         maxY = Math.max(maxY, y);
+        hasContent = true;
       }
     }
   }
+  if (!hasContent) { minimapDirty = false; return; }
 
   // 包含玩家和传送门
   const px = Math.floor((player.x + player.w/2) / GRID_SIZE);
@@ -1923,71 +2484,80 @@ function buildMinimap() {
     maxY = Math.max(maxY, currentLevel.portal.y);
   }
 
-  // 边距
-  const pad = 2;
+  const pad = 3;
   minX -= pad; minY -= pad;
   maxX += pad; maxY += pad;
 
   const levelW = Math.max(1, maxX - minX + 1);
   const levelH = Math.max(1, maxY - minY + 1);
 
-  // 计算缩放（保持比例）
-  const scaleX = (w - 8) / levelW;
-  const scaleY = (h - 8) / levelH;
+  const scaleX = (w - 24) / levelW;
+  const scaleY = (h - 24) / levelH;
   const scale = Math.min(scaleX, scaleY);
 
   const offsetX = (w - levelW * scale) / 2;
   const offsetY = (h - levelH * scale) / 2;
 
-  // 保存变换参数
   minimapTransform = { minX, minY, scale, offsetX, offsetY };
 
-  // FIX: 确保 tileSize 至少 2px，使用更亮的颜色
-  const tileSize = Math.max(2, Math.floor(scale));
+  const tileSize = Math.max(2, scale);
 
+  // 绘制陆地（底部层）
   for (let y = minY; y <= maxY; y++) {
     for (let x = minX; x <= maxX; x++) {
       if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
       const tile = currentLevel.grid[y][x];
-      if (tile === 0) continue;
-
+      if (tile !== TILE_LAND) continue;
       const mx = Math.floor(offsetX + (x - minX) * scale);
       const my = Math.floor(offsetY + (y - minY) * scale);
+      ctx.fillStyle = 'rgba(200, 205, 210, 0.6)';
+      ctx.fillRect(mx, my, tileSize + 0.5, tileSize + 0.5);
+    }
+  }
 
-      if (tile === TILE_LAND) {
-        // FIX: 使用更亮、更不透明的颜色
-        ctx.fillStyle = 'rgba(200, 205, 210, 0.85)';
-        ctx.fillRect(mx, my, tileSize, tileSize);
-        // 添加微边框增加清晰度
-        ctx.strokeStyle = 'rgba(160, 165, 170, 0.4)';
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(mx + 0.25, my + 0.25, tileSize - 0.5, tileSize - 0.5);
-      } else if (tile === TILE_SPIKE) {
-        ctx.fillStyle = 'rgba(255, 150, 160, 0.9)';
+  // 绘制尖刺（中间层，红色方块带微边框）
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile !== TILE_SPIKE) continue;
+      const mx = Math.floor(offsetX + (x - minX) * scale);
+      const my = Math.floor(offsetY + (y - minY) * scale);
+      ctx.fillStyle = '#FF6B7A';
+      ctx.fillRect(mx, my, tileSize + 0.5, tileSize + 0.5);
+      // 小叉号
+      if (tileSize > 3) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 0.6;
         ctx.beginPath();
-        ctx.moveTo(mx + tileSize/2, my + 1);
+        ctx.moveTo(mx + 1, my + 1);
         ctx.lineTo(mx + tileSize - 1, my + tileSize - 1);
+        ctx.moveTo(mx + tileSize - 1, my + 1);
         ctx.lineTo(mx + 1, my + tileSize - 1);
-        ctx.closePath();
-        ctx.fill();
-      } else if (tile === TILE_PORTAL) {
-        ctx.fillStyle = 'rgba(244, 249, 167, 0.9)';
-        ctx.fillRect(mx + 1, my + 1, tileSize - 2, tileSize - 2);
-        // 传送门加白边框
-        ctx.strokeStyle = 'rgba(255, 255, 200, 0.8)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(mx + 0.5, my + 0.5, tileSize - 1, tileSize - 1);
-      } else if (tile === TILE_SPAWN) {
-        ctx.fillStyle = 'rgba(100, 220, 120, 0.6)';
-        ctx.fillRect(mx + 1, my + 1, tileSize - 2, tileSize - 2);
-        ctx.strokeStyle = 'rgba(100, 220, 120, 0.8)';
-        ctx.lineWidth = 0.5;
-        ctx.setLineDash([2, 2]);
-        ctx.strokeRect(mx + 0.5, my + 0.5, tileSize - 1, tileSize - 1);
-        ctx.setLineDash([]);
+        ctx.stroke();
       }
     }
   }
+
+  // 绘制传送门（闪烁方块）
+  if (currentLevel.portal) {
+    const mx = Math.floor(offsetX + (currentLevel.portal.x - minX) * scale);
+    const my = Math.floor(offsetY + (currentLevel.portal.y - minY) * scale);
+    ctx.fillStyle = '#F4F9A7';
+    ctx.fillRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(mx + 0.5, my + 0.5, tileSize, tileSize);
+  }
+
+  // 绘制出生点（绿色虚线框）
+  const sx = Math.floor(offsetX + (currentLevel.spawn.x - minX) * scale);
+  const sy = Math.floor(offsetY + (currentLevel.spawn.y - minY) * scale);
+  ctx.strokeStyle = 'rgba(100, 220, 120, 0.5)';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([2, 2]);
+  ctx.strokeRect(sx + 0.5, sy + 0.5, tileSize, tileSize);
+  ctx.setLineDash([]);
 
   minimapDirty = false;
 }
@@ -1997,24 +2567,26 @@ let minimapTransform = null;
 function updateMinimap() {
   if (!minimapCanvas || !minimapCtx || !currentLevel || gameState !== 'playing') return;
 
-  if (minimapDirty) {
-    buildMinimap();
-  }
-
+  if (minimapDirty) buildMinimap();
   if (!minimapTransform) return;
 
   const ctx = minimapCtx;
-  const w = MINIMAP_SIZE;
-  const h = MINIMAP_SIZE;
+  const w = MINIMAP_SIZE * 2;
+  const h = MINIMAP_SIZE * 2;
 
-  // 清空主 canvas
   ctx.clearRect(0, 0, w, h);
 
-  // 绘制背景
-  ctx.fillStyle = 'rgba(18, 18, 18, 0.95)';
+  // 绘制圆角裁剪
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(0, 0, w, h, 24);
+  ctx.clip();
+
+  // 背景
+  ctx.fillStyle = 'rgba(26, 26, 26, 0.9)';
   ctx.fillRect(0, 0, w, h);
 
-  // 复制离屏地图
+  // 复制地图
   ctx.drawImage(minimapOffscreen, 0, 0);
 
   const { minX, minY, scale, offsetX, offsetY } = minimapTransform;
@@ -2024,37 +2596,37 @@ function updateMinimap() {
   const py = Math.floor((player.y + player.h/2) / GRID_SIZE);
   const playerMX = offsetX + (px - minX) * scale;
   const playerMY = offsetY + (py - minY) * scale;
-  const playerSize = Math.max(2.5, scale * 0.6);
+  const playerSize = Math.max(3, scale * 0.5);
 
   // 更新轨迹
   playerTrail.push({ x: playerMX, y: playerMY });
   if (playerTrail.length > TRAIL_LENGTH) playerTrail.shift();
 
-  // 绘制轨迹
+  // 绘制轨迹（渐变淡出）
   for (let i = 0; i < playerTrail.length; i++) {
     const t = playerTrail[i];
-    const alpha = (i / playerTrail.length) * 0.5;
-    const size = playerSize * (i / playerTrail.length);
+    const alpha = (i / playerTrail.length) * 0.4;
+    const size = playerSize * (0.3 + 0.7 * (i / playerTrail.length));
     ctx.fillStyle = `rgba(0, 246, 255, ${alpha})`;
     ctx.beginPath();
     ctx.arc(t.x, t.y, size, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // 绘制玩家（闪烁圆点）
-  const pulse = (Math.sin(time * 6) + 1) / 2;
-  ctx.fillStyle = `rgba(0, 246, 255, ${0.8 + pulse * 0.2})`;
+  // 玩家光点
+  const pulse = (Math.sin(time * 5) + 1) / 2;
+  ctx.fillStyle = `rgba(0, 246, 255, ${0.85 + pulse * 0.15})`;
   ctx.shadowColor = '#00F6FF';
-  ctx.shadowBlur = 10;
+  ctx.shadowBlur = 15;
   ctx.beginPath();
   ctx.arc(playerMX, playerMY, playerSize, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // 绘制视野框
+  // 视野框（半透明矩形）
   const viewW = (canvasW / GRID_SIZE) * scale;
   const viewH = (canvasH / GRID_SIZE) * scale;
-  ctx.strokeStyle = 'rgba(0, 246, 255, 0.15)';
+  ctx.strokeStyle = 'rgba(0, 246, 255, 0.12)';
   ctx.lineWidth = 1;
   ctx.strokeRect(
     playerMX - viewW/2,
@@ -2062,15 +2634,17 @@ function updateMinimap() {
     viewW, viewH
   );
 
-  // 传送门脉冲动画
+  ctx.restore();
+
+  // 传送门脉冲圈（在 clip 外绘制）
   if (currentLevel.portal) {
     const portalMX = offsetX + (currentLevel.portal.x - minX) * scale;
     const portalMY = offsetY + (currentLevel.portal.y - minY) * scale;
-    const portalPulse = (Math.sin(time * 4) + 1) / 2;
-    ctx.strokeStyle = `rgba(244, 249, 167, ${0.6 + portalPulse * 0.4})`;
-    ctx.lineWidth = 2;
+    const portalPulse = (Math.sin(time * 3) + 1) / 2;
+    ctx.strokeStyle = `rgba(244, 249, 167, ${0.4 + portalPulse * 0.3})`;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(portalMX + scale/2, portalMY + scale/2, scale * (0.8 + portalPulse * 0.4), 0, Math.PI * 2);
+    ctx.arc(portalMX + scale/2, portalMY + scale/2, scale * (0.8 + portalPulse * 0.5), 0, Math.PI * 2);
     ctx.stroke();
   }
 }
@@ -2079,7 +2653,6 @@ function invalidateMinimap() {
   minimapDirty = true;
   playerTrail = [];
 }
-
 // ==================== 传送门指示器 V3（修复版）====================
 // FIX: 将指示器移到左下角，避免与小地图重叠
 function drawPortalIndicator() {
@@ -2087,102 +2660,67 @@ function drawPortalIndicator() {
 
   const portalX = currentLevel.portal.x * GRID_SIZE + GRID_SIZE/2;
   const portalY = currentLevel.portal.y * GRID_SIZE + GRID_SIZE/2;
-
-  // 计算传送门在屏幕上的位置
   const screenPortalX = portalX - camera.x;
   const screenPortalY = portalY - camera.y;
 
-  // 检查是否在屏幕内（考虑小地图区域在右上角）
-  // FIX: 扩大 margin 避免与小地图重叠，小地图在右上角 (16px, 16px, 140x140)
   const margin = 80;
-  const minimapArea = {
-    left: canvasW - MINIMAP_SIZE - MINIMAP_MARGIN - 10,
-    top: MINIMAP_MARGIN - 10,
-    right: canvasW - MINIMAP_MARGIN + 10,
-    bottom: MINIMAP_MARGIN + MINIMAP_SIZE + 10
-  };
-
   const inScreen = screenPortalX > margin && screenPortalX < canvasW - margin &&
-                    screenPortalY > margin && screenPortalY < canvasH - margin;
+                   screenPortalY > margin && screenPortalY < canvasH - margin;
+  if (inScreen) return;
 
-  // 如果传送门在小地图区域内，也显示指示器
-  const inMinimapArea = screenPortalX > minimapArea.left && screenPortalX < minimapArea.right &&
-                         screenPortalY > minimapArea.top && screenPortalY < minimapArea.bottom;
-
-  if (inScreen && !inMinimapArea) return;
-
-  // FIX: 将指示器放在左下角区域，避免与小地图重叠
-  // 计算从屏幕左下角到传送门的方向
   const centerX = canvasW / 2;
   const centerY = canvasH / 2;
   const dx = screenPortalX - centerX;
   const dy = screenPortalY - centerY;
   const angle = Math.atan2(dy, dx);
 
-  // FIX: 使用更大的边距，确保在左下角区域也有足够空间
-  const edgeMargin = 70;
+  const edgeMargin = 40;
   let indicatorX = centerX + Math.cos(angle) * (canvasW / 2 - edgeMargin);
   let indicatorY = centerY + Math.sin(angle) * (canvasH / 2 - edgeMargin);
 
-  // 限制在屏幕内，但避开右上角小地图区域
   indicatorX = Math.max(edgeMargin, Math.min(canvasW - edgeMargin, indicatorX));
   indicatorY = Math.max(edgeMargin, Math.min(canvasH - edgeMargin, indicatorY));
 
-  // 如果计算出的位置在小地图区域内，强制移到左下角
-  if (indicatorX > minimapArea.left && indicatorY < minimapArea.bottom) {
-    indicatorX = edgeMargin + 20;
-    indicatorY = canvasH - edgeMargin - 20;
-  }
-
   ctx.save();
 
-  // 绘制外圈
   const pulse = (Math.sin(time * 3) + 1) / 2;
-  ctx.shadowColor = '#F4F9A7';
-  ctx.shadowBlur = 15 + pulse * 10;
 
-  // 绘制指向箭头的圆环背景
-  ctx.fillStyle = 'rgba(18, 18, 18, 0.9)';
-  ctx.beginPath();
-  ctx.arc(indicatorX, indicatorY, 20, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = `rgba(244, 249, 167, ${0.6 + pulse * 0.4})`;
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.arc(indicatorX, indicatorY, 20, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.shadowBlur = 0;
-
-  // 绘制箭头
+  // 简洁的三角形箭头
   ctx.translate(indicatorX, indicatorY);
   ctx.rotate(angle);
 
+  // 外发光
+  ctx.shadowColor = '#F4F9A7';
+  ctx.shadowBlur = 12 + pulse * 8;
+
+  // 实心三角形
   ctx.fillStyle = '#F4F9A7';
   ctx.beginPath();
-  ctx.moveTo(12, 0);
-  ctx.lineTo(-4, -6);
-  ctx.lineTo(-4, 6);
+  ctx.moveTo(10, 0);
+  ctx.lineTo(-6, -7);
+  ctx.lineTo(-6, 7);
   ctx.closePath();
   ctx.fill();
 
+  // 内高光
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.beginPath();
+  ctx.moveTo(8, 0);
+  ctx.lineTo(-4, -5);
+  ctx.lineTo(-4, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
   ctx.restore();
 
-  // 绘制距离
-  const dist = Math.sqrt(dx*dx + dy*dy) / GRID_SIZE;
-  const distText = Math.round(dist) + 'm';
-
-  ctx.font = 'bold 11px monospace';
-  const textW = ctx.measureText(distText).width + 14;
-
-  ctx.fillStyle = 'rgba(18, 18, 18, 0.9)';
-  ctx.fillRect(indicatorX - textW/2, indicatorY + 24, textW, 20);
-
-  ctx.fillStyle = '#F4F9A7';
+  // 距离文字 — 更简洁
+  const dist = Math.round(Math.sqrt(dx*dx + dy*dy) / GRID_SIZE);
+  ctx.font = '11px "Microsoft YaHei", sans-serif';
+  ctx.fillStyle = 'rgba(244, 249, 167, 0.6)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(distText, indicatorX, indicatorY + 34);
+  ctx.fillText(dist + 'm', indicatorX, indicatorY + 22);
 
   ctx.restore();
 }
@@ -2441,13 +2979,30 @@ let touchStartViewX = 0, touchStartViewY = 0;
 let touchStartMidX = 0, touchStartMidY = 0;
 let singleTouchTimer = null;  // FIX: 用于延迟单指操作，避免双指捏合误判
 
+// FIX v4: 双指缩放与单指放置逻辑重写
+// 核心逻辑：单指 touchstart 后延迟 800ms 执行放置
+// 如果 800ms 内第二根手指放下，取消放置并进入双指缩放模式
 editorCanvas.addEventListener('touchstart', e => {
   e.preventDefault();
 
-  // FIX: 如果已经有双指，直接处理 pinch
+  // 情况1：当前已经是双指（第二根手指放下时触发）
   if (e.touches.length === 2) {
-    // 取消可能的单指延迟操作
-    if (singleTouchTimer) { clearTimeout(singleTouchTimer); singleTouchTimer = null; }
+    // 取消可能的单指延迟放置
+    if (singleTouchTimer) {
+      clearTimeout(singleTouchTimer);
+      singleTouchTimer = null;
+    }
+    // 如果之前已经进入了 draw 模式（延迟已过），需要撤销已放置的内容
+    if (touchMode === 'draw') {
+      // 撤销本次单指放置：清除 drawStart 对应的格子
+      if (drawStart && editorTool !== 'land') {
+        editorCells.delete(drawStart.x + ',' + drawStart.y);
+      }
+      isDrawing = false;
+      drawStart = null;
+      editorCurrentLand = null;
+      renderEditor();
+    }
     touchMode = 'pinch';
     const t1 = e.touches[0], t2 = e.touches[1];
     touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
@@ -2455,25 +3010,27 @@ editorCanvas.addEventListener('touchstart', e => {
     touchStartViewX = editorViewX; touchStartViewY = editorViewY;
     touchStartMidX = (t1.clientX + t2.clientX) / 2;
     touchStartMidY = (t1.clientY + t2.clientY) / 2;
-    isDrawing = false; editorCurrentLand = null; drawStart = null;
     return;
   }
 
+  // 情况2：单指触摸
   if (e.touches.length === 1) {
     const touch = e.touches[0];
     const cell = getEditorCell(touch.clientX, touch.clientY);
+    // 保存到全局，供 touchend 快速点击时使用
+    editorPendingCell = cell;
 
-    // FIX v3: 延迟单指操作，避免双指捏合时第一个手指误判为绘制
-    // 如果 80ms 内没有第二个手指落下，才执行绘制
+    // 延迟 80ms 执行放置，避免双指捏合时第一个手指误判为绘制
     singleTouchTimer = setTimeout(() => {
       singleTouchTimer = null;
-      // 检查当前是否仍然是单指（用户没有开始双指操作）
-      // 由于 touchstart 事件是同步的，这里直接执行绘制
       touchMode = 'draw';
       isDrawing = true;
       drawStart = cell;
-      if (editorTool === 'land') editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1 };
-      else setEditorCell(cell.x, cell.y, editorTool);
+      if (editorTool === 'land') {
+        editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1 };
+      } else {
+        setEditorCell(cell.x, cell.y, editorTool);
+      }
       renderEditor();
     }, 80);
   }
@@ -2482,12 +3039,7 @@ editorCanvas.addEventListener('touchstart', e => {
 editorCanvas.addEventListener('touchmove', e => {
   e.preventDefault();
 
-  // FIX: 如果变成双指，取消单指延迟操作
-  if (e.touches.length === 2 && singleTouchTimer) {
-    clearTimeout(singleTouchTimer);
-    singleTouchTimer = null;
-  }
-
+  // 双指缩放中
   if (e.touches.length === 2 && touchMode === 'pinch') {
     const t1 = e.touches[0], t2 = e.touches[1];
     const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
@@ -2511,27 +3063,45 @@ editorCanvas.addEventListener('touchmove', e => {
     updateEditorCoords(); renderEditor();
     return;
   }
-  if (e.touches.length === 1) {
+
+  // 单指绘制中（延迟已过，已进入 draw 模式）
+  if (e.touches.length === 1 && touchMode === 'draw' && isDrawing) {
     const touch = e.touches[0];
-    if (touchMode === 'draw' && isDrawing) {
-      const cell = getEditorCell(touch.clientX, touch.clientY);
-      if (editorTool === 'land' && drawStart) {
-        let x1 = Math.min(drawStart.x, cell.x);
-        let y1 = Math.min(drawStart.y, cell.y);
-        let x2 = Math.max(drawStart.x, cell.x);
-        let y2 = Math.max(drawStart.y, cell.y);
-        editorCurrentLand = { x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1 };
-      } else {
-        setEditorCell(cell.x, cell.y, editorTool);
-      }
-      renderEditor();
+    const cell = getEditorCell(touch.clientX, touch.clientY);
+    if (editorTool === 'land' && drawStart) {
+      let x1 = Math.min(drawStart.x, cell.x);
+      let y1 = Math.min(drawStart.y, cell.y);
+      let x2 = Math.max(drawStart.x, cell.x);
+      let y2 = Math.max(drawStart.y, cell.y);
+      editorCurrentLand = { x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1 };
+    } else {
+      setEditorCell(cell.x, cell.y, editorTool);
     }
+    renderEditor();
   }
 }, { passive: false });
 
 editorCanvas.addEventListener('touchend', e => {
   e.preventDefault();
+
+  // 所有手指都抬起
   if (e.touches.length === 0) {
+    // 如果定时器还在，说明是快速点击（80ms 内抬起），立即执行放置
+    if (singleTouchTimer) {
+      clearTimeout(singleTouchTimer);
+      singleTouchTimer = null;
+      if (editorPendingCell) {
+        if (editorTool === 'land') {
+          editorCells.set(editorPendingCell.x + ',' + editorPendingCell.y, TILE_LAND);
+        } else {
+          setEditorCell(editorPendingCell.x, editorPendingCell.y, editorTool);
+        }
+        editorPendingCell = null;
+        renderEditor();
+      }
+    }
+
+    // 如果处于绘制模式，结束绘制
     if (touchMode === 'draw' && isDrawing) {
       isDrawing = false;
       if (editorTool === 'land' && editorCurrentLand) {
@@ -2545,6 +3115,7 @@ editorCanvas.addEventListener('touchend', e => {
       drawStart = null;
       renderEditor();
     }
+
     touchMode = 'none';
   }
 });
@@ -2593,6 +3164,14 @@ function setupEditorToolbar() {
   document.getElementById('btn-editor-save').addEventListener('click', () => {
     const code = encodeLevel();
     document.getElementById('level-code-output').value = code;
+  });
+
+  // FIX: 添加编辑器复制编码按钮事件
+  document.getElementById('btn-copy-code').addEventListener('click', async () => {
+    const code = document.getElementById('level-code-output').value;
+    if (!code) { alert('请先生成关卡编码'); return; }
+    const ok = await copyToClipboard(code);
+    alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
   });
 }
 setupEditorToolbar();
@@ -3160,16 +3739,48 @@ document.getElementById('btn-start-game').addEventListener('click', () => {
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('level-select-screen').style.display = 'flex';
   resetLevelSelect();
+  // 自动选中第1关并滚动到中央
+  setTimeout(() => {
+    const container = document.getElementById('level-cards');
+    const card0 = document.getElementById('lvl-0');
+    if (container && card0) {
+      const cardRect = card0.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const scrollLeft = container.scrollLeft + cardRect.left - containerRect.left - (containerRect.width - cardRect.width) / 2;
+      container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      // 强制更新一次选中状态
+      updateCardsTransform();
+    }
+  }, 100);
 });
 
 function resetLevelSelect() {
   selectedLevelIdx = -1;
   for (let i = 0; i < 20; i++) {
     let card = document.getElementById('lvl-' + i);
-    if (card) card.className = 'lvl-card';
+    if (card) {
+      card.className = 'lvl-card';
+      card.removeAttribute('style');
+      const numEl = card.querySelector('.lvl-num');
+      const infoEl = card.querySelector('.lvl-info');
+      const nameEl = card.querySelector('.lvl-name');
+      const tagEl = card.querySelector('.lvl-tag');
+      if (numEl) numEl.removeAttribute('style');
+      if (infoEl) {
+        infoEl.removeAttribute('style');
+        infoEl.style.position = 'absolute';
+        infoEl.style.pointerEvents = 'none';
+      }
+      if (nameEl) nameEl.removeAttribute('style');
+      if (tagEl) tagEl.removeAttribute('style');
+    }
   }
   document.getElementById('btn-level-start').style.opacity = '0.3';
   document.getElementById('btn-level-start').style.pointerEvents = 'none';
+  const nameDisplay = document.getElementById('selected-level-name');
+  if (nameDisplay) { nameDisplay.textContent = ''; nameDisplay.style.opacity = '0'; }
+  const hint = document.getElementById('scroll-hint');
+  if (hint) hint.classList.remove('visible');
 }
 
 for (let i = 0; i < 20; i++) {
@@ -3178,16 +3789,21 @@ for (let i = 0; i < 20; i++) {
     if (!card) return;
     card.addEventListener('click', function() {
       if (selectedLevelIdx === idx) { resetLevelSelect(); return; }
-      selectedLevelIdx = idx;
-      for (let j = 0; j < 20; j++) {
-        let c = document.getElementById('lvl-' + j);
-        if (j === idx) c.className = 'lvl-card on';
-        else c.className = 'lvl-card off';
+      const container = document.getElementById('level-cards');
+      if (container) {
+        const cardRect = this.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const scrollLeft = container.scrollLeft + cardRect.left - containerRect.left - (containerRect.width - cardRect.width) / 2;
+        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
       }
-      document.getElementById('btn-level-start').style.opacity = '1';
-      document.getElementById('btn-level-start').style.pointerEvents = 'auto';
     });
   })(i);
+}
+
+function selectLevel(idx) {
+  selectedLevelIdx = idx;
+  document.getElementById('btn-level-start').style.opacity = '1';
+  document.getElementById('btn-level-start').style.pointerEvents = 'auto';
 }
 
 document.getElementById('btn-level-start').addEventListener('click', () => {
@@ -3203,6 +3819,107 @@ document.getElementById('btn-level-back').addEventListener('click', () => {
   document.getElementById('level-select-screen').style.display = 'none';
   document.getElementById('start-screen').style.display = 'flex';
 });
+
+// 选关界面滚动监听 - 基于距离的连续缩放
+const levelCardsContainer = document.getElementById('level-cards');
+if (levelCardsContainer) {
+  let scrollHintTimer = null;
+  let rafId = null;
+
+  function updateCardsTransform() {
+    const container = document.getElementById('level-cards');
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const centerX = containerRect.left + containerRect.width / 2;
+    const maxDist = containerRect.width * 0.6;
+
+    let closestIdx = -1;
+    let closestDist = Infinity;
+
+    for (let i = 0; i < 20; i++) {
+      const card = document.getElementById('lvl-' + i);
+      if (!card) continue;
+      const cardRect = card.getBoundingClientRect();
+      const cardCenterX = cardRect.left + cardRect.width / 2;
+      const dist = Math.abs(cardCenterX - centerX);
+
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestIdx = i;
+      }
+
+      // 基于距离计算平滑的缩放和透明度
+      const t = Math.min(1, dist / maxDist);
+      const ease = 1 - t * t; // ease-out quad
+      const scale = 0.72 + 0.43 * ease;
+      const opacity = 0.3 + 0.7 * ease;
+      const brightness = 0.5 + 0.5 * ease;
+
+      const isCenter = dist < 60;
+
+      card.style.transform = `scale(${scale.toFixed(3)}) translateY(${isCenter ? -4 : 0}px)`;
+      card.style.opacity = opacity.toFixed(3);
+      card.style.filter = `brightness(${brightness.toFixed(3)})`;
+      card.style.borderColor = isCenter ? '#00F6FF' : '#707070';
+      card.style.background = isCenter ? '#1f1f1f' : '#1a1a1a';
+      card.style.color = isCenter ? '#FFFFFF' : '#707070';
+      card.style.boxShadow = isCenter ? '0 0 20px rgba(0,246,255,0.15)' : 'none';
+      card.style.zIndex = isCenter ? '10' : '1';
+      card.style.width = isCenter ? '100px' : '72px';
+      card.style.height = isCenter ? '88px' : '72px';
+
+      const numEl = card.querySelector('.lvl-num');
+      const infoEl = card.querySelector('.lvl-info');
+      const nameEl = card.querySelector('.lvl-name');
+      const tagEl = card.querySelector('.lvl-tag');
+
+      if (numEl) numEl.style.fontSize = isCenter ? '32px' : '';
+      if (infoEl) {
+        infoEl.style.opacity = isCenter ? '1' : '0';
+        infoEl.style.transform = isCenter ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.9)';
+        infoEl.style.position = isCenter ? 'static' : 'absolute';
+        infoEl.style.pointerEvents = isCenter ? 'auto' : 'none';
+      }
+      if (nameEl) nameEl.style.letterSpacing = isCenter ? '2px' : '';
+      if (tagEl) {
+        tagEl.style.borderColor = isCenter ? '#00F6FF' : '';
+        tagEl.style.color = isCenter ? '#00F6FF' : '';
+        tagEl.style.background = isCenter ? 'rgba(0,246,255,0.08)' : '';
+      }
+    }
+
+    if (closestIdx >= 0 && selectedLevelIdx !== closestIdx) {
+      selectedLevelIdx = closestIdx;
+      document.getElementById('btn-level-start').style.opacity = '1';
+      document.getElementById('btn-level-start').style.pointerEvents = 'auto';
+      // 更新顶部显示的关卡名
+      const nameEl = document.getElementById('selected-level-name');
+      if (nameEl) {
+        const card = document.getElementById('lvl-' + closestIdx);
+        const lvlName = card ? (card.querySelector('.lvl-name')?.textContent || '') : '';
+        nameEl.textContent = lvlName;
+        nameEl.style.opacity = lvlName ? '1' : '0';
+      }
+    }
+  }
+
+  levelCardsContainer.addEventListener('scroll', () => {
+    const hint = document.getElementById('scroll-hint');
+    if (hint) hint.classList.remove('visible');
+    if (scrollHintTimer) clearTimeout(scrollHintTimer);
+    scrollHintTimer = setTimeout(() => {}, 150);
+
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      updateCardsTransform();
+      rafId = null;
+    });
+  }, { passive: true });
+
+  // 初始化时执行一次
+  requestAnimationFrame(updateCardsTransform);
+}
 
 document.getElementById('btn-editor').addEventListener('click', () => {
   gameState = 'editor';
@@ -3726,6 +4443,16 @@ document.getElementById('dev-info').addEventListener('click', () => {
 
 document.getElementById('btn-dev-back').addEventListener('click', () => {
   document.getElementById('dev-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'flex';
+});
+
+document.getElementById('changelog-info').addEventListener('click', () => {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('changelog-screen').style.display = 'flex';
+});
+
+document.getElementById('btn-changelog-back').addEventListener('click', () => {
+  document.getElementById('changelog-screen').style.display = 'none';
   document.getElementById('start-screen').style.display = 'flex';
 });
 
