@@ -1834,244 +1834,7 @@ function render() {
   }
   ctx.globalAlpha = 1;
   ctx.restore();
-
-  // 传送门指示器（在屏幕坐标系绘制）
-  drawPortalIndicator();
-
-  // 更新小地图
-  updateMinimap();
 }
-
-
-// ==================== 小地图 & 传送门指示器 ====================
-
-// 小地图配置
-const MINIMAP_SIZE = 120;      // 小地图像素尺寸
-const MINIMAP_PADDING = 16;    // 距屏幕边缘距离
-const MINIMAP_SCALE = 0.15;    // 缩放比例（根据关卡大小动态调整）
-
-// 传送门指示器配置
-const PORTAL_INDICATOR_SIZE = 12;
-const PORTAL_INDICATOR_COLOR = '#F4F9A7';
-
-let minimapCanvas = null;
-let minimapCtx = null;
-
-function initMinimap() {
-  // 创建小地图 canvas（叠加在游戏 canvas 之上）
-  minimapCanvas = document.createElement('canvas');
-  minimapCanvas.id = 'minimap';
-  minimapCanvas.style.cssText = `
-    position: absolute;
-    top: ${MINIMAP_PADDING}px;
-    right: ${MINIMAP_PADDING}px;
-    width: ${MINIMAP_SIZE}px;
-    height: ${MINIMAP_SIZE}px;
-    border: 1px solid rgba(112, 112, 112, 0.5);
-    border-radius: 4px;
-    background: rgba(18, 18, 18, 0.85);
-    z-index: 45;
-    pointer-events: none;
-    display: none;
-  `;
-  minimapCanvas.width = MINIMAP_SIZE;
-  minimapCanvas.height = MINIMAP_SIZE;
-  document.getElementById('game-container').appendChild(minimapCanvas);
-  minimapCtx = minimapCanvas.getContext('2d');
-}
-
-function updateMinimap() {
-  if (!minimapCanvas || !minimapCtx || !currentLevel || gameState !== 'playing') return;
-
-  const ctx = minimapCtx;
-  const w = MINIMAP_SIZE;
-  const h = MINIMAP_SIZE;
-
-  // 清空
-  ctx.clearRect(0, 0, w, h);
-
-  // 计算关卡边界
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (let y = 0; y < currentLevel.h; y++) {
-    for (let x = 0; x < currentLevel.w; x++) {
-      if (currentLevel.grid[y][x] !== 0) {
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x);
-        maxY = Math.max(maxY, y);
-      }
-    }
-  }
-
-  // 包含玩家和传送门
-  const px = Math.floor((player.x + player.w/2) / GRID_SIZE);
-  const py = Math.floor((player.y + player.h/2) / GRID_SIZE);
-  minX = Math.min(minX, px);
-  minY = Math.min(minY, py);
-  maxX = Math.max(maxX, px);
-  maxY = Math.max(maxY, py);
-
-  if (currentLevel.portal) {
-    minX = Math.min(minX, currentLevel.portal.x);
-    minY = Math.min(minY, currentLevel.portal.y);
-    maxX = Math.max(maxX, currentLevel.portal.x);
-    maxY = Math.max(maxY, currentLevel.portal.y);
-  }
-
-  // 添加边距
-  const pad = 5;
-  minX -= pad; minY -= pad;
-  maxX += pad; maxY += pad;
-
-  const levelW = maxX - minX;
-  const levelH = maxY - minY;
-
-  // 计算缩放，保持比例
-  const scaleX = w / levelW;
-  const scaleY = h / levelH;
-  const scale = Math.min(scaleX, scaleY) * 0.9; // 留边距
-
-  const offsetX = (w - levelW * scale) / 2;
-  const offsetY = (h - levelH * scale) / 2;
-
-  // 绘制地图内容
-  const tileSize = Math.max(1, GRID_SIZE * scale);
-
-  for (let y = minY; y <= maxY; y++) {
-    for (let x = minX; x <= maxX; x++) {
-      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
-      const tile = currentLevel.grid[y][x];
-      if (tile === 0) continue;
-
-      const mx = offsetX + (x - minX) * scale;
-      const my = offsetY + (y - minY) * scale;
-
-      if (tile === TILE_LAND) {
-        ctx.fillStyle = 'rgba(225, 227, 230, 0.6)';
-        ctx.fillRect(mx, my, tileSize + 0.5, tileSize + 0.5);
-      } else if (tile === TILE_SPIKE) {
-        ctx.fillStyle = 'rgba(255, 209, 212, 0.8)';
-        ctx.beginPath();
-        ctx.moveTo(mx + tileSize/2, my + 1);
-        ctx.lineTo(mx + tileSize - 1, my + tileSize - 1);
-        ctx.lineTo(mx + 1, my + tileSize - 1);
-        ctx.closePath();
-        ctx.fill();
-      } else if (tile === TILE_PORTAL) {
-        ctx.fillStyle = '#F4F9A7';
-        ctx.fillRect(mx + 1, my + 1, tileSize - 2, tileSize - 2);
-      } else if (tile === TILE_SPAWN) {
-        ctx.fillStyle = 'rgba(179, 244, 168, 0.6)';
-        ctx.fillRect(mx + 1, my + 1, tileSize - 2, tileSize - 2);
-      }
-    }
-  }
-
-  // 绘制玩家位置（闪烁点）
-  const playerMX = offsetX + (px - minX) * scale;
-  const playerMY = offsetY + (py - minY) * scale;
-  const pulse = (Math.sin(time * 6) + 1) / 2; // 0~1
-
-  ctx.fillStyle = `rgba(0, 246, 255, ${0.5 + pulse * 0.5})`;
-  ctx.beginPath();
-  ctx.arc(playerMX + tileSize/2, playerMY + tileSize/2, Math.max(2, tileSize * 0.6), 0, Math.PI * 2);
-  ctx.fill();
-
-  // 绘制玩家视野框
-  const viewW = (canvasW / GRID_SIZE) * scale;
-  const viewH = (canvasH / GRID_SIZE) * scale;
-  ctx.strokeStyle = 'rgba(0, 246, 255, 0.3)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(
-    playerMX + tileSize/2 - viewW/2,
-    playerMY + tileSize/2 - viewH/2,
-    viewW, viewH
-  );
-}
-
-// ==================== 传送门指示器 ====================
-function drawPortalIndicator() {
-  if (!currentLevel || !currentLevel.portal || player.won || player.dead) return;
-
-  const portalX = currentLevel.portal.x * GRID_SIZE + GRID_SIZE/2;
-  const portalY = currentLevel.portal.y * GRID_SIZE + GRID_SIZE/2;
-
-  // 计算传送门在屏幕上的位置
-  const screenPortalX = portalX - camera.x;
-  const screenPortalY = portalY - camera.y;
-
-  // 检查传送门是否在屏幕外
-  const margin = 40;
-  const isOffScreen = screenPortalX < margin || screenPortalX > canvasW - margin ||
-                       screenPortalY < margin || screenPortalY > canvasH - margin;
-
-  if (!isOffScreen) return; // 在屏幕内不显示指示器
-
-  // 计算指示器位置（屏幕边缘）
-  let indicatorX = screenPortalX;
-  let indicatorY = screenPortalY;
-
-  // 限制在屏幕内（带边距）
-  const edgeMargin = 30;
-  indicatorX = Math.max(edgeMargin, Math.min(canvasW - edgeMargin, indicatorX));
-  indicatorY = Math.max(edgeMargin, Math.min(canvasH - edgeMargin, indicatorY));
-
-  // 如果传送门在屏幕外，指示器应该贴在最近的边缘
-  if (screenPortalX < edgeMargin) indicatorX = edgeMargin;
-  if (screenPortalX > canvasW - edgeMargin) indicatorX = canvasW - edgeMargin;
-  if (screenPortalY < edgeMargin) indicatorY = edgeMargin;
-  if (screenPortalY > canvasH - edgeMargin) indicatorY = canvasH - edgeMargin;
-
-  // 计算角度
-  const dx = portalX - (player.x + player.w/2);
-  const dy = portalY - (player.y + player.h/2);
-  const angle = Math.atan2(dy, dx);
-
-  // 绘制指示器箭头
-  ctx.save();
-  ctx.translate(indicatorX, indicatorY);
-  ctx.rotate(angle);
-
-  // 外圈发光
-  const glowPulse = (Math.sin(time * 4) + 1) / 2;
-  ctx.shadowColor = '#F4F9A7';
-  ctx.shadowBlur = 10 + glowPulse * 10;
-
-  // 箭头主体
-  ctx.fillStyle = '#F4F9A7';
-  ctx.beginPath();
-  ctx.moveTo(8, 0);
-  ctx.lineTo(-4, -5);
-  ctx.lineTo(-4, 5);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.shadowBlur = 0;
-
-  // 距离文字
-  ctx.restore();
-
-  // 计算距离（格子数）
-  const dist = Math.sqrt(dx*dx + dy*dy) / GRID_SIZE;
-  const distText = Math.round(dist) + 'm';
-
-  ctx.fillStyle = '#F4F9A7';
-  ctx.font = '11px monospace';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // 文字背景
-  const textW = ctx.measureText(distText).width + 8;
-  ctx.fillStyle = 'rgba(18, 18, 18, 0.8)';
-  ctx.fillRect(indicatorX - textW/2, indicatorY + 12, textW, 16);
-
-  ctx.fillStyle = '#F4F9A7';
-  ctx.fillText(distText, indicatorX, indicatorY + 20);
-}
-
-
-
-
 
 function gameLoop() {
   if (gameState === 'playing') {
@@ -3014,7 +2777,6 @@ function startGame() {
   document.getElementById('joystick-zone').style.display = 'block';
   document.getElementById('jump-btn').style.display = 'flex';
   document.getElementById('win-modal').style.display = 'none';
-  if (minimapCanvas) minimapCanvas.style.display = 'block';
   resetPlayer();
 }
 
@@ -3024,7 +2786,6 @@ function exitGame() {
   document.getElementById('joystick-zone').style.display = 'none';
   document.getElementById('jump-btn').style.display = 'none';
   document.getElementById('win-modal').style.display = 'none';
-  if (minimapCanvas) minimapCanvas.style.display = 'none';
 
   if (isEditorTest) {
     isEditorTest = false;
@@ -3572,8 +3333,6 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
 });
 
 initStorage();
-
-initMinimap();
 
 // Initial render
 ctx.fillStyle = COLORS.bg;
