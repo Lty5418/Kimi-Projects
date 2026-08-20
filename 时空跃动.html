@@ -2987,6 +2987,131 @@ function levelHasPortal(levelData) {
   // v4 编码总是包含 portal，兼容旧关卡
   return !!levelData.portal;
 }
+// ==================== 开始界面 ====================
+let selectedLevelIdx = -1;
+
+document.getElementById('btn-start-game').addEventListener('click', () => {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('level-select-screen').style.display = 'flex';
+  resetLevelSelect();
+});
+
+function resetLevelSelect() {
+  selectedLevelIdx = -1;
+  for (let i = 0; i < 20; i++) {
+    let card = document.getElementById('lvl-' + i);
+    if (card) card.className = 'lvl-card';
+  }
+  document.getElementById('btn-level-start').style.opacity = '0.3';
+  document.getElementById('btn-level-start').style.pointerEvents = 'none';
+}
+
+for (let i = 0; i < 20; i++) {
+  (function(idx) {
+    let card = document.getElementById('lvl-' + idx);
+    if (!card) return;
+    card.addEventListener('click', function() {
+      if (selectedLevelIdx === idx) { resetLevelSelect(); return; }
+      selectedLevelIdx = idx;
+      for (let j = 0; j < 20; j++) {
+        let c = document.getElementById('lvl-' + j);
+        if (j === idx) c.className = 'lvl-card on';
+        else c.className = 'lvl-card off';
+      }
+      document.getElementById('btn-level-start').style.opacity = '1';
+      document.getElementById('btn-level-start').style.pointerEvents = 'auto';
+    });
+  })(i);
+}
+
+document.getElementById('btn-level-start').addEventListener('click', () => {
+  if (selectedLevelIdx < 0) return;
+  document.getElementById('level-select-screen').style.display = 'none';
+  isEditorTest = false;
+  editorTestWon = false;
+  loadLevel(selectedLevelIdx);
+  startGame();
+});
+
+document.getElementById('btn-level-back').addEventListener('click', () => {
+  document.getElementById('level-select-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'flex';
+});
+
+document.getElementById('btn-editor').addEventListener('click', () => {
+  gameState = 'editor';
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('editor-screen').style.display = 'flex';
+  initEditor();
+});
+
+document.getElementById('btn-lobby').addEventListener('click', () => {
+  if (!currentUser) { showScreen('auth-screen'); return; }
+  showScreen('lobby-screen');
+  refreshLobby();
+});
+
+// ==================== 游戏内按钮 ====================
+document.getElementById('btn-restart').addEventListener('click', () => { resetPlayer(); });
+document.getElementById('btn-exit').addEventListener('click', () => { exitGame(); });
+
+document.getElementById('btn-next-level').addEventListener('click', () => {
+  document.getElementById('win-modal').style.display = 'none';
+  if (isEditorTest) {
+    if (shareAfterTest && editorTestWon) {
+      shareAfterTest = false;
+      doShareLevel();
+    } else {
+      isEditorTest = true;
+      resetPlayer();
+    }
+  } else if (isFromLobby) {
+    resetPlayer();
+  } else if (!isCustomLevel && currentLevelIdx < BUILTIN_LEVELS.length - 1) {
+    loadLevel(currentLevelIdx + 1); resetPlayer();
+  } else {
+    exitGame();
+  }
+});
+
+document.getElementById('btn-back-menu').addEventListener('click', () => {
+  document.getElementById('win-modal').style.display = 'none';
+  if (shareAfterTest && editorTestWon) {
+    shareAfterTest = false;
+    doShareLevel();
+  } else {
+    exitGame();
+  }
+});
+// ==================== 认证界面 ====================
+let authMode = 'login';
+document.getElementById('auth-switch').addEventListener('click', () => {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  document.getElementById('auth-title').textContent = authMode === 'login' ? '登录' : '注册';
+  document.getElementById('btn-auth-submit').textContent = authMode === 'login' ? '登录' : '注册';
+  document.getElementById('auth-switch').textContent = authMode === 'login' ? '没有账号？点击注册' : '已有账号？点击登录';
+  document.getElementById('auth-msg').textContent = '';
+});
+
+document.getElementById('btn-auth-submit').addEventListener('click', async () => {
+  const username = document.getElementById('auth-username').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!username || !password) { document.getElementById('auth-msg').textContent = '请填写用户名和密码'; return; }
+
+  document.getElementById('auth-msg').textContent = '处理中...';
+  try {
+    await cloudAuth(username, password, authMode === 'register');
+    updateUserDisplay(); showScreen('lobby-screen'); refreshLobby();
+    document.getElementById('auth-username').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-msg').textContent = '';
+  } catch (err) {
+    document.getElementById('auth-msg').textContent = err.message || '操作失败';
+  }
+});
+
+document.getElementById('btn-auth-back').addEventListener('click', () => { showScreen('start-screen'); });
+
 
 // ==================== 大厅渲染（修复版）====================
 async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
