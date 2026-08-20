@@ -675,8 +675,7 @@ html, body {
 }
 #game-ui .top-bar {
   position: absolute; top: 16px; left: 16px;
-  display: flex;
-  gap: 12px;
+  display: flex; gap: 12px;
 }
 #game-ui .top-bar .ui-btn {
   padding: 6px 14px;
@@ -1194,12 +1193,13 @@ html, body {
   </div>
 
 </div>
+
 <script>
 // ==================== Supabase 客户端 ====================
 const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
 // FIX v9: API key 加密存储 - 分段 Base64 解码
 const _s = [
-  'c2Jf','cHVibGlj','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN',
+  'c2Jf','cHVibGlz','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN',
   'kRwSDZ','2TzhYd1','96ME','JYdGtSVg','=='
 ];
 const SUPABASE_KEY = (() => { try { return atob(_s.join('')); } catch(e) { return ''; } })();
@@ -1838,6 +1838,7 @@ function render() {
   updateMinimap();
 }
 
+
 // ==================== 小地图 V3（修复版）====================
 // 修复内容：
 // 1. 确保每个 tile 至少 2px 可见大小
@@ -2341,6 +2342,7 @@ function setEditorCell(gx, gy, tool) {
     if (editorCells.has(key)) changed = true;
     editorCells.delete(key);
   }
+  // FIX: 任何修改都重置测试通关状态，强制重新测试
   if (changed && editorTestWon) editorTestWon = false;
 }
 
@@ -2437,12 +2439,14 @@ let touchStartDist = 0;
 let touchStartZoom = 1;
 let touchStartViewX = 0, touchStartViewY = 0;
 let touchStartMidX = 0, touchStartMidY = 0;
-let singleTouchTimer = null;
+let singleTouchTimer = null;  // FIX: 用于延迟单指操作，避免双指捏合误判
 
 editorCanvas.addEventListener('touchstart', e => {
   e.preventDefault();
 
+  // FIX: 如果已经有双指，直接处理 pinch
   if (e.touches.length === 2) {
+    // 取消可能的单指延迟操作
     if (singleTouchTimer) { clearTimeout(singleTouchTimer); singleTouchTimer = null; }
     touchMode = 'pinch';
     const t1 = e.touches[0], t2 = e.touches[1];
@@ -2459,8 +2463,12 @@ editorCanvas.addEventListener('touchstart', e => {
     const touch = e.touches[0];
     const cell = getEditorCell(touch.clientX, touch.clientY);
 
+    // FIX v3: 延迟单指操作，避免双指捏合时第一个手指误判为绘制
+    // 如果 80ms 内没有第二个手指落下，才执行绘制
     singleTouchTimer = setTimeout(() => {
       singleTouchTimer = null;
+      // 检查当前是否仍然是单指（用户没有开始双指操作）
+      // 由于 touchstart 事件是同步的，这里直接执行绘制
       touchMode = 'draw';
       isDrawing = true;
       drawStart = cell;
@@ -2474,6 +2482,7 @@ editorCanvas.addEventListener('touchstart', e => {
 editorCanvas.addEventListener('touchmove', e => {
   e.preventDefault();
 
+  // FIX: 如果变成双指，取消单指延迟操作
   if (e.touches.length === 2 && singleTouchTimer) {
     clearTimeout(singleTouchTimer);
     singleTouchTimer = null;
@@ -2987,6 +2996,163 @@ function levelHasPortal(levelData) {
   // v4 编码总是包含 portal，兼容旧关卡
   return !!levelData.portal;
 }
+// ==================== 大厅系统 ====================
+let currentUser = null;
+let localLevels = [];
+let publicLevelsCache = [];
+
+function initStorage() {
+  let saved = localStorage.getItem('bwjump_levels');
+  if (saved) { try { localLevels = JSON.parse(saved); } catch(e) {} }
+
+  // FIX: 一次性清除旧版本本地登录状态（仅执行一次）
+  if (!localStorage.getItem('bwjump_v6_migrated')) {
+    localStorage.removeItem('bwjump_user');
+    localStorage.removeItem('bwjump_users');
+    localStorage.setItem('bwjump_v6_migrated', 'true');
+  }
+
+  // 恢复云端登录状态
+  let user = localStorage.getItem('bwjump_user');
+  if (user) { try { currentUser = JSON.parse(user); updateUserDisplay(); } catch(e) {} }
+}
+
+function saveLocalLevels() { localStorage.setItem('bwjump_levels', JSON.stringify(localLevels)); }
+
+function updateUserDisplay() {
+  const el = document.getElementById('user-display');
+  el.textContent = currentUser ? '用户: ' + currentUser.username : '未登录';
+}
+
+async function cloudAuth(username, password, isRegister) {
+  const passwordHash = await sha256(password);
+
+  if (isRegister) {
+    // 检查用户名是否已存在
+    const existing = await supabaseGet('users', { 
+      username: `eq.${username}`, 
+      select: 'id',
+      limit: 1 
+    });
+    if (existing && existing.length > 0) {
+      throw new Error('用户名已存在');
+    }
+
+    // 创建新用户
+    const result = await supabasePost('users', {
+      username,
+      password_hash: passwordHash
+    });
+
+    const newUser = { username, id: result[0]?.id || Date.now() };
+    // FIX: 注册成功后保存本地登录状态
+    currentUser = newUser;
+    localStorage.setItem('bwjump_user', JSON.stringify(newUser));
+    return newUser;
+  } else {
+    // 登录验证
+    const users = await supabaseGet('users', { 
+      username: `eq.${username}`, 
+      select: '*',
+      limit: 1 
+    });
+
+    if (!users || users.length === 0) {
+      throw new Error('用户名或密码错误');
+    }
+
+    const user = users[0];
+    if (user.password_hash !== passwordHash) {
+      throw new Error('用户名或密码错误');
+    }
+
+    const loginUser = { username: user.username, id: user.id };
+    // FIX: 登录成功后保存本地登录状态
+    currentUser = loginUser;
+    localStorage.setItem('bwjump_user', JSON.stringify(loginUser));
+    return loginUser;
+  }
+}
+
+async function shareLevelToLobby(levelData, code) {
+  try {
+    const existing = await supabaseGet('levels', { code: `eq.${code}`, select: '*', limit: 1 });
+    if (existing && existing.length > 0) throw new Error('该关卡已存在于大厅中');
+    const result = await supabasePost('levels', {
+      name: levelData.name || '未命名关卡',
+      author: currentUser ? currentUser.username : '匿名',
+      code: code,
+      likes: 0,
+      created_at: new Date().toISOString()
+    });
+    // FIX: 分享成功后同步到本地
+    const newLevel = {
+      name: levelData.name || '未命名关卡',
+      code: code,
+      date: new Date().toLocaleString(),
+      shared: true,
+      level_id: result[0]?.id || null
+    };
+    // 检查本地是否已有相同编码的关卡
+    const existingLocal = localLevels.findIndex(l => l.code === code);
+    if (existingLocal >= 0) {
+      localLevels[existingLocal] = newLevel;
+    } else {
+      localLevels.push(newLevel);
+    }
+    saveLocalLevels();
+    return true;
+  } catch (e) { throw e; }
+}
+
+async function getSharedLevels() {
+  try { return await supabaseGet('levels', { select: '*', order: 'created_at.desc' }); }
+  catch (e) { console.error('获取关卡失败:', e); return []; }
+}
+
+// ==================== 界面切换 ====================
+function showScreen(id) {
+  ['start-screen', 'auth-screen', 'lobby-screen', 'editor-screen', 'level-select-screen', 'dev-screen'].forEach(sid => {
+    let el = document.getElementById(sid);
+    if (el) el.style.display = sid === id ? 'flex' : 'none';
+  });
+}
+
+function startGame() {
+  gameState = 'playing';
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('editor-screen').style.display = 'none';
+  document.getElementById('lobby-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('level-select-screen').style.display = 'none';
+  document.getElementById('game-ui').style.display = 'block';
+  document.getElementById('joystick-zone').style.display = 'block';
+  document.getElementById('jump-btn').style.display = 'flex';
+  document.getElementById('win-modal').style.display = 'none';
+  if (minimapCanvas) { minimapCanvas.style.display = 'block'; invalidateMinimap(); }
+  resetPlayer();
+}
+
+function exitGame() {
+  gameState = 'start';
+  document.getElementById('game-ui').style.display = 'none';
+  document.getElementById('joystick-zone').style.display = 'none';
+  document.getElementById('jump-btn').style.display = 'none';
+  document.getElementById('win-modal').style.display = 'none';
+  if (minimapCanvas) minimapCanvas.style.display = 'none';
+
+  if (isEditorTest) {
+    isEditorTest = false;
+    document.getElementById('editor-screen').style.display = 'flex';
+  } else if (isFromLobby) {
+    isFromLobby = false;
+    showScreen('lobby-screen');
+    refreshLobby();
+  } else {
+    document.getElementById('start-screen').style.display = 'flex';
+  }
+}
+
 // ==================== 开始界面 ====================
 let selectedLevelIdx = -1;
 
@@ -3100,6 +3266,7 @@ document.getElementById('btn-auth-submit').addEventListener('click', async () =>
 
   document.getElementById('auth-msg').textContent = '处理中...';
   try {
+    // cloudAuth 内部已处理 currentUser 和 localStorage
     await cloudAuth(username, password, authMode === 'register');
     updateUserDisplay(); showScreen('lobby-screen'); refreshLobby();
     document.getElementById('auth-username').value = '';
@@ -3111,7 +3278,6 @@ document.getElementById('btn-auth-submit').addEventListener('click', async () =>
 });
 
 document.getElementById('btn-auth-back').addEventListener('click', () => { showScreen('start-screen'); });
-
 
 // ==================== 大厅渲染（修复版）====================
 async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
@@ -3448,6 +3614,19 @@ async function doShareLevel() {
   }
 }
 
+// ==================== 分享弹窗 ====================
+document.getElementById('btn-share-copy').addEventListener('click', async () => {
+  const code = document.getElementById('share-code-display').value;
+  if (code) {
+    const ok = await copyToClipboard(code);
+    alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
+  }
+});
+
+document.getElementById('btn-share-close').addEventListener('click', () => {
+  document.getElementById('share-modal').style.display = 'none';
+});
+
 // ==================== 大厅事件绑定（修复版）====================
 // FIX: 添加所有缺失的事件绑定
 
@@ -3530,18 +3709,6 @@ document.getElementById('btn-lobby-logout').addEventListener('click', () => {
   }
 });
 
-// ==================== 分享弹窗 ====================
-document.getElementById('btn-share-copy').addEventListener('click', async () => {
-  const code = document.getElementById('share-code-display').value;
-  if (code) {
-    const ok = await copyToClipboard(code);
-    alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
-  }
-});
-
-document.getElementById('btn-share-close').addEventListener('click', () => {
-  document.getElementById('share-modal').style.display = 'none';
-});
 
 // ==================== 初始化 ====================
 setTimeout(() => {
@@ -3609,14 +3776,6 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
   alert('关卡已导入到编辑器');
 });
 
-// 复制编码按钮
-document.getElementById('btn-copy-code').addEventListener('click', async () => {
-  const code = document.getElementById('level-code-output').value;
-  if (!code) { alert('请先生成编码'); return; }
-  const ok = await copyToClipboard(code);
-  alert(ok ? '编码已复制' : '复制失败');
-});
-
 initStorage();
 
 initMinimap();
@@ -3625,5 +3784,10 @@ initMinimap();
 ctx.fillStyle = COLORS.bg;
 ctx.fillRect(0, 0, canvasW, canvasH);
 </script>
+</body>
+</html>
+
+</script>
+
 </body>
 </html>
