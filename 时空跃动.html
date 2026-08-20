@@ -2988,289 +2988,6 @@ function levelHasPortal(levelData) {
   return !!levelData.portal;
 }
 
-// ==================== 大厅系统 ====================
-let currentUser = null;
-let localLevels = [];
-let publicLevelsCache = [];
-
-function initStorage() {
-  let saved = localStorage.getItem('bwjump_levels');
-  if (saved) { try { localLevels = JSON.parse(saved); } catch(e) {} }
-
-  // FIX: 一次性清除旧版本本地登录状态（仅执行一次）
-  if (!localStorage.getItem('bwjump_v6_migrated')) {
-    localStorage.removeItem('bwjump_user');
-    localStorage.removeItem('bwjump_users');
-    localStorage.setItem('bwjump_v6_migrated', 'true');
-  }
-
-  // 恢复云端登录状态
-  let user = localStorage.getItem('bwjump_user');
-  if (user) { try { currentUser = JSON.parse(user); updateUserDisplay(); } catch(e) {} }
-}
-
-function saveLocalLevels() { localStorage.setItem('bwjump_levels', JSON.stringify(localLevels)); }
-
-function updateUserDisplay() {
-  const el = document.getElementById('user-display');
-  el.textContent = currentUser ? '用户: ' + currentUser.username : '未登录';
-}
-
-async function cloudAuth(username, password, isRegister) {
-  const passwordHash = await sha256(password);
-
-  if (isRegister) {
-    // 检查用户名是否已存在
-    const existing = await supabaseGet('users', { 
-      username: `eq.${username}`, 
-      select: 'id',
-      limit: 1 
-    });
-    if (existing && existing.length > 0) {
-      throw new Error('用户名已存在');
-    }
-
-    // 创建新用户
-    const result = await supabasePost('users', {
-      username,
-      password_hash: passwordHash
-    });
-
-    const newUser = { username, id: result[0]?.id || Date.now() };
-    // FIX: 注册成功后保存本地登录状态
-    currentUser = newUser;
-    localStorage.setItem('bwjump_user', JSON.stringify(newUser));
-    return newUser;
-  } else {
-    // 登录验证
-    const users = await supabaseGet('users', { 
-      username: `eq.${username}`, 
-      select: '*',
-      limit: 1 
-    });
-
-    if (!users || users.length === 0) {
-      throw new Error('用户名或密码错误');
-    }
-
-    const user = users[0];
-    if (user.password_hash !== passwordHash) {
-      throw new Error('用户名或密码错误');
-    }
-
-    const loginUser = { username: user.username, id: user.id };
-    // FIX: 登录成功后保存本地登录状态
-    currentUser = loginUser;
-    localStorage.setItem('bwjump_user', JSON.stringify(loginUser));
-    return loginUser;
-  }
-}
-
-async function shareLevelToLobby(levelData, code) {
-  try {
-    const existing = await supabaseGet('levels', { code: `eq.${code}`, select: '*', limit: 1 });
-    if (existing && existing.length > 0) throw new Error('该关卡已存在于大厅中');
-    const result = await supabasePost('levels', {
-      name: levelData.name || '未命名关卡',
-      author: currentUser ? currentUser.username : '匿名',
-      code: code,
-      likes: 0,
-      created_at: new Date().toISOString()
-    });
-    // FIX: 分享成功后同步到本地
-    const newLevel = {
-      name: levelData.name || '未命名关卡',
-      code: code,
-      date: new Date().toLocaleString(),
-      shared: true,
-      level_id: result[0]?.id || null
-    };
-    // 检查本地是否已有相同编码的关卡
-    const existingLocal = localLevels.findIndex(l => l.code === code);
-    if (existingLocal >= 0) {
-      localLevels[existingLocal] = newLevel;
-    } else {
-      localLevels.push(newLevel);
-    }
-    saveLocalLevels();
-    return true;
-  } catch (e) { throw e; }
-}
-
-async function getSharedLevels() {
-  try { return await supabaseGet('levels', { select: '*', order: 'created_at.desc' }); }
-  catch (e) { console.error('获取关卡失败:', e); return []; }
-}
-
-// ==================== 界面切换 ====================
-function showScreen(id) {
-  ['start-screen', 'auth-screen', 'lobby-screen', 'editor-screen', 'level-select-screen', 'dev-screen'].forEach(sid => {
-    let el = document.getElementById(sid);
-    if (el) el.style.display = sid === id ? 'flex' : 'none';
-  });
-}
-
-function startGame() {
-  gameState = 'playing';
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('editor-screen').style.display = 'none';
-  document.getElementById('lobby-screen').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('level-select-screen').style.display = 'none';
-  document.getElementById('game-ui').style.display = 'block';
-  document.getElementById('joystick-zone').style.display = 'block';
-  document.getElementById('jump-btn').style.display = 'flex';
-  document.getElementById('win-modal').style.display = 'none';
-  if (minimapCanvas) { minimapCanvas.style.display = 'block'; invalidateMinimap(); }
-  resetPlayer();
-}
-
-function exitGame() {
-  gameState = 'start';
-  document.getElementById('game-ui').style.display = 'none';
-  document.getElementById('joystick-zone').style.display = 'none';
-  document.getElementById('jump-btn').style.display = 'none';
-  document.getElementById('win-modal').style.display = 'none';
-  if (minimapCanvas) minimapCanvas.style.display = 'none';
-
-  if (isEditorTest) {
-    isEditorTest = false;
-    document.getElementById('editor-screen').style.display = 'flex';
-  } else if (isFromLobby) {
-    isFromLobby = false;
-    showScreen('lobby-screen');
-    refreshLobby();
-  } else {
-    document.getElementById('start-screen').style.display = 'flex';
-  }
-}
-
-// ==================== 开始界面 ====================
-let selectedLevelIdx = -1;
-
-document.getElementById('btn-start-game').addEventListener('click', () => {
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('level-select-screen').style.display = 'flex';
-  resetLevelSelect();
-});
-
-function resetLevelSelect() {
-  selectedLevelIdx = -1;
-  for (let i = 0; i < 20; i++) {
-    let card = document.getElementById('lvl-' + i);
-    if (card) card.className = 'lvl-card';
-  }
-  document.getElementById('btn-level-start').style.opacity = '0.3';
-  document.getElementById('btn-level-start').style.pointerEvents = 'none';
-}
-
-for (let i = 0; i < 20; i++) {
-  (function(idx) {
-    let card = document.getElementById('lvl-' + idx);
-    if (!card) return;
-    card.addEventListener('click', function() {
-      if (selectedLevelIdx === idx) { resetLevelSelect(); return; }
-      selectedLevelIdx = idx;
-      for (let j = 0; j < 20; j++) {
-        let c = document.getElementById('lvl-' + j);
-        if (j === idx) c.className = 'lvl-card on';
-        else c.className = 'lvl-card off';
-      }
-      document.getElementById('btn-level-start').style.opacity = '1';
-      document.getElementById('btn-level-start').style.pointerEvents = 'auto';
-    });
-  })(i);
-}
-
-document.getElementById('btn-level-start').addEventListener('click', () => {
-  if (selectedLevelIdx < 0) return;
-  document.getElementById('level-select-screen').style.display = 'none';
-  isEditorTest = false;
-  editorTestWon = false;
-  loadLevel(selectedLevelIdx);
-  startGame();
-});
-
-document.getElementById('btn-level-back').addEventListener('click', () => {
-  document.getElementById('level-select-screen').style.display = 'none';
-  document.getElementById('start-screen').style.display = 'flex';
-});
-
-document.getElementById('btn-editor').addEventListener('click', () => {
-  gameState = 'editor';
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('editor-screen').style.display = 'flex';
-  initEditor();
-});
-
-document.getElementById('btn-lobby').addEventListener('click', () => {
-  if (!currentUser) { showScreen('auth-screen'); return; }
-  showScreen('lobby-screen');
-  refreshLobby();
-});
-
-// ==================== 游戏内按钮 ====================
-document.getElementById('btn-restart').addEventListener('click', () => { resetPlayer(); });
-document.getElementById('btn-exit').addEventListener('click', () => { exitGame(); });
-
-document.getElementById('btn-next-level').addEventListener('click', () => {
-  document.getElementById('win-modal').style.display = 'none';
-  if (isEditorTest) {
-    if (shareAfterTest && editorTestWon) {
-      shareAfterTest = false;
-      doShareLevel();
-    } else {
-      isEditorTest = true;
-      resetPlayer();
-    }
-  } else if (isFromLobby) {
-    resetPlayer();
-  } else if (!isCustomLevel && currentLevelIdx < BUILTIN_LEVELS.length - 1) {
-    loadLevel(currentLevelIdx + 1); resetPlayer();
-  } else {
-    exitGame();
-  }
-});
-
-document.getElementById('btn-back-menu').addEventListener('click', () => {
-  document.getElementById('win-modal').style.display = 'none';
-  if (shareAfterTest && editorTestWon) {
-    shareAfterTest = false;
-    doShareLevel();
-  } else {
-    exitGame();
-  }
-});
-// ==================== 认证界面 ====================
-let authMode = 'login';
-document.getElementById('auth-switch').addEventListener('click', () => {
-  authMode = authMode === 'login' ? 'register' : 'login';
-  document.getElementById('auth-title').textContent = authMode === 'login' ? '登录' : '注册';
-  document.getElementById('btn-auth-submit').textContent = authMode === 'login' ? '登录' : '注册';
-  document.getElementById('auth-switch').textContent = authMode === 'login' ? '没有账号？点击注册' : '已有账号？点击登录';
-  document.getElementById('auth-msg').textContent = '';
-});
-
-document.getElementById('btn-auth-submit').addEventListener('click', async () => {
-  const username = document.getElementById('auth-username').value.trim();
-  const password = document.getElementById('auth-password').value;
-  if (!username || !password) { document.getElementById('auth-msg').textContent = '请填写用户名和密码'; return; }
-
-  document.getElementById('auth-msg').textContent = '处理中...';
-  try {
-    // cloudAuth 内部已处理 currentUser 和 localStorage
-    await cloudAuth(username, password, authMode === 'register');
-    updateUserDisplay(); showScreen('lobby-screen'); refreshLobby();
-    document.getElementById('auth-username').value = '';
-    document.getElementById('auth-password').value = '';
-    document.getElementById('auth-msg').textContent = '';
-  } catch (err) {
-    document.getElementById('auth-msg').textContent = err.message || '操作失败';
-  }
-});
-
-document.getElementById('btn-auth-back').addEventListener('click', () => { showScreen('start-screen'); });
-
 // ==================== 大厅渲染（修复版）====================
 async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
 
@@ -3307,9 +3024,12 @@ async function renderPublicLevels(filter = '') {
       warningHtml = `<div class="level-warning">&#9888; 警告：此关卡缺少传送门，无法通关！</div>`;
     }
 
-    // FIX: 使用函数获取点赞状态，避免重复代码
     const liked = JSON.parse(localStorage.getItem('bwjump_liked') || '[]');
     const isLiked = liked.includes(l.id);
+
+    // FIX: 安全编码 l.code 用于 HTML 属性
+    // 将 ' 替换为 &#39;，将 \ 替换为 &#92;，避免破坏 onclick 属性
+    const safeCode = (l.code || '').replace(/'/g, "&#39;").replace(/\\/g, "&#92;");
 
     return `
     <div class="level-card">
@@ -3319,8 +3039,8 @@ async function renderPublicLevels(filter = '') {
         ${warningHtml}
       </div>
       <div class="level-actions">
-        <button class="btn btn-small" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
-        <button class="btn btn-small" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
+        <button class="btn btn-small" onclick='playLobbyLevel("${safeCode}")'>游玩</button>
+        <button class="btn btn-small" onclick='copyLevelCode("${safeCode}")'>复制编码</button>
         <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${l.id}, this)">
           <span class="like-icon">${isLiked ? '&#9829;' : '&#9825;'}</span>
           <span class="like-count">${l.likes || 0}</span>
@@ -3330,11 +3050,9 @@ async function renderPublicLevels(filter = '') {
   `}).join('');
 }
 
-// FIX: 重构我的关卡渲染，使用唯一标识符而不是索引
 async function renderMyLevels(filter = '') {
   const container = document.getElementById('my-levels-list');
 
-  // 获取云端该用户的关卡
   let cloudLevels = [];
   if (currentUser && currentUser.username) {
     try {
@@ -3348,13 +3066,10 @@ async function renderMyLevels(filter = '') {
     }
   }
 
-  // 构建统一的关卡列表，每个关卡带有 source 标识和唯一 id
   let allMyLevels = [];
 
-  // 先加入本地关卡
   for (let i = 0; i < localLevels.length; i++) {
     const l = localLevels[i];
-    // 检查这个本地关卡是否也在云端
     const cloudMatch = cloudLevels.find(cl => cl.code === l.code);
     allMyLevels.push({
       ...l,
@@ -3365,7 +3080,6 @@ async function renderMyLevels(filter = '') {
     });
   }
 
-  // 再加入云端独有的关卡（本地没有的）
   for (const cl of cloudLevels) {
     const existsLocal = localLevels.find(ll => ll.code === cl.code);
     if (!existsLocal) {
@@ -3382,7 +3096,6 @@ async function renderMyLevels(filter = '') {
     }
   }
 
-  // 过滤
   let displayLevels = allMyLevels;
   if (filter.trim()) {
     const keyword = filter.trim().toLowerCase();
@@ -3410,10 +3123,12 @@ async function renderMyLevels(filter = '') {
 
     const sharedBadge = l.shared || l._source === 'cloud' ? ' <span style="color:#00F6FF;font-size:11px;font-weight:400;">[已分享]</span>' : '';
 
-    // FIX: 使用 _id 作为删除标识，而不是索引
     const deleteParam = l._source === 'local' 
       ? `deleteMyLevel('local', ${l._localIndex}, ${l._cloudId || 'null'})`
       : `deleteMyLevel('cloud', null, ${l._cloudId})`;
+
+    // FIX: 安全编码 l.code 用于 HTML 属性
+    const safeCode = (l.code || '').replace(/'/g, "&#39;").replace(/\\/g, "&#92;");
 
     return `
     <div class="level-card" data-id="${l._id}">
@@ -3423,8 +3138,8 @@ async function renderMyLevels(filter = '') {
         ${warningHtml}
       </div>
       <div class="level-actions">
-        <button class="btn btn-small" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
-        <button class="btn btn-small" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
+        <button class="btn btn-small" onclick='playLobbyLevel("${safeCode}")'>游玩</button>
+        <button class="btn btn-small" onclick='copyLevelCode("${safeCode}")'>复制编码</button>
         <button class="btn btn-small btn-danger" onclick="${deleteParam}">删除</button>
       </div>
     </div>
@@ -3432,24 +3147,25 @@ async function renderMyLevels(filter = '') {
 }
 
 window.playLobbyLevel = function(code) {
+  // 解码 HTML 实体
+  const decodedCode = code.replace(/&#39;/g, "'").replace(/&#92;/g, "\\");
   isEditorTest = false;
   isFromLobby = true;
-  const level = decodeLevel(code);
+  const level = decodeLevel(decodedCode);
   if (level) { loadCustomLevel(level); startGame(); }
   else { alert('关卡编码无效'); }
 };
 
 window.copyLevelCode = async function(code) {
-  const ok = await copyToClipboard(code);
+  const decodedCode = code.replace(/&#39;/g, "'").replace(/&#92;/g, "\\");
+  const ok = await copyToClipboard(decodedCode);
   alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
 };
 
-// FIX: 重写删除逻辑，区分本地和云端
 window.deleteMyLevel = async function(source, localIndex, cloudId) {
   if (!confirm('确定删除这个关卡吗？')) return;
 
   try {
-    // 1. 如果有关联网云端记录，先删云端
     if (cloudId) {
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${cloudId}`, {
@@ -3463,15 +3179,11 @@ window.deleteMyLevel = async function(source, localIndex, cloudId) {
       }
     }
 
-    // 2. 如果是本地关卡，从 localLevels 删除
     if (source === 'local' && localIndex !== null && localIndex >= 0 && localIndex < localLevels.length) {
       localLevels.splice(localIndex, 1);
       saveLocalLevels();
     }
 
-    // 3. 如果是纯云端关卡（本地没有），不需要操作 localLevels
-
-    // 4. 重新渲染
     renderMyLevels();
   } catch (e) {
     console.error('删除失败:', e);
