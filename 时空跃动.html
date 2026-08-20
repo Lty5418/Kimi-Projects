@@ -675,7 +675,8 @@ html, body {
 }
 #game-ui .top-bar {
   position: absolute; top: 16px; left: 16px;
-  display: flex; gap: 12px;
+  display: flex;
+  gap: 12px;
 }
 #game-ui .top-bar .ui-btn {
   padding: 6px 14px;
@@ -1193,13 +1194,12 @@ html, body {
   </div>
 
 </div>
-
 <script>
 // ==================== Supabase 客户端 ====================
 const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
 // FIX v9: API key 加密存储 - 分段 Base64 解码
 const _s = [
-  'c2Jf','cHVibGlz','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN',
+  'c2Jf','cHVibGlj','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN',
   'kRwSDZ','2TzhYd1','96ME','JYdGtSVg','=='
 ];
 const SUPABASE_KEY = (() => { try { return atob(_s.join('')); } catch(e) { return ''; } })();
@@ -1297,122 +1297,122 @@ const BUILTIN_LEVELS = [
   {
     name: "起跳平台", w: 30, h: 15,
     spawn: {x: 0, y: 0}, portal: {x: 18, y: -2},
-    lands: [{x:-3,y:3,w:5,h:1}, {x:5,y:2,w:2,h:1}, {x:10,y:1,w:2,h:1}, {x:15,y:0,w:2,h:1}, {x:18,y:-2,w:3,h:1}],
+    lands: [{x:-3,y:3,w:4,h:1}, {x:2,y:2,w:2,h:1}, {x:5,y:1,w:2,h:1}, {x:9,y:0,w:2,h:1}, {x:13,y:-1,w:2,h:1}, {x:16,y:-2,w:3,h:1}],
     spikes: []
   },
   {
     name: "第一个坎", w: 30, h: 15,
     spawn: {x: 0, y: 0}, portal: {x: 20, y: -3},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:1,h:1}, {x:6,y:1,w:2,h:1}, {x:11,y:0,w:1,h:1}, {x:15,y:-1,w:2,h:1}, {x:20,y:-3,w:3,h:1}],
-    spikes: [{x:3,y:4}]
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:2,w:2,h:1}, {x:7,y:1,w:2,h:1}, {x:11,y:0,w:2,h:1}, {x:15,y:-1,w:2,h:1}, {x:18,y:-2,w:2,h:1}, {x:20,y:-3,w:3,h:1}],
+    spikes: [{x:5,y:2}, {x:6,y:2}, {x:9,y:1}, {x:10,y:1}, {x:13,y:0}, {x:14,y:0}]
   },
   {
     name: "连续小跳", w: 35, h: 15,
     spawn: {x: 0, y: 0}, portal: {x: 26, y: -4},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:2,w:1,h:1}, {x:6,y:1,w:1,h:1}, {x:9,y:0,w:1,h:1}, {x:12,y:-1,w:1,h:1}, {x:15,y:-2,w:1,h:1}, {x:18,y:-3,w:1,h:1}, {x:22,y:-2,w:1,h:1}, {x:26,y:-4,w:3,h:1}],
-    spikes: []
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:2,w:1,h:1}, {x:6,y:1,w:1,h:1}, {x:9,y:0,w:1,h:1}, {x:12,y:-1,w:1,h:1}, {x:15,y:-2,w:1,h:1}, {x:18,y:-3,w:1,h:1}, {x:21,y:-2,w:1,h:1}, {x:24,y:-3,w:1,h:1}, {x:26,y:-4,w:3,h:1}],
+    spikes: [{x:4,y:2}, {x:5,y:2}, {x:7,y:1}, {x:8,y:1}, {x:10,y:0}, {x:11,y:0}, {x:13,y:-1}, {x:14,y:-1}, {x:16,y:-2}, {x:17,y:-2}, {x:19,y:-3}, {x:20,y:-3}, {x:22,y:-2}, {x:23,y:-2}]
   },
   {
     name: "初见尖刺", w: 35, h: 15,
     spawn: {x: 0, y: 0}, portal: {x: 24, y: -2},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:3,h:1}, {x:8,y:1,w:2,h:1}, {x:13,y:0,w:1,h:1}, {x:17,y:-1,w:2,h:1}, {x:21,y:-2,w:1,h:1}, {x:24,y:-2,w:3,h:1}],
-    spikes: [{x:6,y:3}, {x:11,y:0}, {x:16,y:-1}]
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:2,w:2,h:1}, {x:7,y:0,w:2,h:1}, {x:11,y:-1,w:2,h:1}, {x:15,y:0,w:2,h:1}, {x:19,y:-1,w:2,h:1}, {x:22,y:-2,w:2,h:1}, {x:24,y:-2,w:3,h:1}],
+    spikes: [{x:5,y:2}, {x:6,y:2}, {x:9,y:0}, {x:10,y:0}, {x:13,y:-1}, {x:14,y:-1}, {x:17,y:0}, {x:18,y:0}, {x:20,y:-1}, {x:21,y:-1}]
   },
   {
     name: "尖刺间隙", w: 40, h: 15,
-    spawn: {x: 0, y: 0}, portal: {x: 30, y: -3},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:1,h:1}, {x:7,y:2,w:1,h:1}, {x:11,y:1,w:1,h:1}, {x:15,y:0,w:1,h:1}, {x:19,y:-1,w:1,h:1}, {x:23,y:-2,w:1,h:1}, {x:27,y:-2,w:1,h:1}, {x:30,y:-3,w:3,h:1}],
-    spikes: [{x:4,y:3}, {x:5,y:3}, {x:8,y:2}, {x:9,y:2}, {x:12,y:1}, {x:13,y:1}, {x:16,y:0}, {x:17,y:0}, {x:20,y:-1}, {x:21,y:-1}, {x:24,y:-2}, {x:25,y:-2}]
+    spawn: {x: 0, y: 0}, portal: {x: 28, y: -3},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:2,w:1,h:1}, {x:6,y:1,w:1,h:1}, {x:10,y:0,w:1,h:1}, {x:14,y:-1,w:1,h:1}, {x:18,y:-2,w:1,h:1}, {x:22,y:-1,w:1,h:1}, {x:25,y:-2,w:1,h:1}, {x:28,y:-3,w:3,h:1}],
+    spikes: [{x:3,y:2}, {x:4,y:2}, {x:5,y:2}, {x:7,y:1}, {x:8,y:1}, {x:9,y:1}, {x:11,y:0}, {x:12,y:0}, {x:13,y:0}, {x:15,y:-1}, {x:16,y:-1}, {x:17,y:-1}, {x:19,y:-2}, {x:20,y:-2}, {x:21,y:-2}, {x:23,y:-1}, {x:24,y:-1}]
   },
   {
     name: "需要二段", w: 40, h: 18,
-    spawn: {x: 0, y: 0}, portal: {x: 30, y: -6},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:4,y:0,w:1,h:1}, {x:8,y:-3,w:1,h:1}, {x:12,y:-5,w:1,h:1}, {x:16,y:-3,w:1,h:1}, {x:20,y:-6,w:1,h:1}, {x:24,y:-4,w:1,h:1}, {x:28,y:-6,w:1,h:1}, {x:30,y:-6,w:3,h:1}],
-    spikes: [{x:6,y:0}, {x:10,y:-3}, {x:14,y:-5}, {x:18,y:-3}, {x:22,y:-6}]
+    spawn: {x: 0, y: 0}, portal: {x: 28, y: -6},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:0,w:1,h:1}, {x:6,y:-3,w:1,h:1}, {x:9,y:-5,w:1,h:1}, {x:12,y:-3,w:1,h:1}, {x:15,y:-6,w:1,h:1}, {x:18,y:-4,w:1,h:1}, {x:21,y:-6,w:1,h:1}, {x:25,y:-5,w:1,h:1}, {x:28,y:-6,w:3,h:1}],
+    spikes: [{x:3,y:0}, {x:4,y:0}, {x:5,y:0}, {x:7,y:-3}, {x:8,y:-3}, {x:10,y:-5}, {x:11,y:-5}, {x:13,y:-3}, {x:14,y:-3}, {x:16,y:-6}, {x:17,y:-6}, {x:19,y:-4}, {x:20,y:-4}, {x:22,y:-6}, {x:23,y:-6}, {x:24,y:-6}]
   },
   {
     name: "高空恐惧", w: 40, h: 22,
-    spawn: {x: 0, y: 0}, portal: {x: 32, y: -12},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:0,w:1,h:1}, {x:6,y:-3,w:1,h:1}, {x:9,y:-6,w:1,h:1}, {x:12,y:-9,w:1,h:1}, {x:16,y:-7,w:1,h:1}, {x:20,y:-11,w:1,h:1}, {x:24,y:-9,w:1,h:1}, {x:28,y:-12,w:1,h:1}, {x:32,y:-12,w:3,h:1}],
-    spikes: [{x:5,y:0}, {x:8,y:-3}, {x:11,y:-6}, {x:14,y:-9}, {x:18,y:-7}, {x:22,y:-11}, {x:26,y:-9}]
+    spawn: {x: 0, y: 0}, portal: {x: 30, y: -12},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-1,w:1,h:1}, {x:5,y:-4,w:1,h:1}, {x:8,y:-7,w:1,h:1}, {x:11,y:-10,w:1,h:1}, {x:14,y:-7,w:1,h:1}, {x:17,y:-11,w:1,h:1}, {x:20,y:-8,w:1,h:1}, {x:23,y:-12,w:1,h:1}, {x:26,y:-10,w:1,h:1}, {x:30,y:-12,w:3,h:1}],
+    spikes: [{x:3,y:-1}, {x:4,y:-1}, {x:6,y:-4}, {x:7,y:-4}, {x:9,y:-7}, {x:10,y:-7}, {x:12,y:-10}, {x:13,y:-10}, {x:15,y:-7}, {x:16,y:-7}, {x:18,y:-11}, {x:19,y:-11}, {x:21,y:-8}, {x:22,y:-8}, {x:24,y:-12}, {x:25,y:-12}, {x:27,y:-10}, {x:28,y:-10}, {x:29,y:-10}]
   },
   {
     name: "回环路线", w: 45, h: 20,
-    spawn: {x: 0, y: 0}, portal: {x: 35, y: -8},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:1,w:2,h:1}, {x:8,y:-1,w:1,h:1}, {x:12,y:-3,w:1,h:1}, {x:10,y:0,w:1,h:1}, {x:7,y:-2,w:1,h:1}, {x:4,y:-4,w:1,h:1}, {x:8,y:-6,w:1,h:1}, {x:13,y:-5,w:1,h:1}, {x:18,y:-7,w:1,h:1}, {x:23,y:-6,w:1,h:1}, {x:28,y:-8,w:1,h:1}, {x:35,y:-8,w:3,h:1}],
-    spikes: [{x:5,y:1}, {x:9,y:-1}, {x:11,y:-3}, {x:6,y:-2}, {x:9,y:-6}, {x:15,y:-5}, {x:20,y:-7}, {x:25,y:-6}]
+    spawn: {x: 0, y: 0}, portal: {x: 32, y: -8},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:1,w:2,h:1}, {x:6,y:-1,w:1,h:1}, {x:9,y:-3,w:1,h:1}, {x:7,y:0,w:1,h:1}, {x:4,y:-2,w:1,h:1}, {x:7,y:-4,w:1,h:1}, {x:11,y:-5,w:1,h:1}, {x:15,y:-6,w:1,h:1}, {x:19,y:-7,w:1,h:1}, {x:23,y:-6,w:1,h:1}, {x:26,y:-8,w:1,h:1}, {x:29,y:-7,w:1,h:1}, {x:32,y:-8,w:3,h:1}],
+    spikes: [{x:10,y:1}, {x:11,y:1}, {x:12,y:1}, {x:10,y:0}, {x:11,y:0}, {x:12,y:0}, {x:10,y:-1}, {x:11,y:-1}, {x:12,y:-1}, {x:5,y:1}, {x:5,y:0}, {x:8,y:-1}, {x:8,y:-2}, {x:5,y:-2}, {x:6,y:-2}, {x:8,y:-3}, {x:8,y:-4}, {x:8,y:-4}, {x:9,y:-4}, {x:12,y:-5}, {x:13,y:-5}, {x:14,y:-5}, {x:16,y:-6}, {x:17,y:-6}, {x:18,y:-6}, {x:20,y:-7}, {x:21,y:-7}, {x:22,y:-7}, {x:24,y:-6}, {x:25,y:-6}, {x:27,y:-8}, {x:28,y:-8}, {x:30,y:-7}, {x:31,y:-7}]
   },
   {
     name: "极限距离", w: 50, h: 20,
-    spawn: {x: 0, y: 0}, portal: {x: 40, y: -10},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:1,w:1,h:1}, {x:8,y:-2,w:1,h:1}, {x:13,y:-5,w:1,h:1}, {x:18,y:-8,w:1,h:1}, {x:22,y:-6,w:1,h:1}, {x:26,y:-10,w:1,h:1}, {x:30,y:-8,w:1,h:1}, {x:35,y:-11,w:1,h:1}, {x:40,y:-10,w:3,h:1}],
-    spikes: [{x:5,y:1}, {x:6,y:1}, {x:10,y:-2}, {x:11,y:-2}, {x:15,y:-5}, {x:16,y:-5}, {x:20,y:-8}, {x:23,y:-6}, {x:24,y:-6}, {x:28,y:-10}, {x:32,y:-8}, {x:33,y:-8}]
+    spawn: {x: 0, y: 0}, portal: {x: 36, y: -10},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:0,w:1,h:1}, {x:6,y:-3,w:1,h:1}, {x:10,y:-6,w:1,h:1}, {x:13,y:-4,w:1,h:1}, {x:16,y:-7,w:1,h:1}, {x:19,y:-5,w:1,h:1}, {x:22,y:-9,w:1,h:1}, {x:26,y:-7,w:1,h:1}, {x:29,y:-10,w:1,h:1}, {x:32,y:-8,w:1,h:1}, {x:36,y:-10,w:3,h:1}],
+    spikes: [{x:3,y:0}, {x:4,y:0}, {x:5,y:0}, {x:7,y:-3}, {x:8,y:-3}, {x:9,y:-3}, {x:11,y:-6}, {x:12,y:-6}, {x:14,y:-4}, {x:15,y:-4}, {x:17,y:-7}, {x:18,y:-7}, {x:20,y:-5}, {x:21,y:-5}, {x:23,y:-9}, {x:24,y:-9}, {x:25,y:-9}, {x:27,y:-7}, {x:28,y:-7}, {x:30,y:-10}, {x:31,y:-10}, {x:33,y:-8}, {x:34,y:-8}, {x:35,y:-8}]
   },
   {
     name: "二段极限", w: 50, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 42, y: -15},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-1,w:1,h:1}, {x:7,y:-5,w:1,h:1}, {x:11,y:-9,w:1,h:1}, {x:15,y:-7,w:1,h:1}, {x:19,y:-12,w:1,h:1}, {x:23,y:-10,w:1,h:1}, {x:27,y:-15,w:1,h:1}, {x:31,y:-13,w:1,h:1}, {x:36,y:-16,w:1,h:1}, {x:42,y:-15,w:3,h:1}],
-    spikes: [{x:5,y:-1}, {x:6,y:-1}, {x:9,y:-5}, {x:10,y:-5}, {x:13,y:-9}, {x:17,y:-7}, {x:18,y:-7}, {x:21,y:-12}, {x:22,y:-12}, {x:25,y:-10}, {x:29,y:-15}, {x:30,y:-15}, {x:33,y:-13}, {x:38,y:-16}, {x:39,y:-16}]
+    spawn: {x: 0, y: 0}, portal: {x: 38, y: -15},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-2,w:1,h:1}, {x:6,y:-5,w:1,h:1}, {x:9,y:-9,w:1,h:1}, {x:12,y:-6,w:1,h:1}, {x:15,y:-10,w:1,h:1}, {x:18,y:-7,w:1,h:1}, {x:21,y:-12,w:1,h:1}, {x:24,y:-9,w:1,h:1}, {x:27,y:-14,w:1,h:1}, {x:30,y:-11,w:1,h:1}, {x:33,y:-15,w:1,h:1}, {x:36,y:-13,w:1,h:1}, {x:38,y:-15,w:3,h:1}],
+    spikes: [{x:3,y:-2}, {x:4,y:-2}, {x:5,y:-2}, {x:7,y:-5}, {x:8,y:-5}, {x:10,y:-9}, {x:11,y:-9}, {x:13,y:-6}, {x:14,y:-6}, {x:16,y:-10}, {x:17,y:-10}, {x:19,y:-7}, {x:20,y:-7}, {x:22,y:-12}, {x:23,y:-12}, {x:25,y:-9}, {x:26,y:-9}, {x:28,y:-14}, {x:29,y:-14}, {x:31,y:-11}, {x:32,y:-11}, {x:34,y:-15}, {x:35,y:-15}, {x:37,y:-13}, {x:38,y:-13}]
   },
   {
     name: "头顶即死", w: 45, h: 22,
-    spawn: {x: 0, y: 0}, portal: {x: 36, y: -12},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:4,y:3,w:6,h:1}, {x:4,y:-2,w:6,h:1}, {x:12,y:0,w:2,h:1}, {x:12,y:-4,w:2,h:1}, {x:17,y:-2,w:2,h:1}, {x:17,y:-6,w:2,h:1}, {x:22,y:-4,w:2,h:1}, {x:22,y:-8,w:2,h:1}, {x:27,y:-6,w:2,h:1}, {x:27,y:-10,w:2,h:1}, {x:32,y:-8,w:2,h:1}, {x:36,y:-12,w:3,h:1}],
-    spikes: [{x:7,y:2}, {x:8,y:2}, {x:14,y:0}, {x:19,y:-2}, {x:24,y:-4}, {x:29,y:-6}]
+    spawn: {x: 0, y: 0}, portal: {x: 34, y: -12},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:5,h:1}, {x:3,y:0,w:5,h:1}, {x:10,y:0,w:2,h:1}, {x:10,y:-3,w:2,h:1}, {x:14,y:-2,w:2,h:1}, {x:14,y:-5,w:2,h:1}, {x:18,y:-4,w:2,h:1}, {x:18,y:-7,w:2,h:1}, {x:22,y:-6,w:2,h:1}, {x:22,y:-9,w:2,h:1}, {x:26,y:-8,w:2,h:1}, {x:26,y:-11,w:2,h:1}, {x:30,y:-10,w:2,h:1}, {x:30,y:-13,w:2,h:1}, {x:34,y:-12,w:3,h:1}],
+    spikes: [{x:6,y:2}, {x:7,y:2}, {x:8,y:2}, {x:12,y:0}, {x:13,y:0}, {x:16,y:-2}, {x:17,y:-2}, {x:20,y:-4}, {x:21,y:-4}, {x:24,y:-6}, {x:25,y:-6}, {x:28,y:-8}, {x:29,y:-8}, {x:32,y:-10}, {x:33,y:-10}]
   },
   {
     name: "窄缝求生", w: 50, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 40, y: -16},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:1,w:1,h:4}, {x:5,y:0,w:1,h:1}, {x:8,y:-3,w:1,h:4}, {x:10,y:-4,w:1,h:1}, {x:13,y:-7,w:1,h:4}, {x:15,y:-8,w:1,h:1}, {x:18,y:-11,w:1,h:4}, {x:20,y:-12,w:1,h:1}, {x:23,y:-14,w:1,h:3}, {x:26,y:-13,w:1,h:1}, {x:30,y:-16,w:1,h:1}, {x:35,y:-15,w:1,h:1}, {x:40,y:-16,w:3,h:1}],
-    spikes: [{x:4,y:1}, {x:4,y:2}, {x:4,y:3}, {x:9,y:-3}, {x:9,y:-2}, {x:9,y:-1}, {x:14,y:-7}, {x:14,y:-6}, {x:14,y:-5}, {x:19,y:-11}, {x:19,y:-10}, {x:19,y:-9}, {x:24,y:-14}, {x:24,y:-13}]
+    spawn: {x: 0, y: 0}, portal: {x: 38, y: -16},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:1,w:1,h:4}, {x:4,y:0,w:1,h:1}, {x:7,y:-3,w:1,h:4}, {x:9,y:-4,w:1,h:1}, {x:12,y:-7,w:1,h:4}, {x:14,y:-8,w:1,h:1}, {x:17,y:-11,w:1,h:4}, {x:19,y:-12,w:1,h:1}, {x:22,y:-14,w:1,h:3}, {x:25,y:-13,w:1,h:1}, {x:28,y:-16,w:1,h:1}, {x:31,y:-15,w:1,h:1}, {x:35,y:-16,w:1,h:1}, {x:38,y:-16,w:3,h:1}],
+    spikes: [{x:3,y:1}, {x:3,y:2}, {x:3,y:3}, {x:8,y:-3}, {x:8,y:-2}, {x:8,y:-1}, {x:13,y:-7}, {x:13,y:-6}, {x:13,y:-5}, {x:18,y:-11}, {x:18,y:-10}, {x:18,y:-9}, {x:23,y:-14}, {x:23,y:-13}, {x:5,y:0}, {x:6,y:0}, {x:10,y:-4}, {x:11,y:-4}, {x:15,y:-8}, {x:16,y:-8}, {x:20,y:-12}, {x:21,y:-12}, {x:26,y:-13}, {x:27,y:-13}, {x:29,y:-16}, {x:30,y:-16}, {x:32,y:-15}, {x:33,y:-15}, {x:34,y:-15}, {x:36,y:-16}, {x:37,y:-16}]
   },
   {
     name: "连续极限二段", w: 55, h: 28,
-    spawn: {x: 0, y: 0}, portal: {x: 48, y: -20},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-2,w:1,h:1}, {x:7,y:-6,w:1,h:1}, {x:11,y:-10,w:1,h:1}, {x:15,y:-8,w:1,h:1}, {x:19,y:-13,w:1,h:1}, {x:23,y:-11,w:1,h:1}, {x:27,y:-17,w:1,h:1}, {x:31,y:-15,w:1,h:1}, {x:35,y:-20,w:1,h:1}, {x:39,y:-18,w:1,h:1}, {x:43,y:-21,w:1,h:1}, {x:48,y:-20,w:3,h:1}],
-    spikes: [{x:5,y:-2}, {x:6,y:-2}, {x:9,y:-6}, {x:10,y:-6}, {x:13,y:-10}, {x:17,y:-8}, {x:18,y:-8}, {x:21,y:-13}, {x:22,y:-13}, {x:25,y:-11}, {x:26,y:-11}, {x:29,y:-17}, {x:30,y:-17}, {x:33,y:-15}, {x:37,y:-20}, {x:38,y:-20}, {x:41,y:-18}, {x:42,y:-18}, {x:45,y:-21}, {x:46,y:-21}]
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -20},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-3,w:1,h:1}, {x:5,y:-7,w:1,h:1}, {x:8,y:-11,w:1,h:1}, {x:11,y:-8,w:1,h:1}, {x:14,y:-13,w:1,h:1}, {x:17,y:-10,w:1,h:1}, {x:20,y:-16,w:1,h:1}, {x:23,y:-13,w:1,h:1}, {x:26,y:-18,w:1,h:1}, {x:29,y:-15,w:1,h:1}, {x:32,y:-20,w:1,h:1}, {x:35,y:-17,w:1,h:1}, {x:38,y:-21,w:1,h:1}, {x:41,y:-19,w:1,h:1}, {x:44,y:-20,w:3,h:1}],
+    spikes: [{x:3,y:-3}, {x:4,y:-3}, {x:6,y:-7}, {x:7,y:-7}, {x:9,y:-11}, {x:10,y:-11}, {x:12,y:-8}, {x:13,y:-8}, {x:15,y:-13}, {x:16,y:-13}, {x:18,y:-10}, {x:19,y:-10}, {x:21,y:-16}, {x:22,y:-16}, {x:24,y:-13}, {x:25,y:-13}, {x:27,y:-18}, {x:28,y:-18}, {x:30,y:-15}, {x:31,y:-15}, {x:33,y:-20}, {x:34,y:-20}, {x:36,y:-17}, {x:37,y:-17}, {x:39,y:-21}, {x:40,y:-21}, {x:42,y:-19}, {x:43,y:-19}]
   },
   {
     name: "踩边而过", w: 50, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 42, y: -16},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:0,w:1,h:1}, {x:7,y:-3,w:1,h:1}, {x:10,y:-1,w:1,h:1}, {x:13,y:-6,w:1,h:1}, {x:16,y:-4,w:1,h:1}, {x:20,y:-9,w:1,h:1}, {x:24,y:-7,w:1,h:1}, {x:28,y:-12,w:1,h:1}, {x:32,y:-10,w:1,h:1}, {x:36,y:-15,w:1,h:1}, {x:42,y:-16,w:3,h:1}],
-    spikes: [{x:5,y:0}, {x:6,y:0}, {x:8,y:-3}, {x:9,y:-3}, {x:11,y:-1}, {x:14,y:-6}, {x:15,y:-6}, {x:17,y:-4}, {x:22,y:-9}, {x:23,y:-9}, {x:25,y:-7}, {x:30,y:-12}, {x:31,y:-12}, {x:33,y:-10}, {x:38,y:-15}, {x:39,y:-15}, {x:40,y:-15}]
+    spawn: {x: 0, y: 0}, portal: {x: 38, y: -16},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-2,w:1,h:1}, {x:5,y:-5,w:1,h:1}, {x:8,y:-3,w:1,h:1}, {x:11,y:-7,w:1,h:1}, {x:14,y:-5,w:1,h:1}, {x:17,y:-10,w:1,h:1}, {x:20,y:-8,w:1,h:1}, {x:23,y:-12,w:1,h:1}, {x:26,y:-10,w:1,h:1}, {x:29,y:-15,w:1,h:1}, {x:32,y:-13,w:1,h:1}, {x:35,y:-16,w:1,h:1}, {x:38,y:-16,w:3,h:1}],
+    spikes: [{x:3,y:-2}, {x:6,y:-5}, {x:9,y:-3}, {x:12,y:-7}, {x:15,y:-5}, {x:18,y:-10}, {x:21,y:-8}, {x:24,y:-12}, {x:27,y:-10}, {x:30,y:-15}, {x:33,y:-13}, {x:36,y:-16}, {x:37,y:-16}]
   },
   {
     name: "尖刺回廊", w: 55, h: 25,
-    spawn: {x: 0, y: 0}, portal: {x: 48, y: -14},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:1,w:1,h:1}, {x:6,y:-1,w:1,h:1}, {x:9,y:1,w:1,h:1}, {x:12,y:-2,w:1,h:1}, {x:15,y:0,w:1,h:1}, {x:18,y:-3,w:1,h:1}, {x:21,y:-1,w:1,h:1}, {x:24,y:-4,w:1,h:1}, {x:27,y:-2,w:1,h:1}, {x:30,y:-5,w:1,h:1}, {x:33,y:-3,w:1,h:1}, {x:36,y:-7,w:1,h:1}, {x:40,y:-10,w:1,h:1}, {x:44,y:-12,w:1,h:1}, {x:48,y:-14,w:3,h:1}],
-    spikes: [{x:4,y:1}, {x:5,y:1}, {x:7,y:-1}, {x:8,y:-1}, {x:10,y:1}, {x:13,y:-2}, {x:14,y:-2}, {x:16,y:0}, {x:17,y:0}, {x:19,y:-3}, {x:20,y:-3}, {x:22,y:-1}, {x:23,y:-1}, {x:25,y:-4}, {x:26,y:-4}, {x:28,y:-2}, {x:29,y:-2}, {x:31,y:-5}, {x:32,y:-5}, {x:34,y:-3}, {x:35,y:-3}, {x:38,y:-7}, {x:39,y:-7}, {x:42,y:-10}, {x:43,y:-10}, {x:46,y:-12}, {x:47,y:-12}]
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -14},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:1,w:1,h:1}, {x:5,y:-1,w:1,h:1}, {x:8,y:1,w:1,h:1}, {x:11,y:-2,w:1,h:1}, {x:14,y:0,w:1,h:1}, {x:17,y:-3,w:1,h:1}, {x:20,y:-1,w:1,h:1}, {x:23,y:-4,w:1,h:1}, {x:26,y:-2,w:1,h:1}, {x:29,y:-5,w:1,h:1}, {x:32,y:-3,w:1,h:1}, {x:35,y:-7,w:1,h:1}, {x:38,y:-10,w:1,h:1}, {x:41,y:-12,w:1,h:1}, {x:44,y:-14,w:3,h:1}],
+    spikes: [{x:3,y:1}, {x:4,y:1}, {x:6,y:-1}, {x:7,y:-1}, {x:9,y:1}, {x:10,y:1}, {x:12,y:-2}, {x:13,y:-2}, {x:15,y:0}, {x:16,y:0}, {x:18,y:-3}, {x:19,y:-3}, {x:21,y:-1}, {x:22,y:-1}, {x:24,y:-4}, {x:25,y:-4}, {x:27,y:-2}, {x:28,y:-2}, {x:30,y:-5}, {x:31,y:-5}, {x:33,y:-3}, {x:34,y:-3}, {x:36,y:-7}, {x:37,y:-7}, {x:39,y:-10}, {x:40,y:-10}, {x:42,y:-12}, {x:43,y:-12}]
   },
   {
     name: "高空二段", w: 50, h: 28,
-    spawn: {x: 0, y: 0}, portal: {x: 42, y: -20},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-3,w:1,h:1}, {x:7,y:-7,w:1,h:1}, {x:11,y:-11,w:1,h:1}, {x:15,y:-8,w:1,h:1}, {x:19,y:-14,w:1,h:1}, {x:23,y:-11,w:1,h:1}, {x:27,y:-18,w:1,h:1}, {x:31,y:-15,w:1,h:1}, {x:35,y:-20,w:1,h:1}, {x:38,y:-18,w:1,h:1}, {x:42,y:-20,w:3,h:1}],
-    spikes: [{x:5,y:-3}, {x:6,y:-3}, {x:9,y:-7}, {x:10,y:-7}, {x:13,y:-11}, {x:17,y:-8}, {x:18,y:-8}, {x:21,y:-14}, {x:22,y:-14}, {x:25,y:-11}, {x:26,y:-11}, {x:29,y:-18}, {x:30,y:-18}, {x:33,y:-15}, {x:34,y:-15}, {x:36,y:-20}, {x:37,y:-20}, {x:40,y:-18}, {x:41,y:-18}]
+    spawn: {x: 0, y: 0}, portal: {x: 40, y: -20},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-4,w:1,h:1}, {x:5,y:-8,w:1,h:1}, {x:8,y:-12,w:1,h:1}, {x:11,y:-9,w:1,h:1}, {x:14,y:-14,w:1,h:1}, {x:17,y:-11,w:1,h:1}, {x:20,y:-17,w:1,h:1}, {x:23,y:-14,w:1,h:1}, {x:26,y:-19,w:1,h:1}, {x:29,y:-16,w:1,h:1}, {x:32,y:-20,w:1,h:1}, {x:35,y:-18,w:1,h:1}, {x:37,y:-20,w:1,h:1}, {x:40,y:-20,w:3,h:1}],
+    spikes: [{x:3,y:-4}, {x:4,y:-4}, {x:6,y:-8}, {x:7,y:-8}, {x:9,y:-12}, {x:10,y:-12}, {x:12,y:-9}, {x:13,y:-9}, {x:15,y:-14}, {x:16,y:-14}, {x:18,y:-11}, {x:19,y:-11}, {x:21,y:-17}, {x:22,y:-17}, {x:24,y:-14}, {x:25,y:-14}, {x:27,y:-19}, {x:28,y:-19}, {x:30,y:-16}, {x:31,y:-16}, {x:33,y:-20}, {x:34,y:-20}, {x:36,y:-18}, {x:37,y:-18}, {x:38,y:-20}, {x:39,y:-20}]
   },
   {
     name: "顶头二段", w: 50, h: 28,
-    spawn: {x: 0, y: 0}, portal: {x: 42, y: -18},
-    lands: [{x:-3,y:3,w:4,h:1}, {x:4,y:3,w:5,h:1}, {x:4,y:-3,w:5,h:1}, {x:11,y:0,w:3,h:1}, {x:11,y:-5,w:3,h:1}, {x:17,y:-2,w:3,h:1}, {x:17,y:-8,w:3,h:1}, {x:23,y:-5,w:3,h:1}, {x:23,y:-11,w:3,h:1}, {x:29,y:-8,w:3,h:1}, {x:29,y:-14,w:3,h:1}, {x:35,y:-12,w:3,h:1}, {x:42,y:-18,w:3,h:1}],
-    spikes: [{x:7,y:2}, {x:8,y:2}, {x:13,y:0}, {x:14,y:0}, {x:19,y:-2}, {x:20,y:-2}, {x:25,y:-5}, {x:26,y:-5}, {x:31,y:-8}, {x:32,y:-8}, {x:37,y:-12}, {x:38,y:-12}, {x:39,y:-12}]
+    spawn: {x: 0, y: 0}, portal: {x: 40, y: -18},
+    lands: [{x:-3,y:3,w:4,h:1}, {x:3,y:3,w:4,h:1}, {x:3,y:0,w:4,h:1}, {x:9,y:0,w:2,h:1}, {x:9,y:-3,w:2,h:1}, {x:13,y:-2,w:2,h:1}, {x:13,y:-5,w:2,h:1}, {x:17,y:-4,w:2,h:1}, {x:17,y:-7,w:2,h:1}, {x:21,y:-6,w:2,h:1}, {x:21,y:-9,w:2,h:1}, {x:25,y:-8,w:2,h:1}, {x:25,y:-11,w:2,h:1}, {x:29,y:-10,w:2,h:1}, {x:29,y:-13,w:2,h:1}, {x:33,y:-12,w:2,h:1}, {x:33,y:-15,w:2,h:1}, {x:37,y:-14,w:2,h:1}, {x:37,y:-17,w:2,h:1}, {x:40,y:-18,w:3,h:1}],
+    spikes: [{x:6,y:2}, {x:7,y:2}, {x:11,y:0}, {x:12,y:0}, {x:15,y:-2}, {x:16,y:-2}, {x:19,y:-4}, {x:20,y:-4}, {x:23,y:-6}, {x:24,y:-6}, {x:27,y:-8}, {x:28,y:-8}, {x:31,y:-10}, {x:32,y:-10}, {x:35,y:-12}, {x:36,y:-12}, {x:38,y:-14}, {x:39,y:-14}]
   },
   {
     name: "踩边二段", w: 55, h: 30,
-    spawn: {x: 0, y: 0}, portal: {x: 48, y: -22},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-2,w:1,h:1}, {x:7,y:-6,w:1,h:1}, {x:10,y:-4,w:1,h:1}, {x:13,y:-9,w:1,h:1}, {x:16,y:-7,w:1,h:1}, {x:20,y:-12,w:1,h:1}, {x:23,y:-10,w:1,h:1}, {x:27,y:-15,w:1,h:1}, {x:30,y:-13,w:1,h:1}, {x:34,y:-18,w:1,h:1}, {x:38,y:-20,w:1,h:1}, {x:42,y:-18,w:1,h:1}, {x:48,y:-22,w:3,h:1}],
-    spikes: [{x:5,y:-2}, {x:6,y:-2}, {x:8,y:-6}, {x:9,y:-6}, {x:11,y:-4}, {x:14,y:-9}, {x:15,y:-9}, {x:17,y:-7}, {x:22,y:-12}, {x:23,y:-12}, {x:24,y:-10}, {x:28,y:-15}, {x:29,y:-15}, {x:31,y:-13}, {x:36,y:-18}, {x:37,y:-18}, {x:40,y:-20}, {x:41,y:-20}, {x:43,y:-18}, {x:45,y:-22}, {x:46,y:-22}, {x:47,y:-22}]
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -22},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-3,w:1,h:1}, {x:5,y:-6,w:1,h:1}, {x:8,y:-4,w:1,h:1}, {x:11,y:-9,w:1,h:1}, {x:14,y:-7,w:1,h:1}, {x:17,y:-12,w:1,h:1}, {x:20,y:-10,w:1,h:1}, {x:23,y:-15,w:1,h:1}, {x:26,y:-13,w:1,h:1}, {x:29,y:-18,w:1,h:1}, {x:32,y:-16,w:1,h:1}, {x:35,y:-20,w:1,h:1}, {x:38,y:-18,w:1,h:1}, {x:41,y:-21,w:1,h:1}, {x:44,y:-22,w:3,h:1}],
+    spikes: [{x:3,y:-3}, {x:6,y:-6}, {x:9,y:-4}, {x:12,y:-9}, {x:15,y:-7}, {x:18,y:-12}, {x:21,y:-10}, {x:24,y:-15}, {x:27,y:-13}, {x:30,y:-18}, {x:33,y:-16}, {x:36,y:-20}, {x:39,y:-18}, {x:42,y:-21}, {x:43,y:-21}, {x:8,y:-3}, {x:8,y:-2}, {x:14,y:-6}, {x:14,y:-5}, {x:20,y:-9}, {x:20,y:-8}, {x:26,y:-12}, {x:26,y:-11}, {x:32,y:-15}, {x:32,y:-14}, {x:38,y:-17}, {x:38,y:-16}]
   },
   {
     name: "无地可落", w: 60, h: 35,
-    spawn: {x: 0, y: 0}, portal: {x: 52, y: -26},
-    lands: [{x:-3,y:3,w:3,h:1}, {x:3,y:-4,w:1,h:1}, {x:7,y:-8,w:1,h:1}, {x:11,y:-6,w:1,h:1}, {x:15,y:-12,w:1,h:1}, {x:19,y:-10,w:1,h:1}, {x:23,y:-16,w:1,h:1}, {x:27,y:-14,w:1,h:1}, {x:31,y:-20,w:1,h:1}, {x:35,y:-18,w:1,h:1}, {x:39,y:-23,w:1,h:1}, {x:43,y:-21,w:1,h:1}, {x:47,y:-26,w:1,h:1}, {x:52,y:-26,w:3,h:1}],
-    spikes: [{x:5,y:-4}, {x:6,y:-4}, {x:9,y:-8}, {x:10,y:-8}, {x:13,y:-6}, {x:14,y:-6}, {x:17,y:-12}, {x:18,y:-12}, {x:21,y:-10}, {x:22,y:-10}, {x:25,y:-16}, {x:26,y:-16}, {x:29,y:-14}, {x:30,y:-14}, {x:33,y:-20}, {x:34,y:-20}, {x:37,y:-18}, {x:38,y:-18}, {x:41,y:-23}, {x:42,y:-23}, {x:45,y:-21}, {x:46,y:-21}, {x:49,y:-26}, {x:50,y:-26}, {x:51,y:-26}]
+    spawn: {x: 0, y: 0}, portal: {x: 50, y: -26},
+    lands: [{x:-3,y:3,w:3,h:1}, {x:2,y:-5,w:1,h:1}, {x:5,y:-9,w:1,h:1}, {x:8,y:-7,w:1,h:1}, {x:11,y:-12,w:1,h:1}, {x:14,y:-10,w:1,h:1}, {x:17,y:-15,w:1,h:1}, {x:20,y:-13,w:1,h:1}, {x:23,y:-18,w:1,h:1}, {x:26,y:-16,w:1,h:1}, {x:29,y:-21,w:1,h:1}, {x:32,y:-19,w:1,h:1}, {x:35,y:-23,w:1,h:1}, {x:38,y:-21,w:1,h:1}, {x:41,y:-25,w:1,h:1}, {x:44,y:-23,w:1,h:1}, {x:47,y:-26,w:1,h:1}, {x:50,y:-26,w:3,h:1}],
+    spikes: [{x:3,y:-5}, {x:4,y:-5}, {x:6,y:-9}, {x:7,y:-9}, {x:9,y:-7}, {x:10,y:-7}, {x:12,y:-12}, {x:13,y:-12}, {x:15,y:-10}, {x:16,y:-10}, {x:18,y:-15}, {x:19,y:-15}, {x:21,y:-13}, {x:22,y:-13}, {x:24,y:-18}, {x:25,y:-18}, {x:27,y:-16}, {x:28,y:-16}, {x:30,y:-21}, {x:31,y:-21}, {x:33,y:-19}, {x:34,y:-19}, {x:36,y:-23}, {x:37,y:-23}, {x:39,y:-21}, {x:40,y:-21}, {x:42,y:-25}, {x:43,y:-25}, {x:45,y:-23}, {x:46,y:-23}, {x:48,y:-26}, {x:49,y:-26}]
   },
   {
     name: "不可能任务", w: 65, h: 38,
     spawn: {x: 0, y: 0}, portal: {x: 56, y: -30},
-    lands: [{x:-3,y:3,w:2,h:1}, {x:2,y:-3,w:1,h:1}, {x:6,y:-7,w:1,h:1}, {x:9,y:-5,w:1,h:1}, {x:12,y:-10,w:1,h:1}, {x:15,y:-8,w:1,h:1}, {x:19,y:-14,w:1,h:1}, {x:22,y:-12,w:1,h:1}, {x:26,y:-18,w:1,h:1}, {x:29,y:-16,w:1,h:1}, {x:33,y:-22,w:1,h:1}, {x:36,y:-20,w:1,h:1}, {x:40,y:-25,w:1,h:1}, {x:44,y:-23,w:1,h:1}, {x:48,y:-28,w:1,h:1}, {x:52,y:-26,w:1,h:1}, {x:56,y:-30,w:3,h:1}],
-    spikes: [{x:4,y:-3}, {x:5,y:-3}, {x:7,y:-7}, {x:8,y:-7}, {x:10,y:-5}, {x:11,y:-5}, {x:13,y:-10}, {x:14,y:-10}, {x:16,y:-8}, {x:17,y:-8}, {x:20,y:-14}, {x:21,y:-14}, {x:23,y:-12}, {x:24,y:-12}, {x:27,y:-18}, {x:28,y:-18}, {x:30,y:-16}, {x:31,y:-16}, {x:34,y:-22}, {x:35,y:-22}, {x:37,y:-20}, {x:38,y:-20}, {x:41,y:-25}, {x:42,y:-25}, {x:43,y:-25}, {x:45,y:-23}, {x:46,y:-23}, {x:47,y:-23}, {x:49,y:-28}, {x:50,y:-28}, {x:51,y:-28}, {x:53,y:-26}, {x:54,y:-26}, {x:55,y:-26}]
+    lands: [{x:-3,y:3,w:2,h:1}, {x:2,y:-3,w:1,h:1}, {x:5,y:-7,w:1,h:1}, {x:8,y:-5,w:1,h:1}, {x:11,y:-10,w:1,h:1}, {x:14,y:-8,w:1,h:1}, {x:17,y:-13,w:1,h:1}, {x:20,y:-11,w:1,h:1}, {x:23,y:-16,w:1,h:1}, {x:26,y:-14,w:1,h:1}, {x:29,y:-19,w:1,h:1}, {x:32,y:-17,w:1,h:1}, {x:35,y:-22,w:1,h:1}, {x:38,y:-20,w:1,h:1}, {x:41,y:-25,w:1,h:1}, {x:44,y:-23,w:1,h:1}, {x:47,y:-28,w:1,h:1}, {x:50,y:-26,w:1,h:1}, {x:53,y:-29,w:1,h:1}, {x:56,y:-30,w:3,h:1}],
+    spikes: [{x:3,y:-3}, {x:4,y:-3}, {x:6,y:-7}, {x:7,y:-7}, {x:9,y:-5}, {x:10,y:-5}, {x:12,y:-10}, {x:13,y:-10}, {x:15,y:-8}, {x:16,y:-8}, {x:18,y:-13}, {x:19,y:-13}, {x:21,y:-11}, {x:22,y:-11}, {x:24,y:-16}, {x:25,y:-16}, {x:27,y:-14}, {x:28,y:-14}, {x:30,y:-19}, {x:31,y:-19}, {x:33,y:-17}, {x:34,y:-17}, {x:36,y:-22}, {x:37,y:-22}, {x:39,y:-20}, {x:40,y:-20}, {x:42,y:-25}, {x:43,y:-25}, {x:45,y:-23}, {x:46,y:-23}, {x:48,y:-28}, {x:49,y:-28}, {x:51,y:-26}, {x:52,y:-26}, {x:54,y:-29}, {x:55,y:-29}]
   }
 ];
 
@@ -1834,6 +1834,356 @@ function render() {
   }
   ctx.globalAlpha = 1;
   ctx.restore();
+  drawPortalIndicator();
+  updateMinimap();
+}
+
+// ==================== 小地图 V3（修复版）====================
+// 修复内容：
+// 1. 确保每个 tile 至少 2px 可见大小
+// 2. 提高颜色对比度，使用更亮的颜色
+// 3. 修复 tileSize 计算逻辑
+// 4. 添加边框高亮让方块更清晰
+
+let minimapCanvas = null;
+let minimapCtx = null;
+let minimapOffscreen = null;
+let minimapOffscreenCtx = null;
+let minimapDirty = true;
+let playerTrail = [];
+const TRAIL_LENGTH = 30;
+const MINIMAP_SIZE = 140;
+const MINIMAP_MARGIN = 16;
+
+function initMinimap() {
+  minimapCanvas = document.createElement('canvas');
+  minimapCanvas.id = 'minimap';
+  minimapCanvas.style.cssText = `
+    position: absolute;
+    top: ${MINIMAP_MARGIN}px;
+    right: ${MINIMAP_MARGIN}px;
+    width: ${MINIMAP_SIZE}px;
+    height: ${MINIMAP_SIZE}px;
+    border: 1px solid rgba(0, 246, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(18, 18, 18, 0.95);
+    z-index: 45;
+    pointer-events: none;
+    display: none;
+    box-shadow: 0 0 15px rgba(0, 246, 255, 0.1);
+  `;
+  minimapCanvas.width = MINIMAP_SIZE;
+  minimapCanvas.height = MINIMAP_SIZE;
+  document.getElementById('game-container').appendChild(minimapCanvas);
+  minimapCtx = minimapCanvas.getContext('2d');
+
+  minimapOffscreen = document.createElement('canvas');
+  minimapOffscreen.width = MINIMAP_SIZE;
+  minimapOffscreen.height = MINIMAP_SIZE;
+  minimapOffscreenCtx = minimapOffscreen.getContext('2d');
+}
+
+function buildMinimap() {
+  if (!currentLevel || !minimapOffscreenCtx) return;
+
+  const ctx = minimapOffscreenCtx;
+  const w = MINIMAP_SIZE;
+  const h = MINIMAP_SIZE;
+
+  // 清空 - 使用不透明背景
+  ctx.fillStyle = '#121212';
+  ctx.fillRect(0, 0, w, h);
+
+  // 计算关卡边界
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let y = 0; y < currentLevel.h; y++) {
+    for (let x = 0; x < currentLevel.w; x++) {
+      if (currentLevel.grid[y][x] !== 0) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  }
+
+  // 包含玩家和传送门
+  const px = Math.floor((player.x + player.w/2) / GRID_SIZE);
+  const py = Math.floor((player.y + player.h/2) / GRID_SIZE);
+  minX = Math.min(minX, px);
+  minY = Math.min(minY, py);
+  maxX = Math.max(maxX, px);
+  maxY = Math.max(maxY, py);
+
+  if (currentLevel.portal) {
+    minX = Math.min(minX, currentLevel.portal.x);
+    minY = Math.min(minY, currentLevel.portal.y);
+    maxX = Math.max(maxX, currentLevel.portal.x);
+    maxY = Math.max(maxY, currentLevel.portal.y);
+  }
+
+  // 边距
+  const pad = 2;
+  minX -= pad; minY -= pad;
+  maxX += pad; maxY += pad;
+
+  const levelW = Math.max(1, maxX - minX + 1);
+  const levelH = Math.max(1, maxY - minY + 1);
+
+  // 计算缩放（保持比例）
+  const scaleX = (w - 8) / levelW;
+  const scaleY = (h - 8) / levelH;
+  const scale = Math.min(scaleX, scaleY);
+
+  const offsetX = (w - levelW * scale) / 2;
+  const offsetY = (h - levelH * scale) / 2;
+
+  // 保存变换参数
+  minimapTransform = { minX, minY, scale, offsetX, offsetY };
+
+  // FIX: 确保 tileSize 至少 2px，使用更亮的颜色
+  const tileSize = Math.max(2, Math.floor(scale));
+
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile === 0) continue;
+
+      const mx = Math.floor(offsetX + (x - minX) * scale);
+      const my = Math.floor(offsetY + (y - minY) * scale);
+
+      if (tile === TILE_LAND) {
+        // FIX: 使用更亮、更不透明的颜色
+        ctx.fillStyle = 'rgba(200, 205, 210, 0.85)';
+        ctx.fillRect(mx, my, tileSize, tileSize);
+        // 添加微边框增加清晰度
+        ctx.strokeStyle = 'rgba(160, 165, 170, 0.4)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(mx + 0.25, my + 0.25, tileSize - 0.5, tileSize - 0.5);
+      } else if (tile === TILE_SPIKE) {
+        ctx.fillStyle = 'rgba(255, 150, 160, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(mx + tileSize/2, my + 1);
+        ctx.lineTo(mx + tileSize - 1, my + tileSize - 1);
+        ctx.lineTo(mx + 1, my + tileSize - 1);
+        ctx.closePath();
+        ctx.fill();
+      } else if (tile === TILE_PORTAL) {
+        ctx.fillStyle = 'rgba(244, 249, 167, 0.9)';
+        ctx.fillRect(mx + 1, my + 1, tileSize - 2, tileSize - 2);
+        // 传送门加白边框
+        ctx.strokeStyle = 'rgba(255, 255, 200, 0.8)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(mx + 0.5, my + 0.5, tileSize - 1, tileSize - 1);
+      } else if (tile === TILE_SPAWN) {
+        ctx.fillStyle = 'rgba(100, 220, 120, 0.6)';
+        ctx.fillRect(mx + 1, my + 1, tileSize - 2, tileSize - 2);
+        ctx.strokeStyle = 'rgba(100, 220, 120, 0.8)';
+        ctx.lineWidth = 0.5;
+        ctx.setLineDash([2, 2]);
+        ctx.strokeRect(mx + 0.5, my + 0.5, tileSize - 1, tileSize - 1);
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  minimapDirty = false;
+}
+
+let minimapTransform = null;
+
+function updateMinimap() {
+  if (!minimapCanvas || !minimapCtx || !currentLevel || gameState !== 'playing') return;
+
+  if (minimapDirty) {
+    buildMinimap();
+  }
+
+  if (!minimapTransform) return;
+
+  const ctx = minimapCtx;
+  const w = MINIMAP_SIZE;
+  const h = MINIMAP_SIZE;
+
+  // 清空主 canvas
+  ctx.clearRect(0, 0, w, h);
+
+  // 绘制背景
+  ctx.fillStyle = 'rgba(18, 18, 18, 0.95)';
+  ctx.fillRect(0, 0, w, h);
+
+  // 复制离屏地图
+  ctx.drawImage(minimapOffscreen, 0, 0);
+
+  const { minX, minY, scale, offsetX, offsetY } = minimapTransform;
+
+  // 玩家位置
+  const px = Math.floor((player.x + player.w/2) / GRID_SIZE);
+  const py = Math.floor((player.y + player.h/2) / GRID_SIZE);
+  const playerMX = offsetX + (px - minX) * scale;
+  const playerMY = offsetY + (py - minY) * scale;
+  const playerSize = Math.max(2.5, scale * 0.6);
+
+  // 更新轨迹
+  playerTrail.push({ x: playerMX, y: playerMY });
+  if (playerTrail.length > TRAIL_LENGTH) playerTrail.shift();
+
+  // 绘制轨迹
+  for (let i = 0; i < playerTrail.length; i++) {
+    const t = playerTrail[i];
+    const alpha = (i / playerTrail.length) * 0.5;
+    const size = playerSize * (i / playerTrail.length);
+    ctx.fillStyle = `rgba(0, 246, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 绘制玩家（闪烁圆点）
+  const pulse = (Math.sin(time * 6) + 1) / 2;
+  ctx.fillStyle = `rgba(0, 246, 255, ${0.8 + pulse * 0.2})`;
+  ctx.shadowColor = '#00F6FF';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(playerMX, playerMY, playerSize, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // 绘制视野框
+  const viewW = (canvasW / GRID_SIZE) * scale;
+  const viewH = (canvasH / GRID_SIZE) * scale;
+  ctx.strokeStyle = 'rgba(0, 246, 255, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(
+    playerMX - viewW/2,
+    playerMY - viewH/2,
+    viewW, viewH
+  );
+
+  // 传送门脉冲动画
+  if (currentLevel.portal) {
+    const portalMX = offsetX + (currentLevel.portal.x - minX) * scale;
+    const portalMY = offsetY + (currentLevel.portal.y - minY) * scale;
+    const portalPulse = (Math.sin(time * 4) + 1) / 2;
+    ctx.strokeStyle = `rgba(244, 249, 167, ${0.6 + portalPulse * 0.4})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(portalMX + scale/2, portalMY + scale/2, scale * (0.8 + portalPulse * 0.4), 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+function invalidateMinimap() {
+  minimapDirty = true;
+  playerTrail = [];
+}
+
+// ==================== 传送门指示器 V3（修复版）====================
+// FIX: 将指示器移到左下角，避免与小地图重叠
+function drawPortalIndicator() {
+  if (!currentLevel || !currentLevel.portal || player.won || player.dead) return;
+
+  const portalX = currentLevel.portal.x * GRID_SIZE + GRID_SIZE/2;
+  const portalY = currentLevel.portal.y * GRID_SIZE + GRID_SIZE/2;
+
+  // 计算传送门在屏幕上的位置
+  const screenPortalX = portalX - camera.x;
+  const screenPortalY = portalY - camera.y;
+
+  // 检查是否在屏幕内（考虑小地图区域在右上角）
+  // FIX: 扩大 margin 避免与小地图重叠，小地图在右上角 (16px, 16px, 140x140)
+  const margin = 80;
+  const minimapArea = {
+    left: canvasW - MINIMAP_SIZE - MINIMAP_MARGIN - 10,
+    top: MINIMAP_MARGIN - 10,
+    right: canvasW - MINIMAP_MARGIN + 10,
+    bottom: MINIMAP_MARGIN + MINIMAP_SIZE + 10
+  };
+
+  const inScreen = screenPortalX > margin && screenPortalX < canvasW - margin &&
+                    screenPortalY > margin && screenPortalY < canvasH - margin;
+
+  // 如果传送门在小地图区域内，也显示指示器
+  const inMinimapArea = screenPortalX > minimapArea.left && screenPortalX < minimapArea.right &&
+                         screenPortalY > minimapArea.top && screenPortalY < minimapArea.bottom;
+
+  if (inScreen && !inMinimapArea) return;
+
+  // FIX: 将指示器放在左下角区域，避免与小地图重叠
+  // 计算从屏幕左下角到传送门的方向
+  const centerX = canvasW / 2;
+  const centerY = canvasH / 2;
+  const dx = screenPortalX - centerX;
+  const dy = screenPortalY - centerY;
+  const angle = Math.atan2(dy, dx);
+
+  // FIX: 使用更大的边距，确保在左下角区域也有足够空间
+  const edgeMargin = 70;
+  let indicatorX = centerX + Math.cos(angle) * (canvasW / 2 - edgeMargin);
+  let indicatorY = centerY + Math.sin(angle) * (canvasH / 2 - edgeMargin);
+
+  // 限制在屏幕内，但避开右上角小地图区域
+  indicatorX = Math.max(edgeMargin, Math.min(canvasW - edgeMargin, indicatorX));
+  indicatorY = Math.max(edgeMargin, Math.min(canvasH - edgeMargin, indicatorY));
+
+  // 如果计算出的位置在小地图区域内，强制移到左下角
+  if (indicatorX > minimapArea.left && indicatorY < minimapArea.bottom) {
+    indicatorX = edgeMargin + 20;
+    indicatorY = canvasH - edgeMargin - 20;
+  }
+
+  ctx.save();
+
+  // 绘制外圈
+  const pulse = (Math.sin(time * 3) + 1) / 2;
+  ctx.shadowColor = '#F4F9A7';
+  ctx.shadowBlur = 15 + pulse * 10;
+
+  // 绘制指向箭头的圆环背景
+  ctx.fillStyle = 'rgba(18, 18, 18, 0.9)';
+  ctx.beginPath();
+  ctx.arc(indicatorX, indicatorY, 20, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(244, 249, 167, ${0.6 + pulse * 0.4})`;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(indicatorX, indicatorY, 20, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+
+  // 绘制箭头
+  ctx.translate(indicatorX, indicatorY);
+  ctx.rotate(angle);
+
+  ctx.fillStyle = '#F4F9A7';
+  ctx.beginPath();
+  ctx.moveTo(12, 0);
+  ctx.lineTo(-4, -6);
+  ctx.lineTo(-4, 6);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+
+  // 绘制距离
+  const dist = Math.sqrt(dx*dx + dy*dy) / GRID_SIZE;
+  const distText = Math.round(dist) + 'm';
+
+  ctx.font = 'bold 11px monospace';
+  const textW = ctx.measureText(distText).width + 14;
+
+  ctx.fillStyle = 'rgba(18, 18, 18, 0.9)';
+  ctx.fillRect(indicatorX - textW/2, indicatorY + 24, textW, 20);
+
+  ctx.fillStyle = '#F4F9A7';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(distText, indicatorX, indicatorY + 34);
+
+  ctx.restore();
 }
 
 function gameLoop() {
@@ -1991,7 +2341,6 @@ function setEditorCell(gx, gy, tool) {
     if (editorCells.has(key)) changed = true;
     editorCells.delete(key);
   }
-  // FIX: 任何修改都重置测试通关状态，强制重新测试
   if (changed && editorTestWon) editorTestWon = false;
 }
 
@@ -2088,14 +2437,12 @@ let touchStartDist = 0;
 let touchStartZoom = 1;
 let touchStartViewX = 0, touchStartViewY = 0;
 let touchStartMidX = 0, touchStartMidY = 0;
-let singleTouchTimer = null;  // FIX: 用于延迟单指操作，避免双指捏合误判
+let singleTouchTimer = null;
 
 editorCanvas.addEventListener('touchstart', e => {
   e.preventDefault();
 
-  // FIX: 如果已经有双指，直接处理 pinch
   if (e.touches.length === 2) {
-    // 取消可能的单指延迟操作
     if (singleTouchTimer) { clearTimeout(singleTouchTimer); singleTouchTimer = null; }
     touchMode = 'pinch';
     const t1 = e.touches[0], t2 = e.touches[1];
@@ -2112,12 +2459,8 @@ editorCanvas.addEventListener('touchstart', e => {
     const touch = e.touches[0];
     const cell = getEditorCell(touch.clientX, touch.clientY);
 
-    // FIX v3: 延迟单指操作，避免双指捏合时第一个手指误判为绘制
-    // 如果 80ms 内没有第二个手指落下，才执行绘制
     singleTouchTimer = setTimeout(() => {
       singleTouchTimer = null;
-      // 检查当前是否仍然是单指（用户没有开始双指操作）
-      // 由于 touchstart 事件是同步的，这里直接执行绘制
       touchMode = 'draw';
       isDrawing = true;
       drawStart = cell;
@@ -2131,7 +2474,6 @@ editorCanvas.addEventListener('touchstart', e => {
 editorCanvas.addEventListener('touchmove', e => {
   e.preventDefault();
 
-  // FIX: 如果变成双指，取消单指延迟操作
   if (e.touches.length === 2 && singleTouchTimer) {
     clearTimeout(singleTouchTimer);
     singleTouchTimer = null;
@@ -2287,6 +2629,7 @@ document.getElementById('btn-bottom-fold').addEventListener('click', () => {
   const bottom = document.getElementById('editor-bottom');
   bottom.classList.toggle('expanded');
 });
+
 // ==================== 输入处理 ====================
 document.addEventListener('keydown', e => {
   keys[e.key] = true;
@@ -2644,6 +2987,7 @@ function levelHasPortal(levelData) {
   // v4 编码总是包含 portal，兼容旧关卡
   return !!levelData.portal;
 }
+
 // ==================== 大厅系统 ====================
 let currentUser = null;
 let localLevels = [];
@@ -2777,6 +3121,7 @@ function startGame() {
   document.getElementById('joystick-zone').style.display = 'block';
   document.getElementById('jump-btn').style.display = 'flex';
   document.getElementById('win-modal').style.display = 'none';
+  if (minimapCanvas) { minimapCanvas.style.display = 'block'; invalidateMinimap(); }
   resetPlayer();
 }
 
@@ -2786,6 +3131,7 @@ function exitGame() {
   document.getElementById('joystick-zone').style.display = 'none';
   document.getElementById('jump-btn').style.display = 'none';
   document.getElementById('win-modal').style.display = 'none';
+  if (minimapCanvas) minimapCanvas.style.display = 'none';
 
   if (isEditorTest) {
     isEditorTest = false;
@@ -2968,7 +3314,7 @@ async function renderPublicLevels(filter = '') {
     return `
     <div class="level-card">
       <div class="level-info">
-        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
+        <h4>${l.name}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">&#9888; 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">&#9888; 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
         <p>作者: ${l.author} | ${l.created_at ? new Date(l.created_at).toLocaleString() : '未知时间'}</p>
         ${warningHtml}
       </div>
@@ -2976,7 +3322,7 @@ async function renderPublicLevels(filter = '') {
         <button class="btn btn-small" onclick="playLobbyLevel('${l.code.replace(/'/g, "\'")}')">游玩</button>
         <button class="btn btn-small" onclick="copyLevelCode('${l.code.replace(/'/g, "\'")}')">复制编码</button>
         <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${l.id}, this)">
-          <span class="like-icon">${isLiked ? '♥' : '♡'}</span>
+          <span class="like-icon">${isLiked ? '&#9829;' : '&#9825;'}</span>
           <span class="like-count">${l.likes || 0}</span>
         </button>
       </div>
@@ -3072,7 +3418,7 @@ async function renderMyLevels(filter = '') {
     return `
     <div class="level-card" data-id="${l._id}">
       <div class="level-info">
-        <h4>${l.name}${sharedBadge}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">⚠ 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
+        <h4>${l.name}${sharedBadge}${l.code && l.code.split('.')[0] === '4' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">&#9888; 请谨慎游玩，此版本不一定可以通关</span>' : ''}${l.code && l.code.split('.')[0] === '5' ? ' <span style="color:#FFAA00;font-size:11px;font-weight:400;">&#9888; 可能依靠老版本特性无法通关</span>' : ''}${!hasPortal ? ' <span style="color:#FF4444;font-size:12px;font-weight:400;">[无传送门]</span>' : ''}</h4>
         <p>${l.date || '未知时间'}</p>
         ${warningHtml}
       </div>
@@ -3147,13 +3493,13 @@ window.toggleLike = async function(levelId, btn) {
 
     if (isLiked) {
       btn.classList.remove('liked');
-      iconSpan.textContent = '♡';
+      iconSpan.textContent = '&#9825;';
       countSpan.textContent = Math.max(0, currentCount - 1);
       liked = liked.filter(id => id !== levelId);
       await supabasePatch('levels', levelId, { likes: Math.max(0, currentCount - 1) });
     } else {
       btn.classList.add('liked');
-      iconSpan.textContent = '♥';
+      iconSpan.textContent = '&#9829;';
       countSpan.textContent = currentCount + 1;
       if (!liked.includes(levelId)) liked.push(levelId);
       await supabasePatch('levels', levelId, { likes: currentCount + 1 });
@@ -3168,11 +3514,11 @@ window.toggleLike = async function(levelId, btn) {
     alert('操作失败: ' + e.message);
     if (isLiked) {
       btn.classList.add('liked');
-      iconSpan.textContent = '♥';
+      iconSpan.textContent = '&#9829;';
       countSpan.textContent = currentCount;
     } else {
       btn.classList.remove('liked');
-      iconSpan.textContent = '♡';
+      iconSpan.textContent = '&#9825;';
       countSpan.textContent = currentCount;
     }
   } finally {
@@ -3197,12 +3543,16 @@ async function copyToClipboard(text) {
   return ok;
 }
 
-// FIX v11: 分享至大厅时自动测试，通关后自动分享
+// ==================== 分享逻辑（修复版）====================
+// FIX: 修复编码不同步问题 - 分享前总是重新生成编码
 let shareAfterTest = false;
 
 document.getElementById('btn-share-level').addEventListener('click', async () => {
-  const code = document.getElementById('level-code-output').value;
-  if (!code) { alert('请先生成关卡编码'); return; }
+  // FIX: 分享前强制重新生成编码，确保使用最新编辑器数据
+  const freshCode = encodeLevel();
+  document.getElementById('level-code-output').value = freshCode;
+
+  if (!freshCode) { alert('请先生成关卡编码'); return; }
 
   const levelData = buildLevelFromEditor();
   if (!levelHasPortal(levelData)) {
@@ -3218,24 +3568,31 @@ document.getElementById('btn-share-level').addEventListener('click', async () =>
   startGame();
 });
 
-// FIX v11: 通关后自动分享（仅当来自分享流程时）
-const originalWinModal = document.getElementById('win-modal');
-const winObserver = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-      if (originalWinModal.style.display === 'flex' && isEditorTest && editorTestWon && shareAfterTest) {
-        setTimeout(() => {
-          originalWinModal.style.display = 'none';
-          doShareLevel();
-        }, 800);
+// FIX: 通关后自动分享（仅当来自分享流程时）
+// 使用定时检查而不是 MutationObserver，更可靠
+function checkWinForShare() {
+  const winModal = document.getElementById('win-modal');
+  if (winModal.style.display === 'flex' && isEditorTest && editorTestWon && shareAfterTest) {
+    // 延迟后自动执行分享
+    setTimeout(() => {
+      if (shareAfterTest && editorTestWon) {
+        winModal.style.display = 'none';
+        shareAfterTest = false;
+        doShareLevel();
       }
-    }
-  });
-});
-winObserver.observe(originalWinModal, { attributes: true });
+    }, 800);
+  }
+}
+
+// 在 updatePhysics 的通关逻辑中已处理，这里不需要额外监听
+// 但为了保险，在 gameLoop 中检查
+const _originalGameLoop = gameLoop;
 
 async function doShareLevel() {
-  const code = document.getElementById('level-code-output').value;
+  // FIX: 强制重新生成编码，确保分享的是最新数据
+  const code = encodeLevel();
+  document.getElementById('level-code-output').value = code;
+
   const levelData = buildLevelFromEditor();
   const overlay = document.getElementById('publish-overlay');
   overlay.classList.add('active');
@@ -3243,7 +3600,6 @@ async function doShareLevel() {
   try {
     await shareLevelToLobby(levelData, code);
     alert('关卡已分享到大厅！');
-    // shareLevelToLobby 内部已保存到 localLevels，无需重复添加
   } catch (e) {
     alert('分享失败: ' + (e.message || '网络错误'));
   } finally {
@@ -3253,7 +3609,91 @@ async function doShareLevel() {
     editorTestWon = false;
     document.getElementById('editor-screen').style.display = 'flex';
   }
-}// ==================== 分享弹窗 ====================
+}
+
+// ==================== 大厅事件绑定（修复版）====================
+// FIX: 添加所有缺失的事件绑定
+
+// 1. 返回首页按钮
+document.getElementById('btn-lobby-back').addEventListener('click', () => {
+  showScreen('start-screen');
+});
+
+// 2. 标签页切换
+document.querySelectorAll('.lobby-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    // 移除所有 active
+    document.querySelectorAll('.lobby-tab').forEach(t => t.classList.remove('active'));
+    // 添加 active 到当前
+    tab.classList.add('active');
+
+    // 隐藏所有内容
+    document.querySelectorAll('.lobby-content').forEach(c => c.classList.add('hidden'));
+    // 显示对应内容
+    const tabName = tab.dataset.tab;
+    const contentEl = document.getElementById('lobby-' + tabName);
+    if (contentEl) contentEl.classList.remove('hidden');
+  });
+});
+
+// 3. 公开关卡搜索
+document.getElementById('btn-public-search').addEventListener('click', () => {
+  const filter = document.getElementById('public-search-input').value;
+  renderPublicLevels(filter);
+});
+
+// 公开关卡输入框回车搜索
+document.getElementById('public-search-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const filter = document.getElementById('public-search-input').value;
+    renderPublicLevels(filter);
+  }
+});
+
+// 4. 我的关卡搜索
+document.getElementById('btn-my-search').addEventListener('click', () => {
+  const filter = document.getElementById('my-search-input').value;
+  renderMyLevels(filter);
+});
+
+// 我的关卡输入框回车搜索
+document.getElementById('my-search-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const filter = document.getElementById('my-search-input').value;
+    renderMyLevels(filter);
+  }
+});
+
+// 5. 导入关卡 - 立即游玩
+document.getElementById('btn-upload-play').addEventListener('click', () => {
+  const code = document.getElementById('upload-code-input').value.trim();
+  if (!code) { alert('请输入关卡编码'); return; }
+  const level = decodeLevel(code);
+  if (!level) { alert('关卡编码无效'); return; }
+  isEditorTest = false;
+  isFromLobby = true;
+  loadCustomLevel(level);
+  startGame();
+});
+
+// 导入关卡输入框回车
+document.getElementById('upload-code-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('btn-upload-play').click();
+  }
+});
+
+// 6. 退出登录
+document.getElementById('btn-lobby-logout').addEventListener('click', () => {
+  if (confirm('确定要退出登录吗？')) {
+    currentUser = null;
+    localStorage.removeItem('bwjump_user');
+    updateUserDisplay();
+    showScreen('start-screen');
+  }
+});
+
+// ==================== 分享弹窗 ====================
 document.getElementById('btn-share-copy').addEventListener('click', async () => {
   const code = document.getElementById('share-code-display').value;
   if (code) {
@@ -3332,16 +3772,21 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
   alert('关卡已导入到编辑器');
 });
 
+// 复制编码按钮
+document.getElementById('btn-copy-code').addEventListener('click', async () => {
+  const code = document.getElementById('level-code-output').value;
+  if (!code) { alert('请先生成编码'); return; }
+  const ok = await copyToClipboard(code);
+  alert(ok ? '编码已复制' : '复制失败');
+});
+
 initStorage();
+
+initMinimap();
 
 // Initial render
 ctx.fillStyle = COLORS.bg;
 ctx.fillRect(0, 0, canvasW, canvasH);
 </script>
-</body>
-</html>
-
-</script>
-
 </body>
 </html>
