@@ -1559,6 +1559,7 @@ html, body {
     </div>
     <div class="detail-actions">
       <button class="btn" id="btn-detail-play" style="flex:1;">开始游戏</button>
+      <button class="btn btn-small" id="btn-detail-copy" style="border-color:#8D9390;color:#8D9390;">复制编码</button>
       <button class="detail-like-btn" id="btn-detail-like">
         <span class="like-icon">&#9825;</span>
         <span class="like-count">0</span>
@@ -6110,6 +6111,14 @@ document.getElementById('btn-detail-like').addEventListener('click', async () =>
   const btn = document.getElementById('btn-detail-like');
   await toggleLike(detailLevelId, btn);
   renderPublicLevels();
+});
+
+// 10. 详情页复制编码按钮
+document.getElementById('btn-detail-copy').addEventListener('click', async () => {
+  if (!detailLevelData) { alert('暂无编码可复制'); return; }
+  const code = detailLevelData.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const ok = await copyToClipboard(code);
+  alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
 });
 
 // ==================== 初始化 ====================
