@@ -1800,6 +1800,32 @@ async function checkSupabaseHealth() {
     return { ok: false, error: e.message };
   }
 }
+// ==================== 剪贴板复制 ====================
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) {}
+  // 降级方案
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 
 // ==================== 密码哈希 ====================
 async function sha256(text) {
