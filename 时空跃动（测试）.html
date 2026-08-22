@@ -5043,7 +5043,14 @@ function startGame() {
   document.getElementById('level-select-screen').style.display = 'none';
   document.getElementById('game-ui').style.display = 'block';
   document.getElementById('win-modal').style.display = 'none';
-  if (minimapCanvas) { minimapCanvas.style.display = 'block'; invalidateMinimap(); }
+  if (minimapCanvas) {
+    if (currentLevel && currentLevel.showMinimap !== false) {
+      minimapCanvas.style.display = 'block';
+      invalidateMinimap();
+    } else {
+      minimapCanvas.style.display = 'none';
+    }
+  }
   if (isMobile) {
     document.getElementById('joystick-zone').style.display = 'block';
     document.getElementById('jump-btn').style.display = 'flex';
@@ -5473,9 +5480,15 @@ async function renderPublicLevels(filter = '') {
 
   container.innerHTML = displayLevels.map(l => {
     let hasPortal = false;
+    let showMinimap = true;
+    let showIndicator = true;
     try {
       const decoded = decodeLevel(l.code);
       hasPortal = levelHasPortal(decoded);
+      if (decoded) {
+        showMinimap = decoded.showMinimap !== false;
+        showIndicator = decoded.showIndicator !== false;
+      }
     } catch(e) { hasPortal = false; }
 
     const isLiked = l.user_liked || false;
@@ -5484,7 +5497,7 @@ async function renderPublicLevels(filter = '') {
     const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     return `
-    <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${(l.author || '').replace(/"/g, '&quot;')}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${l.showMinimap !== false ? '1' : '0'}">
+    <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${(l.author || '').replace(/"/g, '&quot;')}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}">
       ${!hasPortal ? '<span class="lc-no-portal">无传送门</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">旧版</span>' : ''}
       <div class="lc-name">${l.name || '未命名'}</div>
@@ -5559,16 +5572,22 @@ async function renderMyLevels(filter = '') {
 
   container.innerHTML = displayLevels.map(l => {
     let hasPortal = false;
+    let showMinimap = true;
+    let showIndicator = true;
     try {
       const decoded = decodeLevel(l.code);
       hasPortal = levelHasPortal(decoded);
+      if (decoded) {
+        showMinimap = decoded.showMinimap !== false;
+        showIndicator = decoded.showIndicator !== false;
+      }
     } catch(e) { hasPortal = false; }
 
     const isOldVersion = l.code && l.code.split('.')[0] !== '7';
     const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     return `
-    <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="1" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
+    <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
       ${!hasPortal ? '<span class="lc-no-portal">无传送门</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">旧版</span>' : ''}
       <div class="lc-name">${l.name || '未命名'}</div>
@@ -5588,6 +5607,7 @@ function openDetailPage(card) {
   const desc = card.dataset.desc;
   const hasPortal = card.dataset.hasportal === '1';
   const showMinimap = card.dataset.showminimap === '1';
+  const showIndicator = card.dataset.showindicator === '1';
   const levelId = card.dataset.id ? parseInt(card.dataset.id) : null;
   const liked = card.dataset.liked === '1';
   const likes = parseInt(card.dataset.likes || '0');
