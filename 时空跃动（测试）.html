@@ -1,13 +1,6084 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=https://Lty5418.github.io/Kimi-Projects/时空跃动.html">
-    <script>
-        window.location.replace("https://Lty5418.github.io/Kimi-Projects/时空跃动.html");
-    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>时空跃动</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #121212;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  color: #FFFFFF;
+  user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+}
+#game-container {
+  width: 100%; height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== 通用按钮样式 ===== */
+.btn {
+  padding: 12px 36px;
+  font-size: 16px; font-weight: 700;
+  border: 2px solid #E1E3E6;
+  background: transparent;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 4px;
+  border-radius: 4px;
+}
+.btn:hover {
+  background: #A0DAF7; color: #121212;
+  border-color: #00A1FF;
+  box-shadow: 0 0 20px rgba(0,161,255,0.3);
+}
+.btn:active {
+  background: #00A1FF;
+  transform: scale(0.97);
+}
+.btn-row {
+  display: flex; gap: 16px; margin-top: 10px;
+  flex-wrap: wrap; justify-content: center;
+}
+.btn-small {
+  padding: 8px 20px;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+.btn-danger {
+  border-color: #FFD1D4;
+  color: #FFD1D4;
+}
+.btn-danger:hover {
+  background: #FFD1D4;
+  color: #121212;
+}
+
+/* ===== 返回按钮（统一左上角） ===== */
+.back-btn {
+  position: absolute;
+  top: 16px; left: 16px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  border: 1px solid #707070;
+  background: rgba(18,18,18,0.9);
+  color: #8D9390;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+  z-index: 10;
+}
+.back-btn:hover {
+  border-color: #A0DAF7;
+  color: #FFFFFF;
+  background: rgba(0,161,255,0.1);
+}
+
+/* ===== 开始界面 ===== */
+#start-screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 100;
+  background: #121212;
+  transition: opacity 0.5s;
+}
+#start-screen .title {
+  font-size: 56px; font-weight: 900;
+  letter-spacing: 12px;
+  color: #FFFFFF;
+  text-shadow: 0 0 30px rgba(0,246,255,0.3), 0 0 60px rgba(0,246,255,0.1);
+  margin-bottom: 8px;
+}
+#start-screen .subtitle {
+  font-size: 14px; color: #8D9390;
+  letter-spacing: 4px; margin-bottom: 60px;
+}
+.dev-info {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(141,147,144,0.5);
+  cursor: pointer;
+  transition: color 0.3s;
+  letter-spacing: 2px;
+}
+.dev-info:hover {
+  color: #A0DAF7;
+}
+
+
+
+/* ===== 开发人员界面 ===== */
+#dev-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 105;
+  background: #121212;
+}
+#dev-screen .screen-title {
+  font-size: 28px; font-weight: 900;
+  letter-spacing: 6px; margin-bottom: 8px;
+  color: #FFFFFF;
+}
+#dev-screen .screen-subtitle {
+  font-size: 12px; color: #8D9390;
+  letter-spacing: 3px; margin-bottom: 40px;
+}
+
+/* ===== 关卡选择 ===== */
+#level-select-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 60px;
+  z-index: 110;
+  background: #121212;
+  overflow: hidden;
+}
+#level-select-screen .screen-title {
+  font-size: 28px; font-weight: 900;
+  letter-spacing: 6px; margin-bottom: 8px;
+  color: #FFFFFF;
+}
+#level-select-screen .screen-subtitle {
+  font-size: 12px; color: #8D9390;
+  letter-spacing: 3px; margin-bottom: 60px;
+}
+.lvl-card {
+  width: 72px; height: 72px;
+  background: #1a1a1a;
+  border: 2px solid #707070;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  color: #707070;
+  transition: all 0.25s ease-out;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  scroll-snap-align: center;
+}
+.lvl-card:hover { 
+  border-color: #A0DAF7; 
+  box-shadow: 0 4px 12px rgba(0,246,255,0.1);
+}
+.lvl-card:active {
+  background: #2a2a2a;
+  border-color: #00A1FF;
+  transition: transform 0.1s ease;
+}
+.lvl-card .lvl-num { 
+  transition: font-size 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              margin 0.25s ease,
+              transform 0.3s ease; 
+}
+.lvl-card .lvl-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  transform: translateY(12px) scale(0.9);
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  position: absolute;
+  bottom: 10px;
+  left: 0; right: 0;
+  width: 100%;
+}
+.lvl-card .lvl-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  transition: letter-spacing 0.3s ease;
+}
+.lvl-card .lvl-tag {
+  font-size: 10px;
+  color: #8D9390;
+  border: 1px solid #707070;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.25s ease;
+}
+
+
+/* ===== 选关卡滚动容器 ===== */
+#level-cards {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+#level-cards::-webkit-scrollbar { 
+  display: none; /* Chrome/Safari/Opera */
+}
+
+/* 滚动指示器 */
+.scroll-hint {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: rgba(141,147,144,0.4);
+  letter-spacing: 2px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.scroll-hint.visible {
+  opacity: 1;
+}
+/* ===== 登录/注册界面 ===== */
+#auth-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 200;
+  background: #121212;
+}
+#auth-screen h2 {
+  font-size: 32px; margin-bottom: 40px;
+  letter-spacing: 6px;
+  color: #FFFFFF;
+}
+.auth-form {
+  display: flex; flex-direction: column;
+  gap: 16px; width: 280px;
+}
+.auth-form input {
+  padding: 12px 16px;
+  background: #1a1a1a;
+  border: 1px solid #707070;
+  color: #FFFFFF;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.3s;
+  border-radius: 4px;
+}
+.auth-form input:focus {
+  border-color: #00F6FF;
+  box-shadow: 0 0 10px rgba(0,246,255,0.1);
+}
+.auth-form .btn { width: 100%; margin-top: 8px; }
+.auth-switch {
+  color: #8D9390; font-size: 13px;
+  margin-top: 16px; cursor: pointer;
+  text-decoration: underline;
+}
+.auth-switch:hover { color: #A0DAF7; }
+#auth-msg {
+  color: #FFD1D4; font-size: 13px;
+  min-height: 20px; text-align: center;
+}
+
+/* ===== 大厅界面 ===== */
+#lobby-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  z-index: 90;
+  background: #121212;
+  padding: 60px 20px 20px 20px;
+}
+.lobby-content {
+  display: block;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.lobby-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 16px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+#lobby-screen h2 {
+  font-size: 24px; letter-spacing: 6px;
+  color: #FFFFFF;
+  margin: 0;
+}
+#user-display {
+  font-size: 13px; color: #8D9390;
+}
+.lobby-tabs {
+  display: flex; gap: 0; margin-bottom: 16px;
+  border-bottom: 1px solid #707070;
+  flex-shrink: 0;
+}
+.lobby-tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  color: #8D9390;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+.lobby-tab:hover { color: #C3C3C3; }
+.lobby-tab.active {
+  color: #FFFFFF;
+  border-bottom-color: #00F6FF;
+}
+
+/* 关卡网格 - 三列正方形卡片 */
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 4px;
+}
+
+.level-card-square {
+  aspect-ratio: 1;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.level-card-square:hover {
+  border-color: #00F6FF;
+  box-shadow: 0 0 16px rgba(0,246,255,0.08);
+  transform: translateY(-2px);
+}
+.level-card-square:active {
+  transform: scale(0.97);
+}
+.level-card-square .lc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+  text-align: center;
+  line-height: 1.4;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.level-card-square .lc-author {
+  font-size: 11px;
+  color: #8D9390;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.level-card-square .lc-likes {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-size: 11px;
+  color: #FFD1D4;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.level-card-square .lc-likes .heart {
+  font-size: 10px;
+}
+.level-card-square .lc-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9px;
+  color: #FFAA00;
+  background: rgba(255,170,0,0.1);
+  border: 1px solid rgba(255,170,0,0.3);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.level-card-square .lc-no-portal {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 9px;
+  color: #FF4444;
+  background: rgba(255,68,68,0.1);
+  border: 1px solid rgba(255,68,68,0.3);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* 空状态 */
+.levels-empty {
+  color: #666;
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 14px;
+  grid-column: 1 / -1;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.search-box input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #707070;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #E1E3E6;
+  font-size: 14px;
+  outline: none;
+}
+.search-box input::placeholder {
+  color: rgba(225,227,230,0.4);
+}
+.search-box input:focus { border-color: #00F6FF; }
+.search-box .btn {
+  padding: 10px 20px;
+  font-size: 13px;
+}
+
+.upload-area {
+  background: #1a1a1a;
+  border: 2px dashed #707070;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+.upload-area input {
+  background: #121212; border: 1px solid #707070;
+  color: #FFFFFF; padding: 10px; width: 100%;
+  margin-bottom: 12px; font-size: 13px;
+  border-radius: 4px;
+  outline: none;
+}
+.upload-area input:focus { border-color: #00F6FF; }
+
+/* 关卡详情页 */
+#lobby-detail-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  z-index: 95;
+  background: #121212;
+  padding: 60px 20px 20px 20px;
+}
+#lobby-detail-screen .detail-map-area {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+#lobby-detail-screen .detail-map-area canvas {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+#lobby-detail-screen .detail-map-blocked {
+  color: #8D9390;
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+#lobby-detail-screen .detail-info {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 4px;
+  min-height: 0;
+}
+#lobby-detail-screen .detail-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+#lobby-detail-screen .detail-author {
+  font-size: 13px;
+  color: #8D9390;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+#lobby-detail-screen .detail-desc {
+  font-size: 14px;
+  color: #C3C3C3;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+#lobby-detail-screen .detail-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #2a2a2a;
+  flex-shrink: 0;
+}
+#lobby-detail-screen .detail-like-btn {
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid #707070;
+  color: #8D9390;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+#lobby-detail-screen .detail-like-btn:hover {
+  border-color: #FFD1D4;
+  color: #FFD1D4;
+}
+#lobby-detail-screen .detail-like-btn.liked {
+  background: rgba(255, 209, 212, 0.1);
+  border-color: #FFD1D4;
+  color: #FFD1D4;
+}
+
+/* 响应式：小屏幕两列 */
+@media (max-width: 600px) {
+  .levels-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .level-card-square {
+    padding: 10px;
+  }
+  .level-card-square .lc-name {
+    font-size: 12px;
+  }
+  .level-card-square .lc-author {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .levels-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
+
+/* ===== 关卡编辑器 ===== */
+#editor-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  z-index: 80;
+  background: #121212;
+}
+
+/* ===== 编辑器折叠式工具栏（移动端） ===== */
+.editor-toolbar {
+  display: flex; gap: 6px; padding: 10px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #707070;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.editor-toolbar .tool-btn {
+  padding: 8px 14px;
+  background: #121212;
+  border: 1px solid #707070;
+  color: #C3C3C3;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+.editor-toolbar .tool-btn:hover {
+  border-color: #A0DAF7;
+  color: #FFFFFF;
+}
+.editor-toolbar .tool-btn.active {
+  background: #00A1FF; color: #FFFFFF; border-color: #00A1FF;
+  box-shadow: 0 0 10px rgba(0,161,255,0.2);
+}
+.editor-coords {
+  margin-left: auto;
+  font-size: 12px;
+  color: #8D9390;
+  font-family: monospace;
+  padding: 0 12px;
+}
+.editor-canvas-wrap {
+  flex: 1; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+  touch-action: none;
+  cursor: grab;
+}
+.editor-canvas-wrap:active { cursor: grabbing; }
+#editor-canvas {
+  background: #121212;
+  border: 1px solid #707070;
+  touch-action: none;
+}
+.editor-bottom {
+  padding: 10px; background: #1a1a1a;
+  border-top: 1px solid #707070;
+  display: flex; gap: 10px; align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ===== 折叠按钮 ===== */
+.toolbar-fold-btn, .bottom-fold-btn {
+  display: none;
+  padding: 6px 12px;
+  background: #121212;
+  border: 1px solid #707070;
+  color: #8D9390;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.toolbar-fold-btn:hover, .bottom-fold-btn:hover {
+  color: #FFFFFF;
+  border-color: #A0DAF7;
+}
+
+/* ===== 工具分组 ===== */
+.tool-group-main, .tool-group-action, .tool-group-zoom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ===== 底栏分组 ===== */
+.bottom-group-name, .bottom-group-code, .bottom-group-share, .bottom-group-import {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ===== 编码输出框 ===== */
+#level-code-output {
+  flex: 1; background: #121212;
+  border: 1px solid #707070; color: #B3F4A8;
+  padding: 8px 12px; font-family: monospace;
+  font-size: 12px; resize: none;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 1024px) {
+  /* === 未展开状态 === */
+  .editor-toolbar { 
+    padding: 6px 8px; 
+    gap: 6px; 
+    flex-wrap: nowrap;
+  }
+  .editor-bottom { 
+    padding: 6px 8px; 
+    gap: 6px; 
+    flex-wrap: nowrap;
+  }
+
+  /* 折叠按钮 */
+  .toolbar-fold-btn, .bottom-fold-btn {
+    display: flex !important;
+    padding: 5px 10px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  /* 坐标 */
+  .editor-coords { 
+    font-size: 10px; 
+    padding: 0 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* 关卡名输入框 */
+  /* 关卡名输入框已移除 */
+
+  /* 默认隐藏所有分组 */
+  .editor-toolbar .tool-group-main,
+  .editor-toolbar .tool-group-action,
+  .editor-toolbar .tool-group-zoom,
+  .editor-bottom .bottom-group-code,
+  .editor-bottom .bottom-group-share,
+  .editor-bottom .bottom-group-import,
+  .editor-bottom .bottom-group-options {
+    display: none;
+  }
+
+  /* 移除画布边框 */
+  #editor-canvas { border: none; }
+
+  /* === 工具栏展开状态 === */
+  .editor-toolbar.expanded {
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+  }
+  .editor-toolbar.expanded .tool-group-main,
+  .editor-toolbar.expanded .tool-group-action,
+  .editor-toolbar.expanded .tool-group-zoom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+    padding-top: 6px;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 4px;
+    justify-content: flex-start;
+  }
+  /* 隐藏分组间的竖线分隔 */
+  .editor-toolbar.expanded .tool-group-action > div[style*="width:1px"],
+  .editor-toolbar.expanded .tool-group-zoom > div[style*="width:1px"] {
+    display: none;
+  }
+  .editor-toolbar.expanded .tool-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  /* === 底栏展开状态 === */
+  .editor-bottom.expanded {
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+  }
+  .editor-bottom.expanded .bottom-group-code,
+  .editor-bottom.expanded .bottom-group-share,
+  .editor-bottom.expanded .bottom-group-import,
+  .editor-bottom.expanded .bottom-group-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    width: 100%;
+    padding-top: 6px;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 4px;
+    justify-content: flex-start;
+  }
+  /* 隐藏底栏分组间的竖线分隔 */
+  .editor-bottom.expanded .bottom-group-code > div[style*="width:1px"],
+  .editor-bottom.expanded .bottom-group-import > div[style*="width:1px"] {
+    display: none;
+  }
+  /* 底栏标签文字缩小 */
+  .editor-bottom.expanded .bottom-group-code > span,
+  .editor-bottom.expanded .bottom-group-import > span {
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  #level-code-output {
+    flex: 1;
+    min-width: 80px;
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+  .editor-bottom.expanded .bottom-group-import input {
+    flex: 1;
+    min-width: 60px;
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+  .editor-bottom.expanded .btn-small {
+    padding: 5px 10px;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  /* 复选框区域 */
+  .editor-bottom.expanded .bottom-group-options {
+    gap: 10px;
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+    width: auto;
+  }
+  .bottom-group-options label {
+    font-size: 11px !important;
+    gap: 3px !important;
+  }
+}
+
+
+/* ===== 游戏画布 ===== */
+#game-canvas {
+  position: absolute; inset: 0;
+  z-index: 10;
+  touch-action: none;
+}
+
+/* ===== 虚拟摇杆 ===== */
+#joystick-zone {
+  position: absolute;
+  left: 24px; bottom: 24px;
+  width: 120px; height: 120px;
+  z-index: 50;
+  display: none;
+  touch-action: none;
+}
+#joystick-base {
+  position: absolute; inset: 0;
+  border: 2px solid rgba(141,147,144,0.3);
+  border-radius: 50%;
+  background: rgba(141,147,144,0.05);
+}
+#joystick-thumb {
+  position: absolute;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(0,246,255,0.2);
+  border: 2px solid rgba(0,246,255,0.4);
+  top: 36px; left: 36px;
+  transition: none;
+}
+
+/* ===== 跳跃按钮 ===== */
+#jump-btn {
+  position: absolute;
+  right: 30px; bottom: 30px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,246,255,0.3);
+  background: rgba(0,246,255,0.08);
+  color: #FFFFFF;
+  font-size: 22px; font-weight: 700;
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 50;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+#jump-btn:active {
+  background: rgba(0,246,255,0.2);
+  border-color: rgba(0,246,255,0.6);
+}
+
+/* ===== 游戏UI ===== */
+#game-ui {
+  position: absolute; inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  display: none;
+}
+#game-ui .top-bar {
+  position: absolute; top: 16px; left: 16px;
+  display: flex; gap: 12px;
+}
+#game-ui .top-bar .ui-btn {
+  padding: 6px 14px;
+  background: rgba(18,18,18,0.8);
+  border: 1px solid #707070;
+  color: #FFFFFF;
+  font-size: 13px;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+#game-ui .top-bar .ui-btn:hover {
+  border-color: #A0DAF7;
+  background: rgba(0,161,255,0.1);
+}
+#level-name-display {
+  position: absolute; top: 16px;
+  left: 50%; transform: translateX(-50%);
+  font-size: 16px; color: #8D9390;
+  letter-spacing: 2px;
+}
+
+/* ===== 过关弹窗 ===== */
+#win-modal {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 60;
+  background: rgba(18,18,18,0.92);
+}
+#win-modal h2 {
+  font-size: 40px; letter-spacing: 8px;
+  margin-bottom: 16px;
+  color: #F4F9A7;
+  text-shadow: 0 0 30px rgba(244,249,167,0.4);
+}
+#win-modal p { color: #8D9390; margin-bottom: 30px; font-size: 14px; }
+
+/* ===== 分享弹窗 ===== */
+#share-modal {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 70;
+  background: rgba(18,18,18,0.92);
+}
+#share-modal h3 { 
+  font-size: 22px; 
+  margin-bottom: 24px; 
+  color: #E1E3E6; 
+  letter-spacing: 4px;
+  font-weight: 400;
+}
+#share-modal textarea {
+  width: 340px; 
+  height: 100px;
+  background: #1a1a1a; 
+  border: 1px solid #3a3a3a;
+  color: #8D9390; 
+  padding: 14px;
+  font-family: "SF Mono", "Fira Code", monospace; 
+  font-size: 12px;
+  line-height: 1.6;
+  resize: none; 
+  margin-bottom: 24px;
+  border-radius: 6px;
+  outline: none;
+}
+#share-modal textarea:focus {
+  border-color: #707070;
+}
+
+/* ===== 点赞按钮 ===== */
+.like-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid #707070;
+  color: #8D9390;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.like-btn:hover {
+  border-color: #FFD1D4;
+  color: #FFD1D4;
+}
+.like-btn.liked {
+  background: rgba(255, 209, 212, 0.1);
+  border-color: #FFD1D4;
+  color: #FFD1D4;
+}
+.like-btn .like-icon {
+  font-size: 14px;
+}
+.like-btn .like-count {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ===== 通用 ===== */
+.hidden { display: none !important; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #121212; }
+::-webkit-scrollbar-thumb { background: #707070; border-radius: 3px; }
+
+/* 更新日志 */
+.changelog-info {
+  position: absolute;
+  bottom: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(141,147,144,0.5);
+  cursor: pointer;
+  transition: color 0.3s;
+  letter-spacing: 2px;
+}
+.changelog-info:hover {
+  color: #A0DAF7;
+}
+#changelog-screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center;
+  z-index: 105;
+  background: #121212;
+  padding: 60px 20px 20px 20px;
+  overflow-y: auto;
+}
+#changelog-screen .screen-title {
+  font-size: 28px; font-weight: 900;
+  letter-spacing: 6px; margin-bottom: 8px;
+  color: #FFFFFF;
+}
+#changelog-screen .screen-subtitle {
+  font-size: 12px; color: #8D9390;
+  letter-spacing: 3px; margin-bottom: 40px;
+}
+.changelog-entry {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(112,112,112,0.3);
+}
+.changelog-time {
+  font-size: 13px;
+  color: #00F6FF;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.changelog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.changelog-list li {
+  font-size: 13px;
+  color: #8D9390;
+  line-height: 1.8;
+  padding-left: 16px;
+  position: relative;
+}
+.changelog-list li::before {
+  content: "›";
+  position: absolute;
+  left: 0;
+  color: #707070;
+}
+
+/* 发布遮罩 */
+#publish-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+#publish-overlay.active { display: flex; }
+#publish-overlay .spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(0,246,255,0.2);
+  border-top-color: #00F6FF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+#publish-overlay p {
+  color: #00F6FF;
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+/* ========== 测试确认弹窗 ========== */
+#test-confirm-modal {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 75;
+  background: rgba(18,18,18,0.92);
+}
+#test-confirm-modal h3 {
+  font-size: 24px; letter-spacing: 6px;
+  margin-bottom: 12px; color: #E1E3E6;
+}
+#test-confirm-modal .test-hint {
+  color: #8D9390; font-size: 14px;
+  margin-bottom: 30px; letter-spacing: 2px;
+}
+
+/* ========== 发布页 ========== */
+#publish-page {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  align-items: center;
+  padding-top: 60px;
+  z-index: 85;
+  background: #121212;
+  overflow-y: auto;
+}
+.publish-form {
+  width: 100%; max-width: 420px;
+  padding: 0 20px;
+  margin-top: 30px;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-size: 13px; color: #8D9390;
+  margin-bottom: 8px; letter-spacing: 2px;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #707070;
+  color: #FFFFFF;
+  padding: 12px 14px;
+  font-size: 14px;
+  border-radius: 4px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.3s;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #00F6FF;
+  box-shadow: 0 0 10px rgba(0,246,255,0.1);
+}
+.form-group textarea {
+  resize: vertical; min-height: 80px;
+  line-height: 1.6;
+}
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 11px;
+  color: #707070;
+  margin-top: 4px;
+}
+.publish-preview {
+  background: #1a1a1a;
+  border: 1px solid #707070;
+  border-radius: 6px;
+  padding: 14px;
+}
+.preview-label {
+  font-size: 12px; color: #8D9390;
+  margin-bottom: 8px; letter-spacing: 1px;
+}
+.preview-code {
+  font-family: monospace;
+  font-size: 11px; color: #B3F4A8;
+  word-break: break-all;
+  line-height: 1.5;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+/* 桌面端提示 */
+#desktop-hint {
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(225,227,230,0.4);
+  font-size: 12px;
+  text-align: center;
+  z-index: 45;
+  pointer-events: none;
+}
+
+/* ==================== 响应式适配 ==================== */
+@media (max-width: 768px) {
+  #start-screen .title { font-size: 42px; letter-spacing: 8px; }
+  .btn { padding: 10px 28px; font-size: 14px; }
+  #joystick-zone { width: 100px; height: 100px; }
+  #joystick-thumb { width: 40px; height: 40px; top: 30px; left: 30px; }
+  #jump-btn { width: 70px; height: 70px; }
+  .level-card { padding: 12px; }
+  .level-info h4 { font-size: 14px; }
+  #lobby-screen { padding: 60px 12px 12px 12px; }
+  .lobby-tab { padding: 8px 14px; font-size: 13px; }
+  .lvl-card { width: 60px; height: 60px; font-size: 18px; }
+  #level-cards { padding-left: calc(50% - 30px) !important; padding-right: calc(50% - 30px) !important; }
+}
+
+@media (max-width: 480px) {
+  #start-screen .title { font-size: 32px; letter-spacing: 6px; }
+  .btn { padding: 8px 20px; font-size: 13px; letter-spacing: 2px; }
+  .lvl-card { width: 52px; height: 52px; font-size: 16px; }
+  .lvl-card .lvl-name { font-size: 11px; }
+  #level-cards { padding-left: calc(50% - 26px) !important; padding-right: calc(50% - 26px) !important; }
+  #joystick-zone { width: 90px; height: 90px; left: 16px; bottom: 16px; }
+  #joystick-thumb { width: 36px; height: 36px; top: 27px; left: 27px; }
+  #jump-btn { width: 60px; height: 60px; right: 16px; bottom: 16px; font-size: 18px; }
+  .level-actions .btn { padding: 5px 12px; font-size: 12px; }
+  .search-box { flex-direction: column; }
+  .search-box .btn { width: 100%; }
+}
+
+@media (min-width: 1025px) {
+  #start-screen .title { font-size: 72px; }
+  #desktop-hint { display: block; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  #start-screen .title { font-size: 28px; letter-spacing: 6px; margin-bottom: 12px; }
+  .btn-row { gap: 12px; }
+  .btn { padding: 6px 16px; font-size: 12px; }
+  #joystick-zone { width: 70px; height: 70px; }
+  #joystick-thumb { width: 28px; height: 28px; top: 21px; left: 21px; }
+  #jump-btn { width: 50px; height: 50px; font-size: 16px; }
+  .lvl-card { width: 48px; height: 48px; font-size: 14px; }
+  #level-cards { padding-left: calc(50% - 24px) !important; padding-right: calc(50% - 24px) !important; }
+}
+</style>
 </head>
 <body>
+<div id="game-container">
+
+  <!-- ========== 开始界面 ========== -->
+  <div id="start-screen">
+    <div class="title">时空跃动</div>
+    <div class="subtitle">SPACE TIME LEAP</div>
+    <button class="btn" id="btn-start-game" style="margin-bottom:12px;">开始游戏</button>
+    <div class="btn-row">
+      <button class="btn btn-small" id="btn-editor">关卡编辑器</button>
+      <button class="btn btn-small" id="btn-lobby">关卡大厅</button>
+    </div>
+    <div class="dev-info" id="dev-info">开发人员</div>
+    <div class="changelog-info" id="changelog-info">更新日志</div>
+  </div>
+
+    <!-- ========== 开发人员界面 ========== -->
+  <div id="dev-screen">
+    <button class="back-btn" id="btn-dev-back">&larr; 返回</button>
+    <div class="screen-title">开发人员</div>
+    <div class="screen-subtitle">DEVELOPERS</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:24px;margin-top:40px;">
+      <div style="background:#1a1a1a;border:1px solid #707070;border-radius:8px;padding:24px 40px;text-align:center;min-width:200px;">
+        <div style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:4px;margin-bottom:8px;">lty</div>
+        <div style="font-size:12px;color:#8D9390;letter-spacing:2px;">核心开发</div>
+      </div>
+      <div style="background:#1a1a1a;border:1px solid #707070;border-radius:8px;padding:24px 40px;text-align:center;min-width:200px;">
+        <div style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:4px;margin-bottom:8px;">kimi</div>
+        <div style="font-size:12px;color:#8D9390;letter-spacing:2px;">AI 辅助开发</div>
+      </div>
+      <div style="background:#1a1a1a;border:1px solid #707070;border-radius:8px;padding:24px 40px;text-align:center;min-width:200px;">
+        <div style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:4px;margin-bottom:8px;">DeepSeek</div>
+        <div style="font-size:12px;color:#8D9390;letter-spacing:2px;">AI 辅助开发</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 更新日志界面 ========== -->
+  <div id="changelog-screen">
+    <button class="back-btn" id="btn-changelog-back">&larr; 返回</button>
+    <div class="screen-title">更新日志</div>
+    <div class="screen-subtitle">CHANGELOG</div>
+    <div style="width:100%;max-width:480px;overflow-y:auto;flex:1;">
+      <div class="changelog-entry">
+        <div class="changelog-time">2026-08-20 18:35</div>
+        <ul class="changelog-list">
+          <li>选关界面进入时自动选中第1关并滚动到中央</li>
+          <li>传送门指示器简化为实心三角形箭头</li>
+        </ul>
+      </div>
+      <div class="changelog-entry">
+        <div class="changelog-time">2026-08-20 18:24</div>
+        <ul class="changelog-list">
+          <li>重写全部20个内置关卡，优化难度曲线</li>
+          <li>"头顶即死"和"顶头二段"添加天花板尖刺与隔断墙</li>
+          <li>"死亡螺旋"和"不可能任务"替换原有最终关卡</li>
+          <li>所有关卡统一使用 y=1 作为起始地面高度</li>
+        </ul>
+      </div>
+      <div class="changelog-entry">
+        <div class="changelog-time">2026-08-20 17:56</div>
+        <ul class="changelog-list">
+          <li>添加 DeepSeek 到开发人员列表</li>
+          <li>选关界面添加基于距离中心的平滑缩放</li>
+          <li>选关界面顶部添加关卡名显示，防止误选</li>
+          <li>小地图改为圆角玻璃质感面板，分层绘制所有元素</li>
+          <li>小地图尖刺使用红色方块+白色叉号，清晰可辨</li>
+          <li>传送门指示器简化为圆环+圆点+箭头</li>
+          <li>分享弹窗移除赛博朋克风格，改为灰色系简洁设计</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+<!-- ========== 关卡选择界面 ========== -->
+  <div id="level-select-screen">
+    <button class="back-btn" id="btn-level-back">&larr; 返回</button>
+    <div class="screen-title">选择关卡</div>
+    <div class="screen-subtitle">SELECT LEVEL</div>
+    <div id="selected-level-name" style="font-size:16px;color:#00F6FF;letter-spacing:3px;margin-bottom:16px;height:24px;opacity:0;transition:opacity 0.3s ease;text-align:center;font-weight:700;"></div>
+    <div id="level-cards" style="display:flex;align-items:center;gap:16px;margin-bottom:30px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:20px 0;padding-left:calc(50% - 36px);padding-right:calc(50% - 36px);scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;mask-image:linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);">
+      <div class="lvl-card" id="lvl-0">
+        <span class="lvl-num">1</span>
+        <span class="lvl-info">
+          <span class="lvl-name">起跳平台</span>
+          <span class="lvl-tag">入门</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-1">
+        <span class="lvl-num">2</span>
+        <span class="lvl-info">
+          <span class="lvl-name">第一个坎</span>
+          <span class="lvl-tag">入门</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-2">
+        <span class="lvl-num">3</span>
+        <span class="lvl-info">
+          <span class="lvl-name">连续小跳</span>
+          <span class="lvl-tag">入门</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-3">
+        <span class="lvl-num">4</span>
+        <span class="lvl-info">
+          <span class="lvl-name">初见尖刺</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-4">
+        <span class="lvl-num">5</span>
+        <span class="lvl-info">
+          <span class="lvl-name">尖刺间隙</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-5">
+        <span class="lvl-num">6</span>
+        <span class="lvl-info">
+          <span class="lvl-name">需要二段</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-6">
+        <span class="lvl-num">7</span>
+        <span class="lvl-info">
+          <span class="lvl-name">高空恐惧</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-7">
+        <span class="lvl-num">8</span>
+        <span class="lvl-info">
+          <span class="lvl-name">回环路线</span>
+          <span class="lvl-tag">进阶</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-8">
+        <span class="lvl-num">9</span>
+        <span class="lvl-info">
+          <span class="lvl-name">极限距离</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-9">
+        <span class="lvl-num">10</span>
+        <span class="lvl-info">
+          <span class="lvl-name">二段极限</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-10">
+        <span class="lvl-num">11</span>
+        <span class="lvl-info">
+          <span class="lvl-name">头顶即死</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-11">
+        <span class="lvl-num">12</span>
+        <span class="lvl-info">
+          <span class="lvl-name">窄缝求生</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-12">
+        <span class="lvl-num">13</span>
+        <span class="lvl-info">
+          <span class="lvl-name">连续极限二段</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-13">
+        <span class="lvl-num">14</span>
+        <span class="lvl-info">
+          <span class="lvl-name">踩边而过</span>
+          <span class="lvl-tag">挑战</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-14">
+        <span class="lvl-num">15</span>
+        <span class="lvl-info">
+          <span class="lvl-name">尖刺回廊</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-15">
+        <span class="lvl-num">16</span>
+        <span class="lvl-info">
+          <span class="lvl-name">高空二段</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-16">
+        <span class="lvl-num">17</span>
+        <span class="lvl-info">
+          <span class="lvl-name">顶头二段</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-17">
+        <span class="lvl-num">18</span>
+        <span class="lvl-info">
+          <span class="lvl-name">踩边二段</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-18">
+        <span class="lvl-num">19</span>
+        <span class="lvl-info">
+          <span class="lvl-name">无地可落</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+      <div class="lvl-card" id="lvl-19">
+        <span class="lvl-num">20</span>
+        <span class="lvl-info">
+          <span class="lvl-name">不可能任务</span>
+          <span class="lvl-tag">极限</span>
+        </span>
+      </div>
+    </div>
+    <button class="btn" id="btn-level-start" style="opacity:0.3;pointer-events:none;">开始游戏</button>
+    <div class="scroll-hint" id="scroll-hint">← 左右滑动选择关卡 →</div>
+  </div>
+
+  <!-- ========== 登录/注册界面 ========== -->
+  <div id="auth-screen">
+    <button class="back-btn" id="btn-auth-back">&larr; 返回</button>
+    <h2 id="auth-title">登录</h2>
+    <div class="auth-form">
+      <input type="text" id="auth-username" placeholder="用户名" autocomplete="off">
+      <input type="password" id="auth-password" placeholder="密码">
+      <div id="auth-msg"></div>
+      <button class="btn" id="btn-auth-submit">登录</button>
+    </div>
+    <div class="auth-switch" id="auth-switch">没有账号？点击注册</div>
+  </div>
+
+  <!-- ========== 大厅界面 ========== -->
+  <div id="lobby-screen">
+    <button class="back-btn" id="btn-lobby-back">&larr; 返回首页</button>
+    <div class="lobby-header">
+      <h2>关卡大厅</h2>
+      <span id="user-display">未登录</span>
+    </div>
+    <div class="lobby-tabs">
+      <div class="lobby-tab active" data-tab="public">公开关卡</div>
+      <div class="lobby-tab" data-tab="my">我的关卡</div>
+      <div class="lobby-tab" data-tab="upload">导入关卡</div>
+    </div>
+    <div class="lobby-content" id="lobby-public">
+      <div class="search-box">
+        <input type="text" id="public-search-input" placeholder="搜索关卡名称或作者...">
+        <button class="btn btn-small" id="btn-public-search">搜索</button>
+      </div>
+      <div id="public-levels-list" class="levels-grid"></div>
+    </div>
+    <div class="lobby-content hidden" id="lobby-my">
+      <div class="search-box">
+        <input type="text" id="my-search-input" placeholder="搜索我的关卡...">
+        <button class="btn btn-small" id="btn-my-search">搜索</button>
+      </div>
+      <div id="my-levels-list" class="levels-grid"></div>
+    </div>
+    <div class="lobby-content hidden" id="lobby-upload">
+      <div class="upload-area">
+        <p style="margin-bottom:12px;color:#8D9390;">粘贴关卡编码</p>
+        <input type="text" id="upload-code-input" placeholder="输入关卡编码...">
+        <button class="btn" id="btn-upload-play" style="margin:8px 0 0 0;">立即游玩</button>
+      </div>
+    </div>
+    <div style="margin-top:auto; padding-top:12px; display:flex; gap:10px; justify-content:center; flex-shrink:0;">
+      <button class="btn btn-small btn-danger" id="btn-lobby-logout">退出登录</button>
+    </div>
+  </div>
+
+  <!-- ========== 关卡详情页 ========== -->
+  <div id="lobby-detail-screen">
+    <button class="back-btn" id="btn-detail-back">&larr; 返回大厅</button>
+    <div class="detail-map-area" id="detail-map-area">
+      <span class="detail-map-blocked">地图预览已屏蔽</span>
+    </div>
+    <div class="detail-info">
+      <div class="detail-name" id="detail-name">关卡名称</div>
+      <div class="detail-author" id="detail-author">作者: 匿名</div>
+      <div class="detail-desc" id="detail-desc">暂无简介</div>
+    </div>
+    <div class="detail-actions">
+      <button class="btn" id="btn-detail-play" style="flex:1;">开始游戏</button>
+      <button class="detail-like-btn" id="btn-detail-like">
+        <span class="like-icon">&#9825;</span>
+        <span class="like-count">0</span>
+      </button>
+    </div>
+  </div>
+
+<!-- ========== 关卡编辑器 ========== -->
+  <div id="editor-screen">
+    <div class="editor-toolbar" id="editor-toolbar">
+      <div class="toolbar-fold-btn" id="btn-toolbar-fold">&#9776; 工具</div>
+      <div class="tool-group-main">
+        <div class="tool-btn active" data-tool="land">陆地</div>
+        <div class="tool-btn" data-tool="spikeAuto">尖刺</div>
+        <div class="tool-btn" data-tool="crate">木箱</div>
+        <div class="tool-btn" data-tool="bouncer">弹板</div>
+        <div class="tool-btn" data-tool="checkpoint">存档</div>
+        <div class="tool-btn" data-tool="portal">传送门</div>
+        <div class="tool-btn" data-tool="spawn">出生点</div>
+        <div class="tool-btn" data-tool="eraser">橡皮擦</div>
+      </div>
+      <div class="tool-group-action">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <div class="tool-btn" id="btn-editor-test">测试</div>
+        <div class="tool-btn" id="btn-editor-save">生成编码</div>
+        <div class="tool-btn" id="btn-editor-clear">清空</div>
+        <div class="tool-btn" id="btn-editor-back">返回</div>
+      </div>
+      <div class="tool-group-zoom">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <div class="tool-btn" id="btn-zoom-out">&minus;</div>
+        <div class="tool-btn" id="btn-zoom-in">+</div>
+      </div>
+      <div class="editor-coords" id="editor-coords">X:0 Y:0 | 100%</div>
+    </div>
+    <div class="editor-canvas-wrap">
+      <canvas id="editor-canvas" width="800" height="600"></canvas>
+    </div>
+    <div class="editor-bottom" id="editor-bottom">
+      <div class="bottom-fold-btn" id="btn-bottom-fold">&#9776; 编码</div>
+      <!-- 关卡名输入框已移除，统一到发布页填写 -->
+      <div class="bottom-group-options" style="display:flex;align-items:center;gap:12px;margin-left:10px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#8D9390;cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="opt-show-indicator" checked style="accent-color:#00F6FF;">
+          传送门指示器
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#8D9390;cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="opt-show-minimap" checked style="accent-color:#00F6FF;">
+          小地图
+        </label>
+      </div>
+      <div class="bottom-group-code">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <span style="font-size:12px;color:#8D9390;">编码:</span>
+        <textarea id="level-code-output" rows="2" readonly placeholder="点击生成编码..."></textarea>
+        <button class="btn btn-small" id="btn-copy-code">复制</button>
+      </div>
+            <div class="bottom-group-import">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <span style="font-size:12px;color:#8D9390;">导入:</span>
+        <input type="text" id="level-code-input" placeholder="粘贴已有编码..." style="background:#121212;border:1px solid #707070;color:#fff;padding:6px 10px;font-size:12px;width:160px;border-radius:4px;outline:none;">
+        <button class="btn btn-small" id="btn-import-code">导入</button>
+      </div>
+<div class="bottom-group-share">
+        <button class="btn btn-small" id="btn-share-level">分享到大厅</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 游戏画布 ========== -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- ========== 虚拟摇杆 ========== -->
+  <div id="joystick-zone">
+    <div id="joystick-base"></div>
+    <div id="joystick-thumb"></div>
+  </div>
+
+  <!-- ========== 跳跃按钮 ========== -->
+  <div id="jump-btn">跃</div>
+
+  <!-- ========== 桌面提示 ========== -->
+  <div id="desktop-hint">WASD / 方向键移动 &middot; 空格 / 上键跳跃</div>
+
+  <!-- ========== 游戏UI ========== -->
+  <div id="game-ui">
+    <div class="top-bar">
+      <div class="ui-btn" id="btn-restart">&#x21bb; 重新开始</div>
+      <div class="ui-btn" id="btn-exit">&#x2715; 退出</div>
+    </div>
+    <div id="level-name-display">关卡 1</div>
+  </div>
+
+  <!-- ========== 过关弹窗 ========== -->
+  <div id="win-modal">
+    <h2>过关!</h2>
+    <p>你成功到达了传送门</p>
+    <div class="btn-row">
+      <button class="btn" id="btn-next-level">下一关</button>
+      <button class="btn" id="btn-back-menu">返回菜单</button>
+    </div>
+  </div>
+
+  <!-- ========== 分享弹窗 ========== -->
+  <div id="share-modal">
+    <h3>分享关卡</h3>
+    <textarea id="share-code-display" readonly></textarea>
+    <div class="btn-row">
+      <button class="btn btn-small" id="btn-share-copy">复制编码</button>
+      <button class="btn btn-small" id="btn-share-close">关闭</button>
+    </div>
+  </div>
+
+  <!-- ========== 发布遮罩 ========== -->
+  <div id="publish-overlay">
+    <div class="spinner"></div>
+    <p>正在发布中...</p>
+  </div>
+
+  <!-- ========== 测试确认弹窗 ========== -->
+  <div id="test-confirm-modal">
+    <h3>发布前测试</h3>
+    <p class="test-hint">发布大厅需要先测试过关</p>
+    <div class="btn-row">
+      <button class="btn" id="btn-test-confirm">开始测试</button>
+      <button class="btn btn-small" id="btn-test-cancel">返回编辑器</button>
+    </div>
+  </div>
+
+  <!-- ========== 发布页 ========== -->
+  <div id="publish-page">
+    <button class="back-btn" id="btn-publish-back">&larr; 返回编辑器</button>
+    <div class="screen-title">发布关卡</div>
+    <div class="screen-subtitle">PUBLISH LEVEL</div>
+    <div class="publish-form">
+      <div class="form-group">
+        <label>关卡名称</label>
+        <input type="text" id="publish-name-input" placeholder="输入关卡名称..." maxlength="30">
+      </div>
+      <div class="form-group">
+        <label>关卡简介</label>
+        <textarea id="publish-desc-input" placeholder="介绍你的关卡玩法、难度或设计思路..." maxlength="200" rows="4"></textarea>
+        <span class="char-count" id="desc-char-count">0/200</span>
+      </div>
+      <div class="publish-preview">
+        <div class="preview-label">关卡编码预览</div>
+        <div class="preview-code" id="publish-code-preview"></div>
+      </div>
+      <button class="btn" id="btn-publish-submit" style="width:100%;margin-top:20px;">确认发布</button>
+    </div>
+  </div>
+
+
+</div>
+
+
+<script>
+// 全局错误捕获
+window.onerror = function(msg, url, line, col, error) {
+  console.error('JS错误:', msg, '行:', line, '列:', col);
+  alert('加载错误: ' + msg + ' (行 ' + line + ')');
+  return false;
+};
+
+// ==================== Supabase 客户端 ====================
+const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
+// FIX v9: API key 加密存储 - 分段 Base64 解码
+const _s = [
+  'c2Jf','cHVibGlz','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN',
+  'kRwSDZ','2TzhYd1','96ME','JYdGtSVg','=='
+];
+const SUPABASE_KEY = (() => { try { return atob(_s.join('')); } catch(e) { return ''; } })();
+
+function buildRestUrl(table, params) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  if (!params) return url;
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    url.searchParams.set(k, String(v));
+  });
+  return url;
+}
+
+async function supabaseGet(table, params = {}) {
+  const url = buildRestUrl(table, params);
+  const res = await fetch(url, {
+    method: 'GET', mode: 'cors', credentials: 'omit',
+    headers: { apikey: SUPABASE_KEY }
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`GET ${table}: ${res.status} ${errText}`);
+  }
+  return res.json();
+}
+
+async function supabasePost(table, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST', mode: 'cors', credentials: 'omit',
+    headers: {
+      apikey: SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`POST ${table}: ${res.status} ${errText}`);
+  }
+  if (res.status === 204) return [];
+  return res.json().catch(() => []);
+}
+
+async function supabasePatch(table, id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH', mode: 'cors', credentials: 'omit',
+    headers: {
+      apikey: SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`PATCH ${table}: ${res.status} ${errText}`);
+  }
+  return true;
+}
+
+async function checkSupabaseHealth() {
+  try {
+    const data = await supabaseGet('levels', { select: 'id', limit: 1 });
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+// ==================== 密码哈希 ====================
+async function sha256(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ==================== 核心引擎 ====================
+const GRID_SIZE = 32;
+const TILE_LAND = 1;
+const TILE_SPIKE = 2;
+const TILE_PORTAL = 3;
+const TILE_SPAWN = 4;
+const TILE_SPIKE_AUTO = 5;
+const TILE_CRATE = 6;
+const TILE_BOUNCER = 7;
+const TILE_CHECKPOINT = 8;
+
+const COLORS = {
+  bg: '#121212', grid: '#1a1a1a', land: '#E1E3E6',
+  spike: '#FFD1D4', portal: '#F4F9A7', player: '#FFFFFF',
+  playerGlow: '#00F6FF', spawn: '#B3F4A8',
+  spikeAuto: '#FF8A95', crate: '#C4A77D', bouncer: '#A0DAF7', checkpoint: '#B3F4A8'
+};
+
+const BUILTIN_LEVELS = [
+  {
+    name: "起跳平台", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 14, y: 0},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:5,y:1,w:3,h:1},
+      {x:10,y:1,w:3,h:1},
+      {x:14,y:1,w:3,h:1}
+    ],
+    spikes: []
+  },
+  {
+    name: "第一个坎", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 16, y: -4},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:1,w:2,h:1},
+      {x:7,y:-1,w:2,h:1},
+      {x:11,y:-2,w:2,h:1},
+      {x:16,y:-3,w:3,h:1}
+    ],
+    spikes: [
+      {x:5,y:1}, {x:6,y:1},
+      {x:9,y:-1}, {x:10,y:-1},
+      {x:13,y:-2}, {x:14,y:-2}
+    ]
+  },
+  {
+    name: "连续小跳", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 26, y: -6},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:0,w:1,h:1},
+      {x:6,y:-1,w:1,h:1},
+      {x:9,y:-2,w:1,h:1},
+      {x:12,y:-3,w:1,h:1},
+      {x:15,y:-4,w:1,h:1},
+      {x:18,y:-5,w:1,h:1},
+      {x:21,y:-5,w:3,h:1},
+      {x:26,y:-5,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:0}, {x:5,y:0},
+      {x:7,y:-1}, {x:8,y:-1},
+      {x:10,y:-2}, {x:11,y:-2},
+      {x:13,y:-3}, {x:14,y:-3},
+      {x:16,y:-4}, {x:17,y:-4},
+      {x:19,y:-5}, {x:20,y:-5}
+    ]
+  },
+  {
+    name: "初见尖刺", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 24, y: -4},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:1,w:2,h:1},
+      {x:7,y:0,w:2,h:1},
+      {x:11,y:-1,w:2,h:1},
+      {x:15,y:0,w:2,h:1},
+      {x:19,y:-1,w:2,h:1},
+      {x:23,y:-3,w:3,h:1}
+    ],
+    spikes: [
+      {x:5,y:1}, {x:6,y:1},
+      {x:9,y:0}, {x:10,y:0},
+      {x:13,y:-1}, {x:14,y:-1},
+      {x:17,y:0}, {x:18,y:0},
+      {x:21,y:-1}, {x:22,y:-1}
+    ]
+  },
+  {
+    name: "尖刺间隙", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 30, y: -6},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:0,w:1,h:1},
+      {x:6,y:-1,w:1,h:1},
+      {x:9,y:-2,w:1,h:1},
+      {x:12,y:-3,w:1,h:1},
+      {x:15,y:-4,w:1,h:1},
+      {x:18,y:-5,w:1,h:1},
+      {x:21,y:-5,w:3,h:1},
+      {x:27,y:-5,w:3,h:1}
+    ],
+    spikes: [
+      {x:1,y:1}, {x:2,y:1},
+      {x:4,y:0}, {x:5,y:0},
+      {x:7,y:-1}, {x:8,y:-1},
+      {x:10,y:-2}, {x:11,y:-2},
+      {x:13,y:-3}, {x:14,y:-3},
+      {x:16,y:-4}, {x:17,y:-4},
+      {x:19,y:-5}, {x:20,y:-5},
+      {x:23,y:-5}, {x:24,y:-5}, {x:25,y:-5}, {x:26,y:-5}
+    ]
+  },
+  {
+    name: "需要二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 26, y: -12},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-3,w:1,h:1},
+      {x:7,y:-6,w:1,h:1},
+      {x:11,y:-9,w:1,h:1},
+      {x:15,y:-6,w:1,h:1},
+      {x:19,y:-10,w:1,h:1},
+      {x:23,y:-11,w:3,h:1},
+      {x:26,y:-11,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-3}, {x:5,y:-3}, {x:6,y:-3},
+      {x:8,y:-6}, {x:9,y:-6}, {x:10,y:-6},
+      {x:12,y:-9}, {x:13,y:-9}, {x:14,y:-9},
+      {x:16,y:-6}, {x:17,y:-6}, {x:18,y:-6},
+      {x:20,y:-10}, {x:21,y:-10}, {x:22,y:-10}
+    ]
+  },
+  {
+    name: "高空恐惧", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 34, y: -17},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-4,w:1,h:1},
+      {x:7,y:-8,w:1,h:1},
+      {x:11,y:-12,w:1,h:1},
+      {x:15,y:-9,w:1,h:1},
+      {x:19,y:-14,w:1,h:1},
+      {x:23,y:-11,w:1,h:1},
+      {x:27,y:-16,w:1,h:1},
+      {x:31,y:-16,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4},
+      {x:8,y:-8}, {x:9,y:-8}, {x:10,y:-8},
+      {x:12,y:-12}, {x:13,y:-12}, {x:14,y:-12},
+      {x:16,y:-9}, {x:17,y:-9}, {x:18,y:-9},
+      {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
+      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11},
+      {x:28,y:-16}, {x:29,y:-16}, {x:30,y:-16}
+    ]
+  },
+  {
+    name: "回环路线", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 40, y: -16},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-1,w:1,h:1},
+      {x:7,y:-4,w:1,h:1},
+      {x:11,y:-7,w:1,h:1},
+      {x:15,y:-9,w:1,h:1},
+      {x:19,y:-7,w:1,h:1},
+      {x:23,y:-11,w:1,h:1},
+      {x:27,y:-9,w:1,h:1},
+      {x:31,y:-13,w:1,h:1},
+      {x:35,y:-11,w:1,h:1},
+      {x:39,y:-15,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-1}, {x:5,y:-1}, {x:6,y:-1},
+      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
+      {x:12,y:-7}, {x:13,y:-7}, {x:14,y:-7},
+      {x:16,y:-9}, {x:17,y:-9}, {x:18,y:-9},
+      {x:20,y:-7}, {x:21,y:-7}, {x:22,y:-7},
+      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11},
+      {x:28,y:-9}, {x:29,y:-9}, {x:30,y:-9},
+      {x:32,y:-13}, {x:33,y:-13}, {x:34,y:-13},
+      {x:36,y:-11}, {x:37,y:-11}, {x:38,y:-11}
+    ]
+  },
+  {
+    name: "极限距离", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -17},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-4,w:1,h:1},
+      {x:8,y:-8,w:1,h:1},
+      {x:13,y:-4,w:1,h:1},
+      {x:18,y:-10,w:1,h:1},
+      {x:23,y:-6,w:1,h:1},
+      {x:28,y:-13,w:1,h:1},
+      {x:33,y:-8,w:1,h:1},
+      {x:38,y:-16,w:1,h:1},
+      {x:43,y:-16,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4}, {x:7,y:-4},
+      {x:9,y:-8}, {x:10,y:-8}, {x:11,y:-8}, {x:12,y:-8},
+      {x:14,y:-4}, {x:15,y:-4}, {x:16,y:-4}, {x:17,y:-4},
+      {x:19,y:-10}, {x:20,y:-10}, {x:21,y:-10}, {x:22,y:-10},
+      {x:24,y:-6}, {x:25,y:-6}, {x:26,y:-6}, {x:27,y:-6},
+      {x:29,y:-13}, {x:30,y:-13}, {x:31,y:-13}, {x:32,y:-13},
+      {x:34,y:-8}, {x:35,y:-8}, {x:36,y:-8}, {x:37,y:-8},
+      {x:39,y:-16}, {x:40,y:-16}, {x:41,y:-16}, {x:42,y:-16}
+    ]
+  },
+  {
+    name: "二段极限", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 46, y: -22},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-6,w:1,h:1},
+      {x:8,y:-12,w:1,h:1},
+      {x:13,y:-6,w:1,h:1},
+      {x:18,y:-14,w:1,h:1},
+      {x:23,y:-9,w:1,h:1},
+      {x:28,y:-17,w:1,h:1},
+      {x:33,y:-11,w:1,h:1},
+      {x:38,y:-20,w:1,h:1},
+      {x:43,y:-15,w:1,h:1},
+      {x:46,y:-21,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-6}, {x:5,y:-6}, {x:6,y:-6}, {x:7,y:-6},
+      {x:9,y:-12}, {x:10,y:-12}, {x:11,y:-12}, {x:12,y:-12},
+      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
+      {x:19,y:-14}, {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
+      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
+      {x:29,y:-17}, {x:30,y:-17}, {x:31,y:-17}, {x:32,y:-17},
+      {x:34,y:-11}, {x:35,y:-11}, {x:36,y:-11}, {x:37,y:-11},
+      {x:39,y:-20}, {x:40,y:-20}, {x:41,y:-20}, {x:42,y:-20},
+      {x:44,y:-15}, {x:45,y:-15}
+    ]
+  },
+  {
+    name: "头顶即死", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 42, y: -22},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:1,w:3,h:1}, {x:8,y:1,w:3,h:1}, {x:13,y:1,w:3,h:1},
+      {x:6,y:1,w:1,h:4}, {x:11,y:1,w:1,h:4},
+      {x:3,y:-4,w:3,h:1}, {x:8,y:-4,w:3,h:1}, {x:13,y:-4,w:3,h:1},
+      {x:6,y:-4,w:1,h:4}, {x:11,y:-4,w:1,h:4},
+      {x:3,y:-9,w:3,h:1}, {x:8,y:-9,w:3,h:1}, {x:13,y:-9,w:3,h:1},
+      {x:6,y:-9,w:1,h:4}, {x:11,y:-9,w:1,h:4},
+      {x:3,y:-14,w:3,h:1}, {x:8,y:-14,w:3,h:1}, {x:13,y:-14,w:3,h:1},
+      {x:16,y:-14,w:2,h:1}, {x:20,y:-16,w:2,h:1}, {x:24,y:-18,w:2,h:1},
+      {x:28,y:-20,w:2,h:1}, {x:32,y:-21,w:2,h:1}, {x:36,y:-21,w:2,h:1},
+      {x:40,y:-21,w:3,h:1}
+    ],
+    spikes: [
+      {x:3,y:2}, {x:4,y:2}, {x:5,y:2},
+      {x:8,y:2}, {x:9,y:2}, {x:10,y:2},
+      {x:13,y:2}, {x:14,y:2}, {x:15,y:2},
+      {x:3,y:-3}, {x:4,y:-3}, {x:5,y:-3},
+      {x:8,y:-3}, {x:9,y:-3}, {x:10,y:-3},
+      {x:13,y:-3}, {x:14,y:-3}, {x:15,y:-3},
+      {x:3,y:-13}, {x:4,y:-13}, {x:5,y:-13},
+      {x:8,y:-13}, {x:9,y:-13}, {x:10,y:-13},
+      {x:13,y:-13}, {x:14,y:-13}, {x:15,y:-13},
+      {x:6,y:3}, {x:7,y:3},
+      {x:11,y:3}, {x:12,y:3},
+      {x:6,y:-2}, {x:7,y:-2},
+      {x:11,y:-2}, {x:12,y:-2},
+      {x:6,y:-11}, {x:7,y:-11},
+      {x:11,y:-11}, {x:12,y:-11},
+      {x:18,y:-16}, {x:19,y:-16},
+      {x:22,y:-18}, {x:23,y:-18},
+      {x:26,y:-20}, {x:27,y:-20},
+      {x:30,y:-21}, {x:31,y:-21},
+      {x:34,y:-21}, {x:35,y:-21},
+      {x:38,y:-21}, {x:39,y:-21}
+    ]
+  },
+  {
+    name: "窄缝求生", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -24},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-2,w:1,h:5},
+      {x:5,y:-3,w:1,h:1},
+      {x:8,y:-6,w:1,h:5},
+      {x:10,y:-7,w:1,h:1},
+      {x:13,y:-10,w:1,h:5},
+      {x:15,y:-11,w:1,h:1},
+      {x:18,y:-14,w:1,h:5},
+      {x:20,y:-15,w:1,h:1},
+      {x:23,y:-18,w:1,h:4},
+      {x:26,y:-19,w:1,h:1},
+      {x:29,y:-21,w:1,h:1},
+      {x:32,y:-22,w:1,h:1},
+      {x:35,y:-22,w:1,h:1},
+      {x:38,y:-23,w:1,h:1},
+      {x:41,y:-23,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-2}, {x:4,y:-1}, {x:4,y:0}, {x:4,y:1},
+      {x:9,y:-6}, {x:9,y:-5}, {x:9,y:-4}, {x:9,y:-3},
+      {x:14,y:-10}, {x:14,y:-9}, {x:14,y:-8}, {x:14,y:-7},
+      {x:19,y:-14}, {x:19,y:-13}, {x:19,y:-12}, {x:19,y:-11},
+      {x:24,y:-18}, {x:24,y:-17}, {x:24,y:-16},
+      {x:6,y:-3}, {x:7,y:-3},
+      {x:11,y:-7}, {x:12,y:-7},
+      {x:16,y:-11}, {x:17,y:-11},
+      {x:21,y:-15}, {x:22,y:-15},
+      {x:27,y:-19}, {x:28,y:-19},
+      {x:30,y:-21}, {x:31,y:-21},
+      {x:33,y:-22}, {x:34,y:-22},
+      {x:36,y:-22}, {x:37,y:-22},
+      {x:39,y:-23}, {x:40,y:-23}
+    ]
+  },
+  {
+    name: "连续极限二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 50, y: -30},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-6,w:1,h:1},
+      {x:8,y:-13,w:1,h:1},
+      {x:13,y:-6,w:1,h:1},
+      {x:18,y:-15,w:1,h:1},
+      {x:23,y:-9,w:1,h:1},
+      {x:28,y:-19,w:1,h:1},
+      {x:33,y:-13,w:1,h:1},
+      {x:38,y:-23,w:1,h:1},
+      {x:43,y:-17,w:1,h:1},
+      {x:48,y:-28,w:1,h:1},
+      {x:50,y:-29,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-6}, {x:5,y:-6}, {x:6,y:-6}, {x:7,y:-6},
+      {x:9,y:-13}, {x:10,y:-13}, {x:11,y:-13}, {x:12,y:-13},
+      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
+      {x:19,y:-15}, {x:20,y:-15}, {x:21,y:-15}, {x:22,y:-15},
+      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
+      {x:29,y:-19}, {x:30,y:-19}, {x:31,y:-19}, {x:32,y:-19},
+      {x:34,y:-13}, {x:35,y:-13}, {x:36,y:-13}, {x:37,y:-13},
+      {x:39,y:-23}, {x:40,y:-23}, {x:41,y:-23}, {x:42,y:-23},
+      {x:44,y:-17}, {x:45,y:-17}, {x:46,y:-17}, {x:47,y:-17},
+      {x:49,y:-28}
+    ]
+  },
+  {
+    name: "踩边而过", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 44, y: -24},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-4,w:1,h:1},
+      {x:7,y:-9,w:1,h:1},
+      {x:11,y:-5,w:1,h:1},
+      {x:15,y:-12,w:1,h:1},
+      {x:19,y:-8,w:1,h:1},
+      {x:23,y:-15,w:1,h:1},
+      {x:27,y:-11,w:1,h:1},
+      {x:31,y:-18,w:1,h:1},
+      {x:35,y:-14,w:1,h:1},
+      {x:39,y:-20,w:1,h:1},
+      {x:43,y:-23,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4},
+      {x:8,y:-9}, {x:9,y:-9}, {x:10,y:-9},
+      {x:12,y:-5}, {x:13,y:-5}, {x:14,y:-5},
+      {x:16,y:-12}, {x:17,y:-12}, {x:18,y:-12},
+      {x:20,y:-8}, {x:21,y:-8}, {x:22,y:-8},
+      {x:24,y:-15}, {x:25,y:-15}, {x:26,y:-15},
+      {x:28,y:-11}, {x:29,y:-11}, {x:30,y:-11},
+      {x:32,y:-18}, {x:33,y:-18}, {x:34,y:-18},
+      {x:36,y:-14}, {x:37,y:-14}, {x:38,y:-14},
+      {x:40,y:-20}, {x:41,y:-20}, {x:42,y:-20}
+    ]
+  },
+  {
+    name: "尖刺回廊", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 50, y: -20},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-1,w:1,h:1},
+      {x:7,y:-4,w:1,h:1},
+      {x:11,y:-2,w:1,h:1},
+      {x:15,y:-6,w:1,h:1},
+      {x:19,y:-4,w:1,h:1},
+      {x:23,y:-8,w:1,h:1},
+      {x:27,y:-6,w:1,h:1},
+      {x:31,y:-10,w:1,h:1},
+      {x:35,y:-8,w:1,h:1},
+      {x:39,y:-12,w:1,h:1},
+      {x:43,y:-10,w:1,h:1},
+      {x:47,y:-15,w:1,h:1},
+      {x:50,y:-19,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-1}, {x:5,y:-1}, {x:6,y:-1},
+      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
+      {x:12,y:-2}, {x:13,y:-2}, {x:14,y:-2},
+      {x:16,y:-6}, {x:17,y:-6}, {x:18,y:-6},
+      {x:20,y:-4}, {x:21,y:-4}, {x:22,y:-4},
+      {x:24,y:-8}, {x:25,y:-8}, {x:26,y:-8},
+      {x:28,y:-6}, {x:29,y:-6}, {x:30,y:-6},
+      {x:32,y:-10}, {x:33,y:-10}, {x:34,y:-10},
+      {x:36,y:-8}, {x:37,y:-8}, {x:38,y:-8},
+      {x:40,y:-12}, {x:41,y:-12}, {x:42,y:-12},
+      {x:44,y:-10}, {x:45,y:-10}, {x:46,y:-10},
+      {x:48,y:-15}, {x:49,y:-15}
+    ]
+  },
+  {
+    name: "高空二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 46, y: -30},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-7,w:1,h:1},
+      {x:8,y:-14,w:1,h:1},
+      {x:13,y:-8,w:1,h:1},
+      {x:18,y:-17,w:1,h:1},
+      {x:23,y:-11,w:1,h:1},
+      {x:28,y:-21,w:1,h:1},
+      {x:33,y:-15,w:1,h:1},
+      {x:38,y:-25,w:1,h:1},
+      {x:43,y:-19,w:1,h:1},
+      {x:46,y:-29,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-7}, {x:5,y:-7}, {x:6,y:-7}, {x:7,y:-7},
+      {x:9,y:-14}, {x:10,y:-14}, {x:11,y:-14}, {x:12,y:-14},
+      {x:14,y:-8}, {x:15,y:-8}, {x:16,y:-8}, {x:17,y:-8},
+      {x:19,y:-17}, {x:20,y:-17}, {x:21,y:-17}, {x:22,y:-17},
+      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11}, {x:27,y:-11},
+      {x:29,y:-21}, {x:30,y:-21}, {x:31,y:-21}, {x:32,y:-21},
+      {x:34,y:-15}, {x:35,y:-15}, {x:36,y:-15}, {x:37,y:-15},
+      {x:39,y:-25}, {x:40,y:-25}, {x:41,y:-25}, {x:42,y:-25},
+      {x:44,y:-19}, {x:45,y:-19}
+    ]
+  },
+  {
+    name: "顶头二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 46, y: -24},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:1,w:3,h:1}, {x:8,y:1,w:3,h:1}, {x:13,y:1,w:3,h:1},
+      {x:6,y:1,w:1,h:5}, {x:11,y:1,w:1,h:5},
+      {x:3,y:-5,w:3,h:1}, {x:8,y:-5,w:3,h:1}, {x:13,y:-5,w:3,h:1},
+      {x:6,y:-5,w:1,h:5}, {x:11,y:-5,w:1,h:5},
+      {x:3,y:-11,w:3,h:1}, {x:8,y:-11,w:3,h:1}, {x:13,y:-11,w:3,h:1},
+      {x:6,y:-11,w:1,h:5}, {x:11,y:-11,w:1,h:5},
+      {x:3,y:-17,w:3,h:1}, {x:8,y:-17,w:3,h:1}, {x:13,y:-17,w:3,h:1},
+      {x:16,y:-17,w:2,h:1}, {x:20,y:-19,w:2,h:1}, {x:24,y:-21,w:2,h:1},
+      {x:28,y:-22,w:2,h:1}, {x:32,y:-23,w:2,h:1}, {x:36,y:-23,w:2,h:1},
+      {x:40,y:-23,w:2,h:1}, {x:44,y:-23,w:3,h:1}
+    ],
+    spikes: [
+      {x:3,y:2}, {x:4,y:2}, {x:5,y:2},
+      {x:8,y:2}, {x:9,y:2}, {x:10,y:2},
+      {x:13,y:2}, {x:14,y:2}, {x:15,y:2},
+      {x:3,y:-4}, {x:4,y:-4}, {x:5,y:-4},
+      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
+      {x:13,y:-4}, {x:14,y:-4}, {x:15,y:-4},
+      {x:3,y:-16}, {x:4,y:-16}, {x:5,y:-16},
+      {x:8,y:-16}, {x:9,y:-16}, {x:10,y:-16},
+      {x:13,y:-16}, {x:14,y:-16}, {x:15,y:-16},
+      {x:6,y:3}, {x:7,y:3},
+      {x:11,y:3}, {x:12,y:3},
+      {x:6,y:-3}, {x:7,y:-3},
+      {x:11,y:-3}, {x:12,y:-3},
+      {x:6,y:-13}, {x:7,y:-13},
+      {x:11,y:-13}, {x:12,y:-13},
+      {x:18,y:-19}, {x:19,y:-19},
+      {x:22,y:-21}, {x:23,y:-21},
+      {x:26,y:-22}, {x:27,y:-22},
+      {x:30,y:-23}, {x:31,y:-23},
+      {x:34,y:-23}, {x:35,y:-23},
+      {x:38,y:-23}, {x:39,y:-23},
+      {x:42,y:-23}, {x:43,y:-23}
+    ]
+  },
+  {
+    name: "踩边二段", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 50, y: -30},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:3,y:-5,w:1,h:1},
+      {x:8,y:-11,w:1,h:1},
+      {x:13,y:-6,w:1,h:1},
+      {x:18,y:-14,w:1,h:1},
+      {x:23,y:-9,w:1,h:1},
+      {x:28,y:-18,w:1,h:1},
+      {x:33,y:-13,w:1,h:1},
+      {x:38,y:-22,w:1,h:1},
+      {x:43,y:-17,w:1,h:1},
+      {x:48,y:-28,w:1,h:1},
+      {x:50,y:-29,w:3,h:1}
+    ],
+    spikes: [
+      {x:4,y:-5}, {x:5,y:-5}, {x:6,y:-5}, {x:7,y:-5},
+      {x:9,y:-11}, {x:10,y:-11}, {x:11,y:-11}, {x:12,y:-11},
+      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
+      {x:19,y:-14}, {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
+      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
+      {x:29,y:-18}, {x:30,y:-18}, {x:31,y:-18}, {x:32,y:-18},
+      {x:34,y:-13}, {x:35,y:-13}, {x:36,y:-13}, {x:37,y:-13},
+      {x:39,y:-22}, {x:40,y:-22}, {x:41,y:-22}, {x:42,y:-22},
+      {x:44,y:-17}, {x:45,y:-17}, {x:46,y:-17}, {x:47,y:-17},
+      {x:49,y:-28}
+    ]
+  },
+  {
+    name: "死亡螺旋", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 56, y: -40},
+    lands: [
+      {x:-2,y:1,w:4,h:1},
+      {x:2,y:-3,w:1,h:1},
+      {x:6,y:-7,w:1,h:1},
+      {x:11,y:-11,w:1,h:1},
+      {x:15,y:-9,w:1,h:1},
+      {x:19,y:-15,w:1,h:1},
+      {x:24,y:-19,w:1,h:1},
+      {x:28,y:-17,w:1,h:1},
+      {x:33,y:-23,w:1,h:1},
+      {x:38,y:-27,w:1,h:1},
+      {x:42,y:-25,w:1,h:1},
+      {x:46,y:-31,w:1,h:1},
+      {x:50,y:-34,w:1,h:1},
+      {x:54,y:-38,w:1,h:1},
+      {x:56,y:-39,w:3,h:1}
+    ],
+    spikes: [
+      {x:0,y:1},{x:1,y:1},{x:2,y:1},
+      {x:3,y:-3},{x:4,y:-3},{x:5,y:-3},
+      {x:7,y:-7},{x:8,y:-7},{x:9,y:-7},{x:10,y:-7},
+      {x:12,y:-11},{x:13,y:-11},{x:14,y:-11},
+      {x:16,y:-9},{x:17,y:-9},{x:18,y:-9},
+      {x:20,y:-15},{x:21,y:-15},{x:22,y:-15},{x:23,y:-15},
+      {x:25,y:-19},{x:26,y:-19},{x:27,y:-19},
+      {x:29,y:-17},{x:30,y:-17},{x:31,y:-17},{x:32,y:-17},
+      {x:34,y:-23},{x:35,y:-23},{x:36,y:-23},{x:37,y:-23},
+      {x:39,y:-27},{x:40,y:-27},{x:41,y:-27},
+      {x:43,y:-25},{x:44,y:-25},{x:45,y:-25},
+      {x:47,y:-31},{x:48,y:-31},{x:49,y:-31},
+      {x:51,y:-34},{x:52,y:-34},{x:53,y:-34},
+      {x:55,y:-38}
+    ]
+  },
+  {
+    name: "不可能任务", w: 100, h: 50,
+    spawn: {x: 0, y: 0}, portal: {x: 62, y: -42},
+    lands: [
+      {x:-2,y:1,w:3,h:1},
+      {x:2,y:-4,w:1,h:1},
+      {x:7,y:-11,w:1,h:1},
+      {x:12,y:-5,w:1,h:1},
+      {x:17,y:-14,w:1,h:1},
+      {x:22,y:-8,w:1,h:1},
+      {x:27,y:-19,w:1,h:1},
+      {x:32,y:-13,w:1,h:1},
+      {x:37,y:-24,w:1,h:1},
+      {x:42,y:-17,w:1,h:1},
+      {x:47,y:-29,w:1,h:1},
+      {x:52,y:-22,w:1,h:1},
+      {x:57,y:-35,w:1,h:1},
+      {x:60,y:-41,w:1,h:1},
+      {x:62,y:-41,w:3,h:1}
+    ],
+    spikes: [
+      {x:0,y:1},{x:1,y:1},{x:2,y:1},
+      {x:3,y:-4},{x:4,y:-4},{x:5,y:-4},{x:6,y:-4},
+      {x:8,y:-11},{x:9,y:-11},{x:10,y:-11},{x:11,y:-11},
+      {x:13,y:-5},{x:14,y:-5},{x:15,y:-5},{x:16,y:-5},
+      {x:18,y:-14},{x:19,y:-14},{x:20,y:-14},{x:21,y:-14},
+      {x:23,y:-8},{x:24,y:-8},{x:25,y:-8},{x:26,y:-8},
+      {x:28,y:-19},{x:29,y:-19},{x:30,y:-19},{x:31,y:-19},
+      {x:33,y:-13},{x:34,y:-13},{x:35,y:-13},{x:36,y:-13},
+      {x:38,y:-24},{x:39,y:-24},{x:40,y:-24},{x:41,y:-24},
+      {x:43,y:-17},{x:44,y:-17},{x:45,y:-17},{x:46,y:-17},
+      {x:48,y:-29},{x:49,y:-29},{x:50,y:-29},{x:51,y:-29},
+      {x:53,y:-22},{x:54,y:-22},{x:55,y:-22},{x:56,y:-22},
+      {x:58,y:-35},{x:59,y:-35},
+      {x:61,y:-41}
+    ]
+  }
+];
+
+let gameState = 'start';
+let currentLevelIdx = 0;
+let currentLevel = null;
+let isCustomLevel = false;
+let isEditorTest = false;
+let isFromLobby = false;
+let editorTestWon = false;  // 标记编辑器测试是否通关
+let shareAfterTest = false;  // 标记是否分享测试流程
+
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+let canvasW, canvasH;
+
+function resizeCanvas() {
+  canvasW = window.innerWidth;
+  canvasH = window.innerHeight;
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+let player = {
+  x: 0, y: 0, vx: 0, vy: 0,
+  w: 24, h: 24, onGround: false,
+  dead: false, won: false, facing: 1,
+  jumpCount: 0, maxJumps: 2
+};
+
+// FIX: 降低移速和跳跃速度，让操作更可控
+const PLAYER_SPEED = 2.8;
+const JUMP_FORCE = -9.5;
+const GRAVITY = 0.35;
+const FRICTION = 0.88;
+
+let camera = { x: 0, y: 0 };
+let keys = {};
+let joystick = { active: false, dx: 0, dy: 0 };
+let jumpPressed = false;
+let particles = [];
+
+function spawnParticles(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 4,
+      vy: (Math.random() - 0.5) * 4,
+      life: 1.0,
+      decay: 0.02 + Math.random() * 0.03,
+      color,
+      size: 2 + Math.random() * 3
+    });
+  }
+}
+
+// ==================== 关卡解析 ====================
+function parseLevel(levelData) {
+  let offset = 100;
+  let level = {
+    w: 200, h: 200,
+    offsetX: offset, offsetY: offset,
+    grid: [],
+    spawn: {x: offset, y: offset},
+    portal: levelData.portal ? {x: levelData.portal.x + offset, y: levelData.portal.y + offset} : null,
+    lands: levelData.lands || [],
+    spikes: levelData.spikes || [],
+    spikeAutos: levelData.spikeAutos || [],
+    crates: levelData.crates || [],
+    bouncers: levelData.bouncers || [],
+    checkpoints: levelData.checkpoints || [],
+    showIndicator: levelData.showIndicator !== false,
+    showMinimap: levelData.showMinimap !== false
+  };
+  for (let y = 0; y < level.h; y++) {
+    level.grid[y] = [];
+    for (let x = 0; x < level.w; x++) level.grid[y][x] = 0;
+  }
+  for (let l of level.lands) {
+    for (let dy = 0; dy < l.h; dy++) {
+      for (let dx = 0; dx < l.w; dx++) {
+        let gy = l.y + dy + offset, gx = l.x + dx + offset;
+        if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+          level.grid[gy][gx] = TILE_LAND;
+        }
+      }
+    }
+  }
+  for (let s of level.spikes) {
+    let gy = s.y + offset, gx = s.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+      level.grid[gy][gx] = TILE_SPIKE;
+    }
+  }
+  for (let s of level.spikeAutos) {
+    let gy = s.y + offset, gx = s.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+      level.grid[gy][gx] = TILE_SPIKE_AUTO;
+    }
+  }
+  for (let c of level.crates) {
+    let gy = c.y + offset, gx = c.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+      level.grid[gy][gx] = TILE_CRATE;
+    }
+  }
+  for (let b of level.bouncers) {
+    let gy = b.y + offset, gx = b.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+      level.grid[gy][gx] = TILE_BOUNCER;
+    }
+  }
+  for (let c of level.checkpoints) {
+    let gy = c.y + offset, gx = c.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+      level.grid[gy][gx] = TILE_CHECKPOINT;
+    }
+  }
+  if (levelData.portal) {
+    let py = levelData.portal.y + offset, px = levelData.portal.x + offset;
+    if (py >= 0 && py < level.h && px >= 0 && px < level.w) {
+      level.grid[py][px] = TILE_PORTAL;
+    }
+  }
+  level.grid[offset][offset] = TILE_SPAWN;
+  return level;
+}
+
+function getLowestTileY(level) {
+  // Find the lowest (largest Y) tile in the level
+  let lowestY = level.spawn.y; // default to spawn
+  for (let y = 0; y < level.h; y++) {
+    for (let x = 0; x < level.w; x++) {
+      if (level.grid[y][x] !== 0) {
+        if (y > lowestY) lowestY = y;
+      }
+    }
+  }
+  return lowestY;
+}
+
+function loadLevel(idx) {
+  currentLevelIdx = idx;
+  isCustomLevel = false;
+  isEditorTest = false;
+  isFromLobby = false;
+  editorTestWon = false;
+  currentLevel = parseLevel(BUILTIN_LEVELS[idx]);
+  resetPlayer(true); // 加载新关卡，清空存档点
+  document.getElementById('level-name-display').textContent = BUILTIN_LEVELS[idx].name;
+}
+
+function loadCustomLevel(levelData) {
+  isCustomLevel = true;
+  currentLevel = parseLevel(levelData);
+  resetPlayer(true); // 加载自定义关卡，清空存档点
+  document.getElementById('level-name-display').textContent = levelData.name || '自定义关卡';
+}
+
+function resetPlayer(clearCheckpoint = false) {
+  let spawnX = currentLevel.spawn.x;
+  let spawnY = currentLevel.spawn.y;
+  // 只有明确要求时才清空存档点（如退出测试）
+  if (clearCheckpoint) {
+    lastCheckpoint = null;
+    activatedCheckpoints.clear();
+  }
+  // 如果有存档点且不是强制清空，从存档点复活
+  if (lastCheckpoint) {
+    player.x = lastCheckpoint.x;
+    player.y = lastCheckpoint.y;
+  } else {
+    player.x = spawnX * GRID_SIZE + 4;
+    player.y = spawnY * GRID_SIZE + 4;
+  }
+  player.vx = 0; player.vy = 0;
+  player.onGround = false;
+  player.dead = false;
+  player.won = false;
+  player.jumpCount = 0;
+  particles = [];
+  camera.x = player.x - canvasW / 2 + player.w / 2;
+  camera.y = player.y - canvasH / 2 + player.h / 2;
+  // 重置存档点激活状态
+  activatedCheckpoints.clear();
+  // 初始化木箱
+  initCrates();
+}
+
+// ==================== 物理更新 ====================
+function updatePhysics() {
+  if (player.dead || player.won) return;
+
+  let moveX = 0;
+  if (keys['ArrowLeft'] || keys['a'] || keys['A'] || joystick.dx < -0.3) {
+    moveX = -PLAYER_SPEED; player.facing = -1;
+  }
+  if (keys['ArrowRight'] || keys['d'] || keys['D'] || joystick.dx > 0.3) {
+    moveX = PLAYER_SPEED; player.facing = 1;
+  }
+  player.vx = moveX;
+
+  if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' '] || jumpPressed) && player.jumpCount < player.maxJumps) {
+    player.vy = JUMP_FORCE;
+    player.jumpCount++;
+    player.onGround = false;
+    jumpPressed = false;
+    let color = player.jumpCount === 1 ? '#FFFFFF' : '#F4F9A7';
+    spawnParticles(player.x + player.w/2, player.y + player.h, color, 6);
+  }
+
+  player.vy += GRAVITY;
+  player.vx *= FRICTION;
+
+  // 更新木箱物理
+  updateCrates();
+
+  movePlayer(player.vx, 0);
+  movePlayer(0, player.vy);
+
+  // 检查存档点
+  checkCheckpoint();
+
+  let px = Math.floor(player.x / GRID_SIZE);
+  let py = Math.floor(player.y / GRID_SIZE);
+  let portalX = currentLevel.portal ? currentLevel.portal.x : -1;
+  let portalY = currentLevel.portal ? currentLevel.portal.y : -1;
+  if (portalX >= 0 && px === portalX && py === portalY) {
+    player.won = true;
+    if (isEditorTest) editorTestWon = true;
+    spawnParticles(player.x + player.w/2, player.y + player.h/2, '#F4F9A7', 30);
+
+    // 如果是分享测试流程，通关后显示发布页
+    if (isEditorTest && shareAfterTest) {
+      setTimeout(() => {
+        document.getElementById('win-modal').style.display = 'none';
+        shareAfterTest = false;
+        document.getElementById('editor-screen').style.display = 'none';
+        showPublishPage();
+      }, 800);
+    } else {
+      setTimeout(() => {
+        const nextBtn = document.getElementById('btn-next-level');
+        const backBtn = document.getElementById('btn-back-menu');
+        if (isEditorTest) {
+          nextBtn.textContent = '再测一次';
+          backBtn.textContent = '返回编辑器';
+          nextBtn.style.display = 'inline-block';
+        } else if (isFromLobby) {
+          nextBtn.textContent = '再玩一次';
+          backBtn.textContent = '返回大厅';
+          nextBtn.style.display = 'inline-block';
+        } else if (isCustomLevel || currentLevelIdx >= BUILTIN_LEVELS.length - 1) {
+          nextBtn.style.display = 'none';
+          backBtn.textContent = '返回菜单';
+        } else {
+          nextBtn.textContent = '下一关';
+          backBtn.textContent = '返回菜单';
+          nextBtn.style.display = 'inline-block';
+        }
+        document.getElementById('win-modal').style.display = 'flex';
+      }, 500);
+    }
+  }
+
+  // Death boundary: 5 tiles below the lowest tile in the level
+  let lowestY = getLowestTileY(currentLevel);
+  let deathY = (lowestY + 5) * GRID_SIZE;
+  if (player.y > deathY) {
+    playerDies();
+  }
+
+  let targetCamX = player.x - canvasW / 2 + player.w / 2;
+  let targetCamY = player.y - canvasH / 2 + player.h / 2;
+  camera.x += (targetCamX - camera.x) * 0.1;
+  camera.y += (targetCamY - camera.y) * 0.1;
+}
+
+function movePlayer(dx, dy) {
+  if (!currentLevel) return;
+  player.x += dx;
+  player.y += dy;
+
+  let left = Math.floor(player.x / GRID_SIZE);
+  let right = Math.floor((player.x + player.w - 0.1) / GRID_SIZE);
+  let top = Math.floor(player.y / GRID_SIZE);
+  let bottom = Math.floor((player.y + player.h - 0.1) / GRID_SIZE);
+
+  for (let gy = top; gy <= bottom; gy++) {
+    for (let gx = left; gx <= right; gx++) {
+      if (gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) continue;
+      let tile = currentLevel.grid[gy][gx];
+      if (tile === TILE_LAND) {
+        let tileX = gx * GRID_SIZE;
+        let tileY = gy * GRID_SIZE;
+        if (player.x < tileX + GRID_SIZE && player.x + player.w > tileX &&
+            player.y < tileY + GRID_SIZE && player.y + player.h > tileY) {
+          if (dy > 0) {
+            player.y = tileY - player.h;
+            player.vy = 0;
+            player.onGround = true;
+            player.jumpCount = 0;
+          } else if (dy < 0) {
+            player.y = tileY + GRID_SIZE;
+            player.vy = 0;
+          } else if (dx > 0) {
+            player.x = tileX - player.w;
+            player.vx = 0;
+          } else if (dx < 0) {
+            player.x = tileX + GRID_SIZE;
+            player.vx = 0;
+          }
+        }
+      } else if (tile === TILE_SPIKE) {
+        // FIX v16: 矩形与三角形相交检测，修复中心对称时无法触发的问题
+        let tileX = gx * GRID_SIZE;
+        let tileY = gy * GRID_SIZE;
+        // 三角形三个顶点（尖刺朝上）
+        let ax = tileX + GRID_SIZE/2, ay = tileY + 4;
+        let bx = tileX + GRID_SIZE - 4, by = tileY + GRID_SIZE - 4;
+        let cx = tileX + 4, cy = tileY + GRID_SIZE - 4;
+
+        // 玩家矩形
+        let px = player.x, py = player.y;
+        let pw = player.w, ph = player.h;
+
+        // 方法1: 检测玩家矩形的四个顶点是否在三角形内
+        let points = [
+          {x: px, y: py},
+          {x: px + pw, y: py},
+          {x: px, y: py + ph},
+          {x: px + pw, y: py + ph}
+        ];
+        let denom = (by - cy)*(ax - cx) + (cx - bx)*(ay - cy);
+        let hit = false;
+        for (let pt of points) {
+          let a = ((by - cy)*(pt.x - cx) + (cx - bx)*(pt.y - cy)) / denom;
+          let b = ((cy - ay)*(pt.x - cx) + (ax - cx)*(pt.y - cy)) / denom;
+          let c = 1 - a - b;
+          if (a >= 0 && b >= 0 && c >= 0) {
+            hit = true; break;
+          }
+        }
+
+        // 方法2: 检测三角形顶点是否在玩家矩形内（处理中心对称情况）
+        if (!hit) {
+          let triPoints = [{x: ax, y: ay}, {x: bx, y: by}, {x: cx, y: cy}];
+          for (let pt of triPoints) {
+            if (pt.x >= px && pt.x <= px + pw && pt.y >= py && pt.y <= py + ph) {
+              hit = true; break;
+            }
+          }
+        }
+
+        // 方法3: 检测矩形中心是否在三角形内（兜底）
+        if (!hit) {
+          let cx2 = px + pw/2, cy2 = py + ph/2;
+          let a = ((by - cy)*(cx2 - cx) + (cx - bx)*(cy2 - cy)) / denom;
+          let b = ((cy - ay)*(cx2 - cx) + (ax - cx)*(cy2 - cy)) / denom;
+          let c = 1 - a - b;
+          if (a >= 0 && b >= 0 && c >= 0) hit = true;
+        }
+
+        if (hit) playerDies();
+      } else if (tile === TILE_SPIKE_AUTO) {
+        // 自动朝向尖刺碰撞检测
+        let dir = getSpikeAutoDir(gx, gy);
+        // 'none' 时默认朝上
+        if (dir === 'none') dir = 'up';
+        let tileX = gx * GRID_SIZE;
+        let tileY = gy * GRID_SIZE;
+        let pad = 4;
+        let s = GRID_SIZE;
+        let ax, ay, bx, by, cx, cy;
+        switch(dir) {
+          case 'up':
+            ax = tileX + s/2; ay = tileY + pad;
+            bx = tileX + s - pad; by = tileY + s - pad;
+            cx = tileX + pad; cy = tileY + s - pad;
+            break;
+          case 'down':
+            ax = tileX + s/2; ay = tileY + s - pad;
+            bx = tileX + s - pad; by = tileY + pad;
+            cx = tileX + pad; cy = tileY + pad;
+            break;
+          case 'left':
+            ax = tileX + pad; ay = tileY + s/2;
+            bx = tileX + s - pad; by = tileY + s - pad;
+            cx = tileX + s - pad; cy = tileY + pad;
+            break;
+          case 'right':
+            ax = tileX + s - pad; ay = tileY + s/2;
+            bx = tileX + pad; by = tileY + s - pad;
+            cx = tileX + pad; cy = tileY + pad;
+            break;
+        }
+
+        let px = player.x, py = player.y, pw = player.w, ph = player.h;
+        let denom = (by - cy)*(ax - cx) + (cx - bx)*(ay - cy);
+        let hit = false;
+        let points = [{x: px, y: py}, {x: px + pw, y: py}, {x: px, y: py + ph}, {x: px + pw, y: py + ph}];
+        for (let pt of points) {
+          let a = ((by - cy)*(pt.x - cx) + (cx - bx)*(pt.y - cy)) / denom;
+          let b = ((cy - ay)*(pt.x - cx) + (ax - cx)*(pt.y - cy)) / denom;
+          let c = 1 - a - b;
+          if (a >= 0 && b >= 0 && c >= 0) { hit = true; break; }
+        }
+        if (!hit) {
+          let triPoints = [{x: ax, y: ay}, {x: bx, y: by}, {x: cx, y: cy}];
+          for (let pt of triPoints) {
+            if (pt.x >= px && pt.x <= px + pw && pt.y >= py && pt.y <= py + ph) { hit = true; break; }
+          }
+        }
+        if (!hit) {
+          let cx2 = px + pw/2, cy2 = py + ph/2;
+          let a = ((by - cy)*(cx2 - cx) + (cx - bx)*(cy2 - cy)) / denom;
+          let b = ((cy - ay)*(cx2 - cx) + (ax - cx)*(cy2 - cy)) / denom;
+          let c = 1 - a - b;
+          if (a >= 0 && b >= 0 && c >= 0) hit = true;
+        }
+        if (hit) playerDies();
+      } else if (tile === TILE_CRATE) {
+        // 木箱：可推动
+        let tileX = gx * GRID_SIZE;
+        let tileY = gy * GRID_SIZE;
+        if (player.x < tileX + GRID_SIZE && player.x + player.w > tileX &&
+            player.y < tileY + GRID_SIZE && player.y + player.h > tileY) {
+          // 找到对应的木箱对象
+          let crate = crates.find(c => Math.floor(c.x/GRID_SIZE) === gx && Math.floor(c.y/GRID_SIZE) === gy);
+          if (dx > 0) {
+            player.x = tileX - player.w;
+            if (crate && !crate.broken) {
+              crate.vx = PLAYER_SPEED * 1.2;
+            }
+          } else if (dx < 0) {
+            player.x = tileX + GRID_SIZE;
+            if (crate && !crate.broken) {
+              crate.vx = -PLAYER_SPEED * 1.5;
+            }
+          } else if (dy > 0) {
+            player.y = tileY - player.h;
+            player.vy = 0;
+            player.onGround = true;
+            player.jumpCount = 0;
+          } else if (dy < 0) {
+            player.y = tileY + GRID_SIZE;
+            player.vy = 0;
+          }
+        }
+      } else if (tile === TILE_BOUNCER) {
+        // 弹板：根据朝向弹跳
+        let tileX = gx * GRID_SIZE;
+        let tileY = gy * GRID_SIZE;
+        let bouncerDir = getBouncerDir(gx, gy);
+        // 'none' 时默认朝上
+        if (bouncerDir === 'none') bouncerDir = 'up';
+
+        if (player.x < tileX + GRID_SIZE && player.x + player.w > tileX &&
+            player.y < tileY + GRID_SIZE && player.y + player.h > tileY) {
+
+          let bounceForce = JUMP_FORCE * 1.5;
+
+          if (bouncerDir === 'up' && dy > 0) {
+            // 朝上弹板：从上方落下时弹跳
+            let prevBottom = (player.y - dy) + player.h;
+            if (prevBottom <= tileY + 6) {
+              player.y = tileY - player.h;
+              player.vy = bounceForce;
+              player.onGround = false;
+              player.jumpCount = 0;
+              spawnParticles(player.x + player.w/2, player.y + player.h, COLORS.bouncer, 8);
+            }
+          } else if (bouncerDir === 'down' && dy < 0) {
+            // 朝下弹板：从下方跳上去时弹跳
+            let prevTop = player.y - dy;
+            if (prevTop >= tileY + GRID_SIZE - 6) {
+              player.y = tileY + GRID_SIZE;
+              player.vy = -bounceForce;
+              spawnParticles(player.x + player.w/2, player.y, COLORS.bouncer, 8);
+            }
+          } else if (bouncerDir === 'left' && dx > 0) {
+            // 朝左弹板：从右边撞上去时弹跳
+            let prevRight = (player.x - dx) + player.w;
+            if (prevRight <= tileX + 6) {
+              player.x = tileX - player.w;
+              player.vx = -PLAYER_SPEED * 2;
+              player.vy = bounceForce * 0.5;
+              player.onGround = false;
+              player.jumpCount = 0;
+              spawnParticles(player.x + player.w, player.y + player.h/2, COLORS.bouncer, 8);
+            }
+          } else if (bouncerDir === 'right' && dx < 0) {
+            // 朝右弹板：从左边撞上去时弹跳
+            let prevLeft = player.x - dx;
+            if (prevLeft >= tileX + GRID_SIZE - 6) {
+              player.x = tileX + GRID_SIZE;
+              player.vx = PLAYER_SPEED * 2;
+              player.vy = bounceForce * 0.5;
+              player.onGround = false;
+              player.jumpCount = 0;
+              spawnParticles(player.x, player.y + player.h/2, COLORS.bouncer, 8);
+            }
+          }
+        }
+      } else if (tile === TILE_CHECKPOINT) {
+        // 存档点：不阻挡
+      }
+    }
+  }
+}
+
+function playerDies() {
+  if (player.dead) return;
+  player.dead = true;
+  spawnParticles(player.x + player.w/2, player.y + player.h/2, '#FFD1D4', 20);
+  setTimeout(() => { resetPlayer(false); }, 800);
+}
+
+// ==================== 渲染 ====================
+let time = 0;
+function render() {
+  time += 0.016;
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  if (!currentLevel) return;
+
+  ctx.save();
+  ctx.translate(-Math.floor(camera.x), -Math.floor(camera.y));
+
+  let startX = Math.floor(camera.x / GRID_SIZE);
+  let endX = Math.ceil((camera.x + canvasW) / GRID_SIZE);
+  let startY = Math.floor(camera.y / GRID_SIZE);
+  let endY = Math.ceil((camera.y + canvasH) / GRID_SIZE);
+
+  for (let y = startY; y <= endY; y++) {
+    for (let x = startX; x <= endX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      let tile = currentLevel.grid[y][x];
+      let tx = x * GRID_SIZE;
+      let ty = y * GRID_SIZE;
+
+      if (tile === TILE_LAND) {
+        ctx.fillStyle = COLORS.land;
+        ctx.fillRect(tx, ty, GRID_SIZE, GRID_SIZE);
+        ctx.strokeStyle = 'rgba(18,18,18,0.3)';
+        ctx.lineWidth = 1;
+        let hasLeft = x > 0 && currentLevel.grid[y][x-1] === TILE_LAND;
+        let hasRight = x < currentLevel.w-1 && currentLevel.grid[y][x+1] === TILE_LAND;
+        let hasUp = y > 0 && currentLevel.grid[y-1][x] === TILE_LAND;
+        let hasDown = y < currentLevel.h-1 && currentLevel.grid[y+1][x] === TILE_LAND;
+        ctx.beginPath();
+        if (!hasLeft) { ctx.moveTo(tx+0.5, ty); ctx.lineTo(tx+0.5, ty+GRID_SIZE); }
+        if (!hasRight) { ctx.moveTo(tx+GRID_SIZE-0.5, ty); ctx.lineTo(tx+GRID_SIZE-0.5, ty+GRID_SIZE); }
+        if (!hasUp) { ctx.moveTo(tx, ty+0.5); ctx.lineTo(tx+GRID_SIZE, ty+0.5); }
+        if (!hasDown) { ctx.moveTo(tx, ty+GRID_SIZE-0.5); ctx.lineTo(tx+GRID_SIZE, ty+GRID_SIZE-0.5); }
+        ctx.stroke();
+      } else if (tile === TILE_SPIKE) {
+        ctx.fillStyle = COLORS.spike;
+        ctx.beginPath();
+        ctx.moveTo(tx + GRID_SIZE/2, ty + 2);
+        ctx.lineTo(tx + GRID_SIZE - 2, ty + GRID_SIZE - 2);
+        ctx.lineTo(tx + 2, ty + GRID_SIZE - 2);
+        ctx.closePath();
+        ctx.fill();
+      } else if (tile === TILE_SPIKE_AUTO) {
+        // 自动朝向尖刺：根据周围墙壁决定朝向
+        let dir = getSpikeAutoDir(x, y);
+        if (dir === 'none') {
+          // 周围没东西时：菱形（45度旋转的正方形）
+          ctx.fillStyle = COLORS.spikeAuto;
+          ctx.beginPath();
+          let pad = 3;
+          let s = GRID_SIZE;
+          ctx.moveTo(tx + s/2, ty + pad);
+          ctx.lineTo(tx + s - pad, ty + s/2);
+          ctx.lineTo(tx + s/2, ty + s - pad);
+          ctx.lineTo(tx + pad, ty + s/2);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          drawSpikeDirection(ctx, tx, ty, dir);
+        }
+      } else if (tile === TILE_CRATE) {
+        // 木箱 - grid 中只画淡淡标记，实际木箱在 crates 数组中绘制
+        ctx.strokeStyle = 'rgba(196,167,125,0.15)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+      } else if (tile === TILE_BOUNCER) {
+        // 弹板：根据朝向绘制
+        let dir = getBouncerDir(x, y);
+        ctx.fillStyle = COLORS.bouncer;
+        let pad = 3;
+        let s = GRID_SIZE;
+        if (dir === 'none') {
+          // 周围没东西时：绘制为实心方块
+          ctx.fillRect(tx + pad, ty + pad, s - pad*2, s - pad*2);
+          ctx.strokeStyle = '#00F6FF';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(tx + pad, ty + pad, s - pad*2, s - pad*2);
+        } else {
+          ctx.beginPath();
+          if (dir === 'up') {
+            ctx.arc(tx + s/2, ty + s, s/2 - pad, Math.PI, 0);
+          } else if (dir === 'down') {
+            ctx.arc(tx + s/2, ty, s/2 - pad, 0, Math.PI);
+          } else if (dir === 'left') {
+            ctx.arc(tx + s, ty + s/2, s/2 - pad, Math.PI * 0.5, Math.PI * 1.5);
+          } else if (dir === 'right') {
+            ctx.arc(tx, ty + s/2, s/2 - pad, Math.PI * 1.5, Math.PI * 0.5);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = '#00F6FF';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      } else if (tile === TILE_CHECKPOINT) {
+        // 存档点
+        let cpKey = x + ',' + y;
+        let isActivated = activatedCheckpoints.has(cpKey);
+        if (isActivated) {
+          // 已激活：实心发光
+          ctx.fillStyle = 'rgba(179,244,168,0.25)';
+          ctx.fillRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+          ctx.fillStyle = '#B3F4A8';
+          ctx.beginPath();
+          ctx.arc(tx + GRID_SIZE/2, ty + GRID_SIZE/2, GRID_SIZE/3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowColor = '#B3F4A8';
+          ctx.shadowBlur = 10;
+          ctx.strokeStyle = '#B3F4A8';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        } else {
+          // 未激活：空心框 + 中心点
+          ctx.strokeStyle = 'rgba(179,244,168,0.6)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(tx + 5, ty + 5, GRID_SIZE - 10, GRID_SIZE - 10);
+          ctx.fillStyle = 'rgba(179,244,168,0.4)';
+          ctx.beginPath();
+          ctx.arc(tx + GRID_SIZE/2, ty + GRID_SIZE/2, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (tile === TILE_PORTAL) {
+        let pulse = Math.sin(time * 3) * 0.3 + 0.7;
+        ctx.fillStyle = `rgba(244, 249, 167, ${pulse})`;
+        ctx.fillRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+        ctx.strokeStyle = '#F4F9A7';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+        if (Math.random() < 0.1) {
+          spawnParticles(tx + GRID_SIZE/2, ty + GRID_SIZE/2, '#F4F9A7', 1);
+        }
+      } else if (tile === TILE_SPAWN) {
+        ctx.fillStyle = 'rgba(179,244,168,0.3)';
+        ctx.fillRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+        ctx.strokeStyle = '#B3F4A8';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.strokeRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  if (!player.dead) {
+    let glowSize = 15 + Math.sin(time * 4) * 5;
+    let gradient = ctx.createRadialGradient(
+      player.x + player.w/2, player.y + player.h/2, 0,
+      player.x + player.w/2, player.y + player.h/2, glowSize
+    );
+    gradient.addColorStop(0, 'rgba(0,246,255,0.6)');
+    gradient.addColorStop(1, 'rgba(0,246,255,0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(player.x - glowSize + player.w/2, player.y - glowSize + player.h/2, glowSize*2, glowSize*2);
+
+    ctx.fillStyle = COLORS.player;
+    ctx.shadowColor = '#00F6FF';
+    ctx.shadowBlur = 15;
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+    ctx.shadowBlur = 0;
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.life -= p.decay;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+
+  // 根据 crates 数组的实际位置绘制木箱（像素级精度）
+  for (let crate of crates) {
+    if (crate.broken) continue;
+    let cx = crate.x, cy = crate.y;
+    ctx.fillStyle = COLORS.crate;
+    ctx.fillRect(cx + 2, cy + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+    ctx.strokeStyle = '#8B7355';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(cx + 2, cy + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+    ctx.beginPath();
+    ctx.moveTo(cx + 2, cy + 2); ctx.lineTo(cx + GRID_SIZE - 2, cy + GRID_SIZE - 2);
+    ctx.moveTo(cx + GRID_SIZE - 2, cy + 2); ctx.lineTo(cx + 2, cy + GRID_SIZE - 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+  if (currentLevel.showIndicator !== false) drawPortalIndicator();
+  if (currentLevel.showMinimap !== false) updateMinimap();
+}
+
+
+// ==================== 小地图 V4（美观版）====================
+// 改进：
+// 1. 圆角玻璃质感面板
+// 2. 所有元素清晰显示（陆地、尖刺、传送门、出生点）
+// 3. 平滑的相机框动画
+// 4. 玩家光点带拖尾
+
+let minimapCanvas = null;
+let minimapCtx = null;
+let minimapOffscreen = null;
+let minimapOffscreenCtx = null;
+let minimapDirty = true;
+let playerTrail = [];
+const TRAIL_LENGTH = 20;
+const MINIMAP_SIZE = 160;
+const MINIMAP_MARGIN = 20;
+
+function initMinimap() {
+  minimapCanvas = document.createElement('canvas');
+  minimapCanvas.id = 'minimap';
+  minimapCanvas.style.cssText = `
+    position: absolute;
+    top: ${MINIMAP_MARGIN}px;
+    right: ${MINIMAP_MARGIN}px;
+    width: ${MINIMAP_SIZE}px;
+    height: ${MINIMAP_SIZE}px;
+    border-radius: 12px;
+    background: rgba(26, 26, 26, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 45;
+    pointer-events: none;
+    display: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  `;
+  minimapCanvas.width = MINIMAP_SIZE * 2;
+  minimapCanvas.height = MINIMAP_SIZE * 2;
+  document.getElementById('game-container').appendChild(minimapCanvas);
+  minimapCtx = minimapCanvas.getContext('2d');
+
+  minimapOffscreen = document.createElement('canvas');
+  minimapOffscreen.width = MINIMAP_SIZE * 2;
+  minimapOffscreen.height = MINIMAP_SIZE * 2;
+  minimapOffscreenCtx = minimapOffscreen.getContext('2d');
+}
+
+function buildMinimap() {
+  if (!currentLevel || !minimapOffscreenCtx) return;
+
+  const ctx = minimapOffscreenCtx;
+  const w = MINIMAP_SIZE * 2;
+  const h = MINIMAP_SIZE * 2;
+
+  // 清空背景
+  ctx.clearRect(0, 0, w, h);
+
+  // 计算关卡边界
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let hasContent = false;
+  for (let y = 0; y < currentLevel.h; y++) {
+    for (let x = 0; x < currentLevel.w; x++) {
+      if (currentLevel.grid[y][x] !== 0) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+        hasContent = true;
+      }
+    }
+  }
+  if (!hasContent) { minimapDirty = false; return; }
+
+  // 包含玩家和传送门
+  const px = Math.floor(player.x / GRID_SIZE);
+  const py = Math.floor(player.y / GRID_SIZE);
+  minX = Math.min(minX, px);
+  minY = Math.min(minY, py);
+  maxX = Math.max(maxX, px);
+  maxY = Math.max(maxY, py);
+
+  if (currentLevel.portal) {
+    minX = Math.min(minX, currentLevel.portal.x);
+    minY = Math.min(minY, currentLevel.portal.y);
+    maxX = Math.max(maxX, currentLevel.portal.x);
+    maxY = Math.max(maxY, currentLevel.portal.y);
+  }
+
+  const pad = 3;
+  minX -= pad; minY -= pad;
+  maxX += pad; maxY += pad;
+
+  const levelW = Math.max(1, maxX - minX + 1);
+  const levelH = Math.max(1, maxY - minY + 1);
+
+  const scaleX = (w - 24) / levelW;
+  const scaleY = (h - 24) / levelH;
+  const scale = Math.min(scaleX, scaleY);
+
+  const offsetX = (w - levelW * scale) / 2;
+  const offsetY = (h - levelH * scale) / 2;
+
+  minimapTransform = { minX, minY, scale, offsetX, offsetY };
+
+  const tileSize = Math.max(2, scale);
+
+  // 绘制陆地（底部层）
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile !== TILE_LAND) continue;
+      const mx = Math.floor(offsetX + (x - minX) * scale);
+      const my = Math.floor(offsetY + (y - minY) * scale);
+      ctx.fillStyle = 'rgba(200, 205, 210, 0.6)';
+      ctx.fillRect(mx, my, tileSize + 0.5, tileSize + 0.5);
+    }
+  }
+
+  // 绘制尖刺（中间层，红色方块带微边框）
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile !== TILE_SPIKE) continue;
+      const mx = Math.floor(offsetX + (x - minX) * scale);
+      const my = Math.floor(offsetY + (y - minY) * scale);
+      ctx.fillStyle = '#FF6B7A';
+      ctx.fillRect(mx, my, tileSize + 0.5, tileSize + 0.5);
+      // 小叉号
+      if (tileSize > 3) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(mx + 1, my + 1);
+        ctx.lineTo(mx + tileSize - 1, my + tileSize - 1);
+        ctx.moveTo(mx + tileSize - 1, my + 1);
+        ctx.lineTo(mx + 1, my + tileSize - 1);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // 绘制自动尖刺（粉色方块）
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile !== TILE_SPIKE_AUTO) continue;
+      const mx = Math.floor(offsetX + (x - minX) * scale);
+      const my = Math.floor(offsetY + (y - minY) * scale);
+      ctx.fillStyle = '#FF8A95';
+      ctx.fillRect(mx, my, tileSize + 0.5, tileSize + 0.5);
+      if (tileSize > 3) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(mx + tileSize/2, my + 1);
+        ctx.lineTo(mx + tileSize/2, my + tileSize - 1);
+        ctx.moveTo(mx + 1, my + tileSize/2);
+        ctx.lineTo(mx + tileSize - 1, my + tileSize/2);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // 绘制木箱（棕色方块）
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile !== TILE_CRATE) continue;
+      const mx = Math.floor(offsetX + (x - minX) * scale);
+      const my = Math.floor(offsetY + (y - minY) * scale);
+      ctx.fillStyle = '#C4A77D';
+      ctx.fillRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+      ctx.strokeStyle = '#8B7355';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+    }
+  }
+
+  // 绘制弹板（青色小方块）
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile !== TILE_BOUNCER) continue;
+      const mx = Math.floor(offsetX + (x - minX) * scale);
+      const my = Math.floor(offsetY + (y - minY) * scale);
+      ctx.fillStyle = '#A0DAF7';
+      ctx.fillRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+      ctx.strokeStyle = '#00F6FF';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+    }
+  }
+
+  // 绘制存档点（绿色小方块）
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
+      const tile = currentLevel.grid[y][x];
+      if (tile !== TILE_CHECKPOINT) continue;
+      const mx = Math.floor(offsetX + (x - minX) * scale);
+      const my = Math.floor(offsetY + (y - minY) * scale);
+      ctx.fillStyle = '#B3F4A8';
+      ctx.fillRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+      ctx.strokeStyle = 'rgba(179, 244, 168, 0.6)';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+    }
+  }
+
+  // 绘制传送门（闪烁方块）
+  if (currentLevel.portal) {
+    const mx = Math.floor(offsetX + (currentLevel.portal.x - minX) * scale);
+    const my = Math.floor(offsetY + (currentLevel.portal.y - minY) * scale);
+    ctx.fillStyle = '#F4F9A7';
+    ctx.fillRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(mx + 0.5, my + 0.5, tileSize, tileSize);
+  }
+
+  // 绘制出生点（绿色虚线框）
+  const sx = Math.floor(offsetX + (currentLevel.spawn.x - minX) * scale);
+  const sy = Math.floor(offsetY + (currentLevel.spawn.y - minY) * scale);
+  ctx.strokeStyle = 'rgba(100, 220, 120, 0.5)';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([2, 2]);
+  ctx.strokeRect(sx + 0.5, sy + 0.5, tileSize, tileSize);
+  ctx.setLineDash([]);
+
+  minimapDirty = false;
+}
+
+let minimapTransform = null;
+
+function updateMinimap() {
+  if (!minimapCanvas || !minimapCtx || !currentLevel || gameState !== 'playing') return;
+
+  if (minimapDirty) buildMinimap();
+  if (!minimapTransform) return;
+
+  const ctx = minimapCtx;
+  const w = MINIMAP_SIZE * 2;
+  const h = MINIMAP_SIZE * 2;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // 绘制圆角裁剪
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(0, 0, w, h, 24);
+  ctx.clip();
+
+  // 背景
+  ctx.fillStyle = 'rgba(26, 26, 26, 0.9)';
+  ctx.fillRect(0, 0, w, h);
+
+  // 复制地图
+  ctx.drawImage(minimapOffscreen, 0, 0);
+
+  const { minX, minY, scale, offsetX, offsetY } = minimapTransform;
+
+  // 玩家位置
+  const px = Math.floor(player.x / GRID_SIZE);
+  const py = Math.floor(player.y / GRID_SIZE);
+  const playerMX = offsetX + (px - minX) * scale;
+  const playerMY = offsetY + (py - minY) * scale;
+  const playerSize = Math.max(3, scale * 0.5);
+
+  // 更新轨迹
+  playerTrail.push({ x: playerMX, y: playerMY });
+  if (playerTrail.length > TRAIL_LENGTH) playerTrail.shift();
+
+  // 绘制轨迹（渐变淡出，格子中心）
+  for (let i = 0; i < playerTrail.length; i++) {
+    const t = playerTrail[i];
+    const alpha = (i / playerTrail.length) * 0.4;
+    const size = playerSize * (0.3 + 0.7 * (i / playerTrail.length));
+    ctx.fillStyle = `rgba(0, 246, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(t.x + scale/2, t.y + scale/2, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 玩家光点（格子中心）
+  const pulse = (Math.sin(time * 5) + 1) / 2;
+  ctx.fillStyle = `rgba(0, 246, 255, ${0.85 + pulse * 0.15})`;
+  ctx.shadowColor = '#00F6FF';
+  ctx.shadowBlur = 15;
+  ctx.beginPath();
+  ctx.arc(playerMX + scale/2, playerMY + scale/2, playerSize, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // 视野框（半透明矩形）
+  const viewW = (canvasW / GRID_SIZE) * scale;
+  const viewH = (canvasH / GRID_SIZE) * scale;
+  ctx.strokeStyle = 'rgba(0, 246, 255, 0.12)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(
+    playerMX + scale/2 - viewW/2,
+    playerMY + scale/2 - viewH/2,
+    viewW, viewH
+  );
+
+  ctx.restore();
+
+  // 传送门脉冲圈（在 clip 外绘制）
+  if (currentLevel.portal) {
+    const portalMX = offsetX + (currentLevel.portal.x - minX) * scale;
+    const portalMY = offsetY + (currentLevel.portal.y - minY) * scale;
+    const portalPulse = (Math.sin(time * 3) + 1) / 2;
+    ctx.strokeStyle = `rgba(244, 249, 167, ${0.4 + portalPulse * 0.3})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(portalMX + scale/2, portalMY + scale/2, scale * (0.8 + portalPulse * 0.5), 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+function invalidateMinimap() {
+  minimapDirty = true;
+  playerTrail = [];
+}
+// ==================== 自动方向计算（尖刺/弹板共用）====================
+function getAutoDir(gx, gy, tileType) {
+  // 编辑器渲染时 currentLevel 可能为 null
+  if (!currentLevel || !currentLevel.grid) return 'up';
+
+  // 检查上下左右是否有墙（陆地、木箱、存档点算作"墙"参考；尖刺和弹板不算）
+  function isWall(tile) {
+    return tile === TILE_LAND || tile === TILE_CRATE || tile === TILE_CHECKPOINT ||
+           tile === TILE_PORTAL || tile === TILE_SPAWN;
+  }
+
+  let up = (gy > 0 && isWall(currentLevel.grid[gy-1][gx]));
+  let down = (gy < currentLevel.h-1 && isWall(currentLevel.grid[gy+1][gx]));
+  let left = (gx > 0 && isWall(currentLevel.grid[gy][gx-1]));
+  let right = (gx < currentLevel.w-1 && isWall(currentLevel.grid[gy][gx+1]));
+
+  let wallCount = (up?1:0) + (down?1:0) + (left?1:0) + (right?1:0);
+
+  // 弹板特殊规则：3个方向有墙时变成方块（'none'）
+  if (tileType === 'bouncer' && wallCount >= 3) {
+    return 'none';
+  }
+
+  // 1个方向有墙：朝向墙的反面
+  if (wallCount === 1) {
+    if (up) return 'down';
+    if (down) return 'up';
+    if (left) return 'right';
+    if (right) return 'left';
+  }
+
+  // 2个方向有墙
+  if (wallCount === 2) {
+    if (up && down) return 'right';
+    if (left && right) return 'down';
+    if (up && left) return 'down';
+    if (up && right) return 'down';
+    if (down && left) return 'up';
+    if (down && right) return 'up';
+  }
+
+  // 3个方向有墙：朝向唯一开放的方向
+  if (wallCount === 3) {
+    if (!down) return 'down';
+    if (!up) return 'up';
+    if (!left) return 'left';
+    if (!right) return 'right';
+  }
+
+  // 0个方向有墙：返回 'none'，绘制为方块/菱形
+  return 'none';
+}
+
+function getEditorAutoDir(gx, gy, tileType) {
+  function isEditorWall(x, y) {
+    let tile = editorCells.get(x + ',' + y);
+    return tile === TILE_LAND || tile === TILE_CRATE ||
+           tile === TILE_CHECKPOINT || tile === TILE_PORTAL || tile === TILE_SPAWN;
+  }
+
+  let up = isEditorWall(gx, gy - 1);
+  let down = isEditorWall(gx, gy + 1);
+  let left = isEditorWall(gx - 1, gy);
+  let right = isEditorWall(gx + 1, gy);
+
+  let wallCount = (up?1:0) + (down?1:0) + (left?1:0) + (right?1:0);
+
+  // 弹板特殊规则：3个方向有墙时变成方块（'none'）
+  if (tileType === 'bouncer' && wallCount >= 3) {
+    return 'none';
+  }
+
+  if (wallCount === 1) {
+    if (up) return 'down';
+    if (down) return 'up';
+    if (left) return 'right';
+    if (right) return 'left';
+  }
+
+  if (wallCount === 2) {
+    if (up && down) return 'right';
+    if (left && right) return 'down';
+    if (up && left) return 'down';
+    if (up && right) return 'down';
+    if (down && left) return 'up';
+    if (down && right) return 'up';
+  }
+
+  if (wallCount === 3) {
+    if (!down) return 'down';
+    if (!up) return 'up';
+    if (!left) return 'left';
+    if (!right) return 'right';
+  }
+
+  // 0个方向有墙：返回 'none'，绘制为方块/菱形
+  return 'none';
+}
+
+function getSpikeAutoDir(gx, gy) {
+  return getAutoDir(gx, gy);
+}
+
+// 弹板方向（与尖刺共用逻辑）
+function getBouncerDir(gx, gy) {
+  return getAutoDir(gx, gy, 'bouncer');
+}
+
+function drawSpikeDirection(ctx, tx, ty, dir) {
+  ctx.fillStyle = COLORS.spikeAuto;
+  ctx.beginPath();
+  let pad = 3;
+  let s = GRID_SIZE;
+  if (dir === 'none') {
+    ctx.moveTo(tx + s/2, ty + pad);
+    ctx.lineTo(tx + s - pad, ty + s/2);
+    ctx.lineTo(tx + s/2, ty + s - pad);
+    ctx.lineTo(tx + pad, ty + s/2);
+  } else if (dir === 'up') {
+    ctx.moveTo(tx + s/2, ty + pad);
+    ctx.lineTo(tx + s - pad, ty + s - pad);
+    ctx.lineTo(tx + pad, ty + s - pad);
+  } else if (dir === 'down') {
+    ctx.moveTo(tx + s/2, ty + s - pad);
+    ctx.lineTo(tx + s - pad, ty + pad);
+    ctx.lineTo(tx + pad, ty + pad);
+  } else if (dir === 'left') {
+    ctx.moveTo(tx + pad, ty + s/2);
+    ctx.lineTo(tx + s - pad, ty + s - pad);
+    ctx.lineTo(tx + s - pad, ty + pad);
+  } else if (dir === 'right') {
+    ctx.moveTo(tx + s - pad, ty + s/2);
+    ctx.lineTo(tx + pad, ty + s - pad);
+    ctx.lineTo(tx + pad, ty + pad);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+// ==================== 木箱物理 ====================
+let crates = []; // {x, y, vx, vy, broken}
+
+function initCrates() {
+  crates = [];
+  if (!currentLevel) return;
+  for (let y = 0; y < currentLevel.h; y++) {
+    for (let x = 0; x < currentLevel.w; x++) {
+      if (currentLevel.grid[y][x] === TILE_CRATE) {
+        crates.push({ x: x * GRID_SIZE, y: y * GRID_SIZE, vx: 0, vy: 0, broken: false });
+      }
+    }
+  }
+}
+
+function updateCrates() {
+  if (!currentLevel) return;
+  for (let crate of crates) {
+    if (crate.broken) continue;
+
+    // 重力
+    crate.vy += GRAVITY * 0.5;
+
+    // 阻力
+    crate.vx *= 0.95;
+    // 速度小于阈值时停止，避免微动
+    if (Math.abs(crate.vx) < 0.3) crate.vx = 0;
+
+    // 先从 grid 中移除自己，避免碰撞检测时检测到自己
+    let selfGx = Math.floor((crate.x + GRID_SIZE/2) / GRID_SIZE);
+    let selfGy = Math.floor((crate.y + GRID_SIZE/2) / GRID_SIZE);
+    if (selfGy >= 0 && selfGy < currentLevel.h && selfGx >= 0 && selfGx < currentLevel.w) {
+      if (currentLevel.grid[selfGy][selfGx] === TILE_CRATE) {
+        currentLevel.grid[selfGy][selfGx] = 0;
+      }
+    }
+
+    // 分别处理 X 和 Y 方向的移动
+    // X 方向
+    let nextX = crate.x + crate.vx;
+    let step = Math.sign(crate.vx);
+    let currLeft = Math.floor(crate.x / GRID_SIZE);
+    let currRight = Math.floor((crate.x + GRID_SIZE - 0.1) / GRID_SIZE);
+    let nextLeft = Math.floor(nextX / GRID_SIZE);
+    let nextRight = Math.floor((nextX + GRID_SIZE - 0.1) / GRID_SIZE);
+    let topY = Math.floor(crate.y / GRID_SIZE);
+    let bottomY = Math.floor((crate.y + GRID_SIZE - 0.1) / GRID_SIZE);
+
+    let blockedX = false;
+    let hitSpike = false;
+    // 检测所有新进入的格子
+    let checkStart = step > 0 ? currRight + 1 : nextLeft;
+    let checkEnd = step > 0 ? nextRight : currLeft - 1;
+    for (let gx = Math.min(checkStart, checkEnd); gx <= Math.max(checkStart, checkEnd); gx++) {
+      for (let gy = topY; gy <= bottomY; gy++) {
+        if (gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) continue;
+        let tile = currentLevel.grid[gy][gx];
+        if (tile === TILE_LAND || tile === TILE_CRATE) {
+          blockedX = true;
+          if (step > 0) {
+            crate.x = gx * GRID_SIZE - GRID_SIZE;
+          } else {
+            crate.x = (gx + 1) * GRID_SIZE;
+          }
+          break;
+        } else if (tile === TILE_SPIKE || tile === TILE_SPIKE_AUTO) {
+          hitSpike = true;
+          break;
+        }
+      }
+      if (blockedX || hitSpike) break;
+    }
+
+    if (hitSpike) {
+      crate.broken = true;
+      spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
+    } else if (!blockedX) {
+      crate.x = nextX;
+    } else {
+      crate.vx = 0;
+    }
+
+    // Y 方向
+    let nextY = crate.y + crate.vy;
+    let newTop = Math.floor(nextY / GRID_SIZE);
+    let newBottom = Math.floor((nextY + GRID_SIZE - 0.1) / GRID_SIZE);
+    let crateLeft = Math.floor(crate.x / GRID_SIZE);
+    let crateRight = Math.floor((crate.x + GRID_SIZE - 0.1) / GRID_SIZE);
+
+    let blockedY = false;
+    let onGround = false;
+    for (let gx = crateLeft; gx <= crateRight; gx++) {
+      for (let gy of [newTop, newBottom]) {
+        if (gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) continue;
+        let tile = currentLevel.grid[gy][gx];
+        if (tile === TILE_LAND || tile === TILE_CRATE) {
+          blockedY = true;
+          if (crate.vy > 0) {
+            // 高处掉落砸碎检测（先检测，再重置速度）
+            if (crate.vy > 6) {
+              crate.broken = true;
+              spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
+            }
+            // 下落碰到地面
+            crate.y = gy * GRID_SIZE - GRID_SIZE;
+            crate.vy = 0;
+            onGround = true;
+          } else if (crate.vy < 0) {
+            // 上升碰到天花板
+            crate.y = (gy + 1) * GRID_SIZE;
+            crate.vy = 0;
+          }
+          break;
+        } else if (tile === TILE_SPIKE || tile === TILE_SPIKE_AUTO) {
+          // 碰到尖刺，碎掉
+          crate.broken = true;
+          spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
+          break;
+        }
+      }
+      if (blockedY) break;
+    }
+
+    if (!blockedY) {
+      crate.y = nextY;
+    }
+
+    // 移动完成后，把自己加回 grid 的新位置
+    let newGx = Math.floor((crate.x + GRID_SIZE/2) / GRID_SIZE);
+    let newGy = Math.floor((crate.y + GRID_SIZE/2) / GRID_SIZE);
+    if (newGy >= 0 && newGy < currentLevel.h && newGx >= 0 && newGx < currentLevel.w) {
+      currentLevel.grid[newGy][newGx] = TILE_CRATE;
+    }
+
+    // 边界检查
+    if (crate.y > currentLevel.h * GRID_SIZE) {
+      crate.broken = true;
+    }
+  }
+
+  // 移除破碎的木箱
+  crates = crates.filter(c => !c.broken);
+}
+
+function pushCrate(crate, dir, force) {
+  if (crate.broken) return;
+  if (dir === 'left') crate.vx = -force * 0.3;
+  if (dir === 'right') crate.vx = force * 0.3;
+}
+
+// ==================== 存档点 ====================
+let lastCheckpoint = null;
+let activatedCheckpoints = new Set(); // 记录已激活的存档点
+
+function checkCheckpoint() {
+  if (!currentLevel) return;
+  let px = Math.floor(player.x / GRID_SIZE);
+  let py = Math.floor(player.y / GRID_SIZE);
+
+  if (py >= 0 && py < currentLevel.h && px >= 0 && px < currentLevel.w) {
+    if (currentLevel.grid[py][px] === TILE_CHECKPOINT) {
+      let key = px + ',' + py;
+      lastCheckpoint = { x: px * GRID_SIZE + 4, y: py * GRID_SIZE + 4 };
+      // 首次激活时添加闪光效果
+      if (!activatedCheckpoints.has(key)) {
+        activatedCheckpoints.add(key);
+        spawnParticles(px * GRID_SIZE + GRID_SIZE/2, py * GRID_SIZE + GRID_SIZE/2, '#B3F4A8', 12);
+      }
+    }
+  }
+}
+
+// ==================== 传送门指示器 V3（修复版）====================
+// FIX: 将指示器移到左下角，避免与小地图重叠
+function drawPortalIndicator() {
+  if (!currentLevel || !currentLevel.portal || player.won || player.dead) return;
+
+  const portalX = currentLevel.portal.x * GRID_SIZE + GRID_SIZE/2;
+  const portalY = currentLevel.portal.y * GRID_SIZE + GRID_SIZE/2;
+  const screenPortalX = portalX - camera.x;
+  const screenPortalY = portalY - camera.y;
+
+  const margin = 80;
+  const inScreen = screenPortalX > margin && screenPortalX < canvasW - margin &&
+                   screenPortalY > margin && screenPortalY < canvasH - margin;
+  if (inScreen) return;
+
+  const centerX = canvasW / 2;
+  const centerY = canvasH / 2;
+  const dx = screenPortalX - centerX;
+  const dy = screenPortalY - centerY;
+  const angle = Math.atan2(dy, dx);
+
+  const edgeMargin = 40;
+  let indicatorX = centerX + Math.cos(angle) * (canvasW / 2 - edgeMargin);
+  let indicatorY = centerY + Math.sin(angle) * (canvasH / 2 - edgeMargin);
+
+  indicatorX = Math.max(edgeMargin, Math.min(canvasW - edgeMargin, indicatorX));
+  indicatorY = Math.max(edgeMargin, Math.min(canvasH - edgeMargin, indicatorY));
+
+  ctx.save();
+
+  const pulse = (Math.sin(time * 3) + 1) / 2;
+
+  // 简洁的三角形箭头
+  ctx.translate(indicatorX, indicatorY);
+  ctx.rotate(angle);
+
+  // 外发光
+  ctx.shadowColor = '#F4F9A7';
+  ctx.shadowBlur = 12 + pulse * 8;
+
+  // 实心三角形
+  ctx.fillStyle = '#F4F9A7';
+  ctx.beginPath();
+  ctx.moveTo(10, 0);
+  ctx.lineTo(-6, -7);
+  ctx.lineTo(-6, 7);
+  ctx.closePath();
+  ctx.fill();
+
+  // 内高光
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.beginPath();
+  ctx.moveTo(8, 0);
+  ctx.lineTo(-4, -5);
+  ctx.lineTo(-4, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+
+  // 距离文字 — 更简洁
+  const dist = Math.round(Math.sqrt(dx*dx + dy*dy) / GRID_SIZE);
+  ctx.font = '11px "Microsoft YaHei", sans-serif';
+  ctx.fillStyle = 'rgba(244, 249, 167, 0.6)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(dist + 'm', indicatorX, indicatorY + 22);
+}
+
+function gameLoop() {
+  if (gameState === 'playing') {
+    updatePhysics();
+    render();
+  }
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();
+
+// ==================== 编辑器 ====================
+const EDITOR_CELL_SIZE = 32;
+let editorCells = new Map();
+let editorTool = 'land';
+let editorSpawn = { x: 2, y: 10 };
+let editorPortal = { x: 20, y: 10 };
+let editorViewX = 0, editorViewY = 0;
+let editorZoom = 1;
+let editorCurrentLand = null;
+let editorPendingCell = null;
+let isDrawing = false;
+let drawStart = null;
+let isPanning = false;
+let panStartX = 0, panStartY = 0;
+let panViewStartX = 0, panViewStartY = 0;
+
+const editorCanvas = document.getElementById('editor-canvas');
+const editorCtx = editorCanvas.getContext('2d');
+
+function initEditor() {
+  editorCells.clear();
+  editorSpawn = { x: 2, y: 10 };
+  editorPortal = { x: 20, y: 10 };
+  editorViewX = 0; editorViewY = 0;
+  editorZoom = 1;
+  isPanning = false; isDrawing = false;
+  editorTestWon = false;
+  updateEditorCoords();
+  renderEditor();
+}
+
+function updateEditorCoords() {
+  const el = document.getElementById('editor-coords');
+  if (el) el.textContent = `X:${Math.round(editorViewX)} Y:${Math.round(editorViewY)} | ${Math.round(editorZoom * 100)}%`;
+}
+
+function renderEditor() {
+  const ectx = editorCtx;
+  const w = editorCanvas.width;
+  const h = editorCanvas.height;
+  const cs = EDITOR_CELL_SIZE * editorZoom;
+
+  ectx.fillStyle = '#121212';
+  ectx.fillRect(0, 0, w, h);
+  ectx.save();
+  ectx.translate(w/2 - editorViewX * cs, h/2 - editorViewY * cs);
+
+  let startX = Math.floor((editorViewX * cs - w/2) / cs) - 1;
+  let endX = Math.ceil((editorViewX * cs + w/2) / cs) + 1;
+  let startY = Math.floor((editorViewY * cs - h/2) / cs) - 1;
+  let endY = Math.ceil((editorViewY * cs + h/2) / cs) + 1;
+
+  ectx.strokeStyle = '#1a1a1a';
+  ectx.lineWidth = 1;
+  for (let x = startX; x <= endX; x++) {
+    ectx.beginPath(); ectx.moveTo(x * cs, startY * cs); ectx.lineTo(x * cs, endY * cs); ectx.stroke();
+  }
+  for (let y = startY; y <= endY; y++) {
+    ectx.beginPath(); ectx.moveTo(startX * cs, y * cs); ectx.lineTo(endX * cs, y * cs); ectx.stroke();
+  }
+
+  for (let [key, tile] of editorCells) {
+    let [gx, gy] = key.split(',').map(Number);
+    let tx = gx * cs, ty = gy * cs;
+    if (tx + cs < -w/2 + editorViewX * cs || tx > w/2 + editorViewX * cs ||
+        ty + cs < -h/2 + editorViewY * cs || ty > h/2 + editorViewY * cs) continue;
+
+    if (tile === TILE_LAND) {
+      ectx.fillStyle = '#E1E3E6';
+      ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
+      let hasLeft = editorCells.has((gx-1)+','+gy);
+      let hasRight = editorCells.has((gx+1)+','+gy);
+      let hasUp = editorCells.has(gx+','+(gy-1));
+      let hasDown = editorCells.has(gx+','+(gy+1));
+      ectx.strokeStyle = 'rgba(18,18,18,0.3)';
+      ectx.lineWidth = 1;
+      ectx.beginPath();
+      if (!hasLeft) { ectx.moveTo(tx+0.5, ty); ectx.lineTo(tx+0.5, ty+cs); }
+      if (!hasRight) { ectx.moveTo(tx+cs-0.5, ty); ectx.lineTo(tx+cs-0.5, ty+cs); }
+      if (!hasUp) { ectx.moveTo(tx, ty+0.5); ectx.lineTo(tx+cs, ty+0.5); }
+      if (!hasDown) { ectx.moveTo(tx, ty+cs-0.5); ectx.lineTo(tx+cs, ty+cs-0.5); }
+      ectx.stroke();
+    } else if (tile === TILE_SPIKE) {
+      ectx.fillStyle = '#FFD1D4';
+      ectx.beginPath();
+      ectx.moveTo(tx + cs/2, ty + 2);
+      ectx.lineTo(tx + cs - 2, ty + cs - 2);
+      ectx.lineTo(tx + 2, ty + cs - 2);
+      ectx.closePath(); ectx.fill();
+    } else if (tile === TILE_SPIKE_AUTO) {
+      // 自动尖刺：根据朝向绘制
+      let dir = getEditorAutoDir(gx, gy);
+      ectx.fillStyle = '#FF8A95';
+      ectx.beginPath();
+      let pad = 3;
+      let s = cs;
+      if (dir === 'none') {
+        // 周围没东西时：菱形（45度旋转的正方形）
+        ectx.moveTo(tx + s/2, ty + pad);
+        ectx.lineTo(tx + s - pad, ty + s/2);
+        ectx.lineTo(tx + s/2, ty + s - pad);
+        ectx.lineTo(tx + pad, ty + s/2);
+      } else if (dir === 'up') {
+        ectx.moveTo(tx + s/2, ty + pad);
+        ectx.lineTo(tx + s - pad, ty + s - pad);
+        ectx.lineTo(tx + pad, ty + s - pad);
+      } else if (dir === 'down') {
+        ectx.moveTo(tx + s/2, ty + s - pad);
+        ectx.lineTo(tx + s - pad, ty + pad);
+        ectx.lineTo(tx + pad, ty + pad);
+      } else if (dir === 'left') {
+        ectx.moveTo(tx + pad, ty + s/2);
+        ectx.lineTo(tx + s - pad, ty + s - pad);
+        ectx.lineTo(tx + s - pad, ty + pad);
+      } else if (dir === 'right') {
+        ectx.moveTo(tx + s - pad, ty + s/2);
+        ectx.lineTo(tx + pad, ty + s - pad);
+        ectx.lineTo(tx + pad, ty + pad);
+      }
+      ectx.closePath();
+      ectx.fill();
+      ectx.strokeStyle = '#FFD1D4';
+      ectx.lineWidth = 1;
+      ectx.stroke();
+    } else if (tile === TILE_CRATE) {
+      // 木箱：棕色方块 + 十字纹理
+      ectx.fillStyle = '#C4A77D';
+      ectx.fillRect(tx + 2, ty + 2, cs - 4, cs - 4);
+      ectx.strokeStyle = '#8B7355';
+      ectx.lineWidth = 1.5;
+      ectx.strokeRect(tx + 2, ty + 2, cs - 4, cs - 4);
+      ectx.beginPath();
+      ectx.moveTo(tx + 2, ty + 2); ectx.lineTo(tx + cs - 2, ty + cs - 2);
+      ectx.moveTo(tx + cs - 2, ty + 2); ectx.lineTo(tx + 2, ty + cs - 2);
+      ectx.stroke();
+    } else if (tile === TILE_BOUNCER) {
+      // 弹板：根据朝向绘制
+      let dir = getEditorAutoDir(gx, gy, 'bouncer');
+      ectx.fillStyle = '#A0DAF7';
+      let pad = 3;
+      let s = cs;
+      if (dir === 'none') {
+        // 周围没东西时：绘制为实心方块
+        ectx.fillRect(tx + pad, ty + pad, s - pad*2, s - pad*2);
+        ectx.strokeStyle = '#00F6FF';
+        ectx.lineWidth = 1.5;
+        ectx.strokeRect(tx + pad, ty + pad, s - pad*2, s - pad*2);
+      } else {
+        ectx.beginPath();
+        if (dir === 'up') {
+          ectx.arc(tx + s/2, ty + s, s/2 - pad, Math.PI, 0);
+        } else if (dir === 'down') {
+          ectx.arc(tx + s/2, ty, s/2 - pad, 0, Math.PI);
+        } else if (dir === 'left') {
+          ectx.arc(tx + s, ty + s/2, s/2 - pad, Math.PI * 0.5, Math.PI * 1.5);
+        } else if (dir === 'right') {
+          ectx.arc(tx, ty + s/2, s/2 - pad, Math.PI * 1.5, Math.PI * 0.5);
+        }
+        ectx.closePath();
+        ectx.fill();
+        ectx.strokeStyle = '#00F6FF';
+        ectx.lineWidth = 1.5;
+        ectx.stroke();
+      }
+    } else if (tile === TILE_CHECKPOINT) {
+      // 存档点：空心框 + 中心点
+      ectx.strokeStyle = 'rgba(179,244,168,0.6)';
+      ectx.lineWidth = 2;
+      ectx.strokeRect(tx + 4, ty + 4, cs - 8, cs - 8);
+      ectx.fillStyle = 'rgba(179,244,168,0.4)';
+      ectx.beginPath();
+      ectx.arc(tx + cs/2, ty + cs/2, 3, 0, Math.PI * 2);
+      ectx.fill();
+    } else if (tile === TILE_PORTAL) {
+      ectx.fillStyle = '#F4F9A7';
+      ectx.fillRect(tx + 2, ty + 2, cs - 4, cs - 4);
+      ectx.strokeStyle = '#F4F9A7';
+      ectx.strokeRect(tx + 2, ty + 2, cs - 4, cs - 4);
+    } else if (tile === TILE_SPAWN) {
+      ectx.fillStyle = 'rgba(179,244,168,0.3)';
+      ectx.fillRect(tx + 2, ty + 2, cs - 4, cs - 4);
+      ectx.strokeStyle = '#B3F4A8';
+      ectx.setLineDash([3, 3]);
+      ectx.strokeRect(tx + 2, ty + 2, cs - 4, cs - 4);
+      ectx.setLineDash([]);
+    }
+  }
+
+  if (editorCurrentLand && editorTool === 'land') {
+    ectx.fillStyle = 'rgba(224,227,230,0.5)';
+    ectx.fillRect(editorCurrentLand.x * cs, editorCurrentLand.y * cs, editorCurrentLand.w * cs, editorCurrentLand.h * cs);
+  }
+  ectx.restore();
+}
+
+function getEditorCell(clientX, clientY) {
+  const rect = editorCanvas.getBoundingClientRect();
+  const scaleX = editorCanvas.width / rect.width;
+  const scaleY = editorCanvas.height / rect.height;
+  const x = (clientX - rect.left) * scaleX;
+  const y = (clientY - rect.top) * scaleY;
+  const cs = EDITOR_CELL_SIZE * editorZoom;
+  return {
+    x: Math.floor((x - editorCanvas.width/2) / cs + editorViewX),
+    y: Math.floor((y - editorCanvas.height/2) / cs + editorViewY)
+  };
+}
+
+function setEditorCell(gx, gy, tool) {
+  let key = gx + ',' + gy;
+  let changed = false;
+  if (tool === 'land') {
+    if (!editorCells.has(key) || editorCells.get(key) !== TILE_LAND) changed = true;
+    editorCells.set(key, TILE_LAND);
+  } else if (tool === 'spikeAuto') {
+    if (!editorCells.has(key) || editorCells.get(key) !== TILE_SPIKE_AUTO) changed = true;
+    editorCells.set(key, TILE_SPIKE_AUTO);
+  } else if (tool === 'crate') {
+    if (!editorCells.has(key) || editorCells.get(key) !== TILE_CRATE) changed = true;
+    editorCells.set(key, TILE_CRATE);
+  } else if (tool === 'bouncer') {
+    if (!editorCells.has(key) || editorCells.get(key) !== TILE_BOUNCER) changed = true;
+    editorCells.set(key, TILE_BOUNCER);
+  } else if (tool === 'checkpoint') {
+    if (!editorCells.has(key) || editorCells.get(key) !== TILE_CHECKPOINT) changed = true;
+    editorCells.set(key, TILE_CHECKPOINT);
+  } else if (tool === 'portal') {
+    for (let [k, v] of editorCells) { if (v === TILE_PORTAL) editorCells.delete(k); }
+    editorCells.set(key, TILE_PORTAL);
+    editorPortal = { x: gx, y: gy };
+    changed = true;
+  } else if (tool === 'spawn') {
+    for (let [k, v] of editorCells) { if (v === TILE_SPAWN) editorCells.delete(k); }
+    editorCells.set(key, TILE_SPAWN);
+    editorSpawn = { x: gx, y: gy };
+    changed = true;
+  } else if (tool === 'eraser') {
+    if (editorCells.has(key)) changed = true;
+    editorCells.delete(key);
+  }
+  // FIX: 任何修改都重置测试通关状态，强制重新测试
+  if (changed && editorTestWon) editorTestWon = false;
+}
+
+// Editor mouse events
+editorCanvas.addEventListener('mousedown', e => {
+  if (e.button === 1 || e.button === 2 || e.shiftKey) {
+    isPanning = true;
+    panStartX = e.clientX; panStartY = e.clientY;
+    panViewStartX = editorViewX; panViewStartY = editorViewY;
+    editorCanvas.style.cursor = 'grabbing';
+    e.preventDefault();
+    return;
+  }
+  isDrawing = true;
+  const cell = getEditorCell(e.clientX, e.clientY);
+  drawStart = cell;
+  if (editorTool === 'land') editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1 };
+  else setEditorCell(cell.x, cell.y, editorTool);
+  renderEditor();
+});
+
+editorCanvas.addEventListener('mousemove', e => {
+  if (isPanning) {
+    const rect = editorCanvas.getBoundingClientRect();
+    const scaleX = editorCanvas.width / rect.width;
+    const scaleY = editorCanvas.height / rect.height;
+    const cs = EDITOR_CELL_SIZE * editorZoom;
+    editorViewX = panViewStartX - (e.clientX - panStartX) * scaleX / cs;
+    editorViewY = panViewStartY - (e.clientY - panStartY) * scaleY / cs;
+    updateEditorCoords(); renderEditor();
+    return;
+  }
+  if (!isDrawing) return;
+  const cell = getEditorCell(e.clientX, e.clientY);
+  if (editorTool === 'land' && drawStart) {
+    let x1 = Math.min(drawStart.x, cell.x);
+    let y1 = Math.min(drawStart.y, cell.y);
+    let x2 = Math.max(drawStart.x, cell.x);
+    let y2 = Math.max(drawStart.y, cell.y);
+    editorCurrentLand = { x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1 };
+  } else {
+    setEditorCell(cell.x, cell.y, editorTool);
+  }
+  renderEditor();
+});
+
+editorCanvas.addEventListener('mouseup', e => {
+  if (isPanning) { isPanning = false; editorCanvas.style.cursor = 'grab'; return; }
+  if (!isDrawing) return;
+  isDrawing = false;
+  if (editorTool === 'land' && editorCurrentLand) {
+    for (let dy = 0; dy < editorCurrentLand.h; dy++) {
+      for (let dx = 0; dx < editorCurrentLand.w; dx++) {
+        editorCells.set((editorCurrentLand.x + dx) + ',' + (editorCurrentLand.y + dy), TILE_LAND);
+      }
+    }
+    editorCurrentLand = null;
+  }
+  drawStart = null;
+  renderEditor();
+});
+
+editorCanvas.addEventListener('mouseleave', () => {
+  isDrawing = false; isPanning = false;
+  editorCanvas.style.cursor = 'grab';
+  editorCurrentLand = null; drawStart = null;
+});
+
+editorCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+editorCanvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = editorCanvas.getBoundingClientRect();
+  const scaleX = editorCanvas.width / rect.width;
+  const scaleY = editorCanvas.height / rect.height;
+  const cs = EDITOR_CELL_SIZE * editorZoom;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+  const worldX = (mx - editorCanvas.width/2) / cs + editorViewX;
+  const worldY = (my - editorCanvas.height/2) / cs + editorViewY;
+
+  const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+  const newZoom = Math.max(0.25, Math.min(4, editorZoom * zoomFactor));
+  const newCs = EDITOR_CELL_SIZE * newZoom;
+  editorViewX = worldX - (mx - editorCanvas.width/2) / newCs;
+  editorViewY = worldY - (my - editorCanvas.height/2) / newCs;
+  editorZoom = newZoom;
+  updateEditorCoords(); renderEditor();
+}, { passive: false });
+
+// Touch support
+let touchMode = 'none';
+let touchStartDist = 0;
+let touchStartZoom = 1;
+let touchStartViewX = 0, touchStartViewY = 0;
+let touchStartMidX = 0, touchStartMidY = 0;
+let singleTouchTimer = null;  // FIX: 用于延迟单指操作，避免双指捏合误判
+
+// FIX v4: 双指缩放与单指放置逻辑重写
+// 核心逻辑：单指 touchstart 后延迟 800ms 执行放置
+// 如果 800ms 内第二根手指放下，取消放置并进入双指缩放模式
+editorCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+
+  // 情况1：当前已经是双指（第二根手指放下时触发）
+  if (e.touches.length === 2) {
+    // 取消可能的单指延迟放置
+    if (singleTouchTimer) {
+      clearTimeout(singleTouchTimer);
+      singleTouchTimer = null;
+    }
+    // 如果之前已经进入了 draw 模式（延迟已过），需要撤销已放置的内容
+    if (touchMode === 'draw') {
+      // 撤销本次单指放置：清除 drawStart 对应的格子
+      if (drawStart && editorTool !== 'land') {
+        editorCells.delete(drawStart.x + ',' + drawStart.y);
+      }
+      isDrawing = false;
+      drawStart = null;
+      editorCurrentLand = null;
+      renderEditor();
+    }
+    touchMode = 'pinch';
+    const t1 = e.touches[0], t2 = e.touches[1];
+    touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    touchStartZoom = editorZoom;
+    touchStartViewX = editorViewX; touchStartViewY = editorViewY;
+    touchStartMidX = (t1.clientX + t2.clientX) / 2;
+    touchStartMidY = (t1.clientY + t2.clientY) / 2;
+    return;
+  }
+
+  // 情况2：单指触摸
+  if (e.touches.length === 1) {
+    const touch = e.touches[0];
+    const cell = getEditorCell(touch.clientX, touch.clientY);
+    // 保存到全局，供 touchend 快速点击时使用
+    editorPendingCell = cell;
+
+    // 延迟 80ms 执行放置，避免双指捏合时第一个手指误判为绘制
+    singleTouchTimer = setTimeout(() => {
+      singleTouchTimer = null;
+      touchMode = 'draw';
+      isDrawing = true;
+      drawStart = cell;
+      if (editorTool === 'land') {
+        editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1 };
+      } else {
+        setEditorCell(cell.x, cell.y, editorTool);
+      }
+      renderEditor();
+    }, 80);
+  }
+}, { passive: false });
+
+editorCanvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+
+  // 双指缩放中
+  if (e.touches.length === 2 && touchMode === 'pinch') {
+    const t1 = e.touches[0], t2 = e.touches[1];
+    const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    const midX = (t1.clientX + t2.clientX) / 2;
+    const midY = (t1.clientY + t2.clientY) / 2;
+    const rect = editorCanvas.getBoundingClientRect();
+    const scaleX = editorCanvas.width / rect.width;
+    const scaleY = editorCanvas.height / rect.height;
+    const newZoom = Math.max(0.25, Math.min(4, touchStartZoom * (dist / touchStartDist)));
+    const cs = EDITOR_CELL_SIZE * touchStartZoom;
+    const newCs = EDITOR_CELL_SIZE * newZoom;
+    const worldMidX = (touchStartMidX - rect.left) * scaleX;
+    const worldMidY = (touchStartMidY - rect.top) * scaleY;
+    const anchorWorldX = (worldMidX - editorCanvas.width/2) / cs + touchStartViewX;
+    const anchorWorldY = (worldMidY - editorCanvas.height/2) / cs + touchStartViewY;
+    editorViewX = anchorWorldX - (worldMidX - editorCanvas.width/2) / newCs;
+    editorViewY = anchorWorldY - (worldMidY - editorCanvas.height/2) / newCs;
+    editorViewX += (touchStartMidX - midX) * scaleX / newCs;
+    editorViewY += (touchStartMidY - midY) * scaleY / newCs;
+    editorZoom = newZoom;
+    updateEditorCoords(); renderEditor();
+    return;
+  }
+
+  // 单指绘制中（延迟已过，已进入 draw 模式）
+  if (e.touches.length === 1 && touchMode === 'draw' && isDrawing) {
+    const touch = e.touches[0];
+    const cell = getEditorCell(touch.clientX, touch.clientY);
+    if (editorTool === 'land' && drawStart) {
+      let x1 = Math.min(drawStart.x, cell.x);
+      let y1 = Math.min(drawStart.y, cell.y);
+      let x2 = Math.max(drawStart.x, cell.x);
+      let y2 = Math.max(drawStart.y, cell.y);
+      editorCurrentLand = { x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1 };
+    } else {
+      setEditorCell(cell.x, cell.y, editorTool);
+    }
+    renderEditor();
+  }
+}, { passive: false });
+
+editorCanvas.addEventListener('touchend', e => {
+  e.preventDefault();
+
+  // 所有手指都抬起
+  if (e.touches.length === 0) {
+    // 如果定时器还在，说明是快速点击（80ms 内抬起），立即执行放置
+    if (singleTouchTimer) {
+      clearTimeout(singleTouchTimer);
+      singleTouchTimer = null;
+      if (editorPendingCell) {
+        if (editorTool === 'land') {
+          editorCells.set(editorPendingCell.x + ',' + editorPendingCell.y, TILE_LAND);
+        } else {
+          setEditorCell(editorPendingCell.x, editorPendingCell.y, editorTool);
+        }
+        editorPendingCell = null;
+        renderEditor();
+      }
+    }
+
+    // 如果处于绘制模式，结束绘制
+    if (touchMode === 'draw' && isDrawing) {
+      isDrawing = false;
+      if (editorTool === 'land' && editorCurrentLand) {
+        for (let dy = 0; dy < editorCurrentLand.h; dy++) {
+          for (let dx = 0; dx < editorCurrentLand.w; dx++) {
+            editorCells.set((editorCurrentLand.x + dx) + ',' + (editorCurrentLand.y + dy), TILE_LAND);
+          }
+        }
+        editorCurrentLand = null;
+      }
+      drawStart = null;
+      renderEditor();
+    }
+
+    touchMode = 'none';
+  }
+});
+// Toolbar
+function setupEditorToolbar() {
+  document.querySelectorAll('.editor-toolbar .tool-btn[data-tool]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.editor-toolbar .tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      editorTool = btn.dataset.tool;
+    });
+  });
+
+  document.getElementById('btn-editor-clear').addEventListener('click', () => {
+    editorCells.clear();
+    editorSpawn = { x: 2, y: 10 };
+    editorPortal = { x: 20, y: 10 };
+    editorTestWon = false;
+    renderEditor();
+  });
+
+  document.getElementById('btn-editor-back').addEventListener('click', () => {
+    document.getElementById('editor-screen').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'flex';
+    gameState = 'start';
+  });
+
+  document.getElementById('btn-zoom-in').addEventListener('click', () => {
+    editorZoom = Math.min(4, editorZoom * 1.25);
+    updateEditorCoords(); renderEditor();
+  });
+
+  document.getElementById('btn-zoom-out').addEventListener('click', () => {
+    editorZoom = Math.max(0.25, editorZoom / 1.25);
+    updateEditorCoords(); renderEditor();
+  });
+
+  document.getElementById('btn-editor-test').addEventListener('click', () => {
+    isEditorTest = true;
+    editorTestWon = false;
+    const levelData = buildLevelFromEditor();
+    loadCustomLevel(levelData);
+    startGame();
+  });
+
+  document.getElementById('btn-editor-save').addEventListener('click', () => {
+    const code = encodeLevel();
+    document.getElementById('level-code-output').value = code;
+  });
+
+  // FIX: 添加编辑器复制编码按钮事件
+  document.getElementById('btn-copy-code').addEventListener('click', async () => {
+    const code = document.getElementById('level-code-output').value;
+    if (!code) { alert('请先生成关卡编码'); return; }
+    const ok = await copyToClipboard(code);
+    alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
+  });
+}
+setupEditorToolbar();
+
+document.addEventListener('keydown', e => {
+  if (gameState !== 'editor') return;
+  const panSpeed = 2 / editorZoom;
+  if (e.key === 'ArrowLeft') { editorViewX -= panSpeed; updateEditorCoords(); renderEditor(); }
+  if (e.key === 'ArrowRight') { editorViewX += panSpeed; updateEditorCoords(); renderEditor(); }
+  if (e.key === 'ArrowUp') { editorViewY -= panSpeed; updateEditorCoords(); renderEditor(); }
+  if (e.key === 'ArrowDown') { editorViewY += panSpeed; updateEditorCoords(); renderEditor(); }
+});
+
+
+// FIX v14: 编辑器折叠功能 - 实时响应屏幕宽度
+function updateEditorLayout() {
+  const toolbar = document.getElementById('editor-toolbar');
+  const bottom = document.getElementById('editor-bottom');
+  const isMobile = window.innerWidth <= 1024;
+
+  if (isMobile) {
+    toolbar.classList.remove('expanded');
+    bottom.classList.remove('expanded');
+  } else {
+    toolbar.classList.add('expanded');
+    bottom.classList.add('expanded');
+  }
+}
+
+// 初始检测
+updateEditorLayout();
+
+// 实时响应窗口大小变化
+window.addEventListener('resize', updateEditorLayout);
+
+// 折叠按钮点击事件
+document.getElementById('btn-toolbar-fold').addEventListener('click', () => {
+  const toolbar = document.getElementById('editor-toolbar');
+  toolbar.classList.toggle('expanded');
+});
+
+document.getElementById('btn-bottom-fold').addEventListener('click', () => {
+  const bottom = document.getElementById('editor-bottom');
+  bottom.classList.toggle('expanded');
+});
+
+// ==================== 输入处理 ====================
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// Joystick
+const joystickZone = document.getElementById('joystick-zone');
+const joystickThumb = document.getElementById('joystick-thumb');
+let joystickTouchId = null;
+
+function initJoystick() {
+  const zone = joystickZone;
+  const thumb = joystickThumb;
+  const maxDist = 44;
+  const deadZone = 0.03;
+  let centerX = 0, centerY = 0;
+
+  function onStart(clientX, clientY, id) {
+    if (joystickTouchId !== null) return;
+    if (clientX > window.innerWidth / 2) return;
+    const rect = zone.getBoundingClientRect();
+    centerX = rect.left + rect.width / 2;
+    centerY = rect.top + rect.height / 2;
+    joystickTouchId = id;
+    update(clientX, clientY);
+  }
+
+  function onMove(clientX, clientY) {
+    if (joystickTouchId === null) return;
+    if (clientX > window.innerWidth / 2) return;
+    update(clientX, clientY);
+  }
+
+  function onEnd() {
+    if (joystickTouchId === null) return;
+    joystickTouchId = null;
+    joystick.active = false;
+    joystick.dx = 0; joystick.dy = 0;
+    thumb.style.transform = 'translate(0px, 0px)';
+    thumb.style.transition = 'transform 0.1s ease-out';
+    setTimeout(() => { thumb.style.transition = 'none'; }, 100);
+  }
+
+  function update(cx, cy) {
+    let dx = cx - centerX;
+    let dy = cy - centerY;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
+    thumb.style.transform = `translate(${dx}px, ${dy}px)`;
+    let nx = dx / maxDist, ny = dy / maxDist;
+    let len = Math.sqrt(nx * nx + ny * ny);
+    if (len < deadZone) { joystick.dx = 0; joystick.dy = 0; joystick.active = false; }
+    else {
+      let scale = (len - deadZone) / (1 - deadZone);
+      joystick.dx = (nx / len) * scale;
+      joystick.dy = (ny / len) * scale;
+      joystick.active = true;
+    }
+  }
+
+  zone.addEventListener('touchstart', e => {
+    for (let t of e.touches) {
+      if (t.clientX <= window.innerWidth / 2) { onStart(t.clientX, t.clientY, t.identifier); break; }
+    }
+  }, { passive: true });
+
+  zone.addEventListener('touchmove', e => {
+    let found = false;
+    for (let t of e.touches) {
+      if (t.identifier === joystickTouchId) { onMove(t.clientX, t.clientY); found = true; break; }
+    }
+    if (!found && joystickTouchId !== null) onEnd();
+  }, { passive: true });
+
+  zone.addEventListener('touchend', e => {
+    for (let t of e.changedTouches) { if (t.identifier === joystickTouchId) { onEnd(); break; } }
+  });
+
+  zone.addEventListener('touchcancel', e => {
+    for (let t of e.changedTouches) { if (t.identifier === joystickTouchId) { onEnd(); break; } }
+  });
+
+  let mouseDown = false;
+  zone.addEventListener('mousedown', e => { e.preventDefault(); mouseDown = true; onStart(e.clientX, e.clientY, -1); });
+  document.addEventListener('mousemove', e => { if (!mouseDown) return; onMove(e.clientX, e.clientY); });
+  document.addEventListener('mouseup', e => { if (!mouseDown) return; mouseDown = false; onEnd(); });
+}
+initJoystick();
+
+// Jump button
+const jumpBtn = document.getElementById('jump-btn');
+function initJumpBtn() {
+  function onJumpStart(e) {
+    e.preventDefault();
+    let touch = e.changedTouches ? e.changedTouches[0] : e;
+    if (touch.clientX < window.innerWidth / 2) return;
+    jumpPressed = true;
+    jumpBtn.style.background = 'rgba(0,246,255,0.2)';
+  }
+  function onJumpEnd(e) {
+    e.preventDefault();
+    jumpPressed = false;
+    jumpBtn.style.background = 'rgba(0,246,255,0.08)';
+  }
+  jumpBtn.addEventListener('touchstart', onJumpStart, { passive: false });
+  jumpBtn.addEventListener('touchend', onJumpEnd);
+  jumpBtn.addEventListener('touchcancel', onJumpEnd);
+  jumpBtn.addEventListener('mousedown', onJumpStart);
+  jumpBtn.addEventListener('mouseup', onJumpEnd);
+  jumpBtn.addEventListener('mouseleave', onJumpEnd);
+}
+initJumpBtn();
+
+// ==================== 关卡编码/解码 ====================
+
+// FIX: 检查 editor 中是否实际放置了传送门方块
+function editorHasPortal() {
+  for (let [key, tile] of editorCells) {
+    if (tile === TILE_PORTAL) return true;
+  }
+  return false;
+}
+
+function encodeLevel(customName) {
+  let ox = editorSpawn.x, oy = editorSpawn.y;
+  let landCoords = [], spikeCoords = [], spikeAutoCoords = [];
+  let crateCoords = [], bouncerCoords = [], checkpointCoords = [];
+
+  let hasPortal = editorHasPortal();
+  let prx = hasPortal ? (editorPortal.x - ox) : '';
+  let pry = hasPortal ? (editorPortal.y - oy) : '';
+
+  for (let [key, tile] of editorCells) {
+    let [x, y] = key.split(',').map(Number);
+    let rx = x - ox, ry = y - oy;
+    if (tile === TILE_LAND) landCoords.push(`a(${rx},${ry})`);
+    else if (tile === TILE_SPIKE) spikeCoords.push(`s(${rx},${ry})`);
+    else if (tile === TILE_SPIKE_AUTO) spikeAutoCoords.push(`t(${rx},${ry})`);
+    else if (tile === TILE_CRATE) crateCoords.push(`c(${rx},${ry})`);
+    else if (tile === TILE_BOUNCER) bouncerCoords.push(`b(${rx},${ry})`);
+    else if (tile === TILE_CHECKPOINT) checkpointCoords.push(`k(${rx},${ry})`);
+  }
+  // 如果有传入自定义名字则使用，否则默认"自定义"
+  const levelName = customName || '自定义';
+
+  const showInd = document.getElementById('opt-show-indicator') && document.getElementById('opt-show-indicator').checked ? '1' : '0';
+  const showMap = document.getElementById('opt-show-minimap') && document.getElementById('opt-show-minimap').checked ? '1' : '0';
+
+  let parts = ['7', prx, pry, showInd, showMap, levelName];
+  parts.push(landCoords.join(''), spikeCoords.join(''), spikeAutoCoords.join(''));
+  parts.push(crateCoords.join(''), bouncerCoords.join(''), checkpointCoords.join(''));
+  return parts.join('.');
+}
+function decodeLevel(code) {
+  try {
+    let parts = code.split('.');
+    let ver = parts[0];
+
+    // V7 解码（支持所有新元素）
+    if (ver === '7') {
+      let hasPortal = parts[1] !== '' && parts[2] !== '';
+      let prx = hasPortal ? parseInt(parts[1]) : 0;
+      let pry = hasPortal ? parseInt(parts[2]) : 0;
+      let showIndicator = parts[3] !== '0';
+      let showMinimap = parts[4] !== '0';
+      let nameEndIdx = 5;
+      for (let i = 5; i < parts.length; i++) {
+        let p = parts[i];
+        if (p.startsWith('a(') || p.startsWith('s(') || p.startsWith('t(') || 
+            p.startsWith('c(') || p.startsWith('b(') || p.startsWith('k(') || p === '') { 
+          nameEndIdx = i; break; 
+        }
+      }
+      let name = parts.slice(5, nameEndIdx).join('.') || '自定义关卡';
+      let remaining = parts.slice(nameEndIdx).join('.');
+
+      let landStr = '', spikeStr = '', spikeAutoStr = '';
+      let crateStr = '', bouncerStr = '', checkpointStr = '';
+
+      let segments = [];
+      let current = '';
+      for (let i = 0; i < remaining.length; i++) {
+        if (remaining[i] === 'a' || remaining[i] === 's' || remaining[i] === 't' ||
+            remaining[i] === 'c' || remaining[i] === 'b' || remaining[i] === 'k') {
+          if (current) segments.push(current);
+          current = remaining[i];
+        } else {
+          current += remaining[i];
+        }
+      }
+      if (current) segments.push(current);
+
+      for (let seg of segments) {
+        if (seg.startsWith('a(')) landStr += seg;
+        else if (seg.startsWith('s(')) spikeStr += seg;
+        else if (seg.startsWith('t(')) spikeAutoStr += seg;
+        else if (seg.startsWith('c(')) crateStr += seg;
+        else if (seg.startsWith('b(')) bouncerStr += seg;
+        else if (seg.startsWith('k(')) checkpointStr += seg;
+      }
+
+      function parseCoords(str, prefix) {
+        let regex = new RegExp(prefix + '\((-?\d+),(-?\d+)\)', 'g');
+        let matches = [];
+        let m;
+        while ((m = regex.exec(str)) !== null) {
+          matches.push({x: parseInt(m[1]), y: parseInt(m[2])});
+        }
+        return matches;
+      }
+
+      let lands = parseCoords(landStr, 'a');
+      let spikes = parseCoords(spikeStr, 's');
+      let spikeAutos = parseCoords(spikeAutoStr, 't');
+      let crates = parseCoords(crateStr, 'c');
+      let bouncers = parseCoords(bouncerStr, 'b');
+      let checkpoints = parseCoords(checkpointStr, 'k');
+
+      let landRects = [];
+      if (lands.length > 0) {
+        let landSet = new Set(lands.map(l => l.x + ',' + l.y));
+        let landGrid = new Map();
+        for (let key of landSet) landGrid.set(key, 1);
+        let processed = new Set();
+        for (let key of landSet) {
+          if (processed.has(key)) continue;
+          let [x, y] = key.split(',').map(Number);
+          let w = 1;
+          while (landGrid.has((x + w) + ',' + y)) w++;
+          let h = 1;
+          let canExpandH = true;
+          while (canExpandH) {
+            for (let dx = 0; dx < w; dx++) {
+              if (!landGrid.has((x + dx) + ',' + (y + h))) { canExpandH = false; break; }
+            }
+            if (canExpandH) h++;
+          }
+          for (let dy = 0; dy < h; dy++) {
+            for (let dx = 0; dx < w; dx++) processed.add((x + dx) + ',' + (y + dy));
+          }
+          landRects.push({x, y, w, h});
+        }
+      }
+
+      return {
+        name, w: 100, h: 100,
+        spawn: {x: 0, y: 0},
+        portal: hasPortal ? {x: prx, y: pry} : null,
+        lands: landRects, spikes, spikeAutos, crates, bouncers, checkpoints,
+        showIndicator, showMinimap
+      };
+    }
+
+    // 兼容旧版本编码（v4/v5/v6/v6.1）
+    if (ver === '4' || ver === '5' || ver === '6' || ver === '6.1') {
+      let hasPortal = parts[1] !== '' && parts[2] !== '';
+      let prx = hasPortal ? parseInt(parts[1]) : 0;
+      let pry = hasPortal ? parseInt(parts[2]) : 0;
+      let showIndicator = true, showMinimap = true;
+      let nameStart = 3;
+      if (ver === '6.1') { showIndicator = parts[3] !== '0'; showMinimap = parts[4] !== '0'; nameStart = 5; }
+
+      let nameEndIdx = nameStart;
+      for (let i = nameStart; i < parts.length; i++) {
+        let p = parts[i];
+        if (p.startsWith('a(') || p.startsWith('s(') || p === '') { nameEndIdx = i; break; }
+      }
+      let name = parts.slice(nameStart, nameEndIdx).join('.') || '自定义关卡';
+      let remaining = parts.slice(nameEndIdx).join('.');
+      let firstSpike = remaining.indexOf('s(');
+      let landStr, spikeStr;
+      if (firstSpike >= 0) {
+        landStr = remaining.substring(0, firstSpike);
+        if (landStr.endsWith('.')) landStr = landStr.slice(0, -1);
+        spikeStr = remaining.substring(firstSpike);
+      } else {
+        landStr = remaining; spikeStr = '';
+      }
+
+      let lands = [], spikes = [];
+      let landMatch = landStr.match(/a\((-?\d+),(-?\d+)\)/g);
+      if (landMatch) {
+        let landSet = new Set();
+        for (let m of landMatch) {
+          let coords = m.match(/a\((-?\d+),(-?\d+)\)/);
+          if (coords) landSet.add(coords[1] + ',' + coords[2]);
+        }
+        let landGrid = new Map();
+        for (let key of landSet) landGrid.set(key, 1);
+        let processed = new Set();
+        for (let key of landSet) {
+          if (processed.has(key)) continue;
+          let [x, y] = key.split(',').map(Number);
+          let w = 1;
+          while (landGrid.has((x + w) + ',' + y)) w++;
+          let h = 1;
+          let canExpandH = true;
+          while (canExpandH) {
+            for (let dx = 0; dx < w; dx++) {
+              if (!landGrid.has((x + dx) + ',' + (y + h))) { canExpandH = false; break; }
+            }
+            if (canExpandH) h++;
+          }
+          for (let dy = 0; dy < h; dy++) {
+            for (let dx = 0; dx < w; dx++) processed.add((x + dx) + ',' + (y + dy));
+          }
+          lands.push({x, y, w, h});
+        }
+      }
+
+      let spikeMatch = spikeStr.match(/s\((-?\d+),(-?\d+)\)/g);
+      if (spikeMatch) {
+        for (let m of spikeMatch) {
+          let coords = m.match(/s\((-?\d+),(-?\d+)\)/);
+          if (coords) spikes.push({x: parseInt(coords[1]), y: parseInt(coords[2])});
+        }
+      }
+
+      return {
+        name, w: 100, h: 100,
+        spawn: {x: 0, y: 0},
+        portal: hasPortal ? {x: prx, y: pry} : null,
+        lands, spikes,
+        spikeAutos: [], crates: [], bouncers: [], checkpoints: [],
+        showIndicator, showMinimap
+      };
+    }
+
+    return null;
+  } catch (e) { console.error('解码失败:', e); return null; }
+}
+
+function buildLevelFromEditor() {
+  let ox = editorSpawn.x, oy = editorSpawn.y;
+  let lands = [], spikes = [], spikeAutos = [];
+  let crates = [], bouncers = [], checkpoints = [];
+
+  for (let [key, tile] of editorCells) {
+    let [x, y] = key.split(',').map(Number);
+    let rx = x - ox, ry = y - oy;
+    if (tile === TILE_LAND) {
+      // 陆地稍后合并
+    } else if (tile === TILE_SPIKE) spikes.push({x: rx, y: ry});
+    else if (tile === TILE_SPIKE_AUTO) spikeAutos.push({x: rx, y: ry});
+    else if (tile === TILE_CRATE) crates.push({x: rx, y: ry});
+    else if (tile === TILE_BOUNCER) bouncers.push({x: rx, y: ry});
+    else if (tile === TILE_CHECKPOINT) checkpoints.push({x: rx, y: ry});
+  }
+
+  let grid = new Map();
+  for (let [key, tile] of editorCells) {
+    if (tile === TILE_LAND) {
+      let [x, y] = key.split(',').map(Number);
+      let rx = x - ox, ry = y - oy;
+      grid.set(rx + ',' + ry, tile);
+    }
+  }
+
+  let keys = Array.from(grid.keys()).map(k => k.split(',').map(Number));
+  if (keys.length > 0) {
+    let minY = Math.min(...keys.map(k => k[1]));
+    let maxY = Math.max(...keys.map(k => k[1]));
+    for (let y = minY; y <= maxY; y++) {
+      let rowKeys = keys.filter(k => k[1] === y).map(k => k[0]).sort((a,b) => a-b);
+      if (rowKeys.length === 0) continue;
+      let startX = rowKeys[0], w = 1;
+      for (let i = 1; i < rowKeys.length; i++) {
+        if (rowKeys[i] === startX + w) w++;
+        else { lands.push({x: startX, y, w, h: 1}); startX = rowKeys[i]; w = 1; }
+      }
+      lands.push({x: startX, y, w, h: 1});
+    }
+    let merged = true;
+    while (merged) {
+      merged = false;
+      for (let i = 0; i < lands.length; i++) {
+        for (let j = i + 1; j < lands.length; j++) {
+          let a = lands[i], b = lands[j];
+          if (a.x === b.x && a.w === b.w && a.y + a.h === b.y) {
+            a.h += b.h; lands.splice(j, 1); merged = true; break;
+          }
+        }
+        if (merged) break;
+      }
+    }
+  }
+
+  let hasPortal = editorHasPortal();
+  let prx = hasPortal ? (editorPortal.x - ox) : null;
+  let pry = hasPortal ? (editorPortal.y - oy) : null;
+
+  const showInd = document.getElementById('opt-show-indicator') && document.getElementById('opt-show-indicator').checked;
+  const showMap = document.getElementById('opt-show-minimap') && document.getElementById('opt-show-minimap').checked;
+
+  // 固定名字，发布页再修改
+  const levelName = '自定义关卡';
+  return { 
+    name: levelName, w: 100, h: 100, 
+    spawn: {x: 0, y: 0}, 
+    portal: hasPortal ? {x: prx, y: pry} : null, 
+    lands, spikes, spikeAutos, crates, bouncers, checkpoints,
+    showIndicator: showInd !== false, showMinimap: showMap !== false
+  };
+}
+
+// FIX v7: 改进传送门检测逻辑
+function levelHasPortal(levelData) {
+  if (!levelData) return false;
+  // 只有 portal 为 null 才表示无传送门（v5 编码）
+  // v4 编码总是包含 portal，兼容旧关卡
+  return !!levelData.portal;
+}
+// ==================== 大厅系统 ====================
+let currentUser = null;
+let localLevels = [];
+let publicLevelsCache = [];
+
+function initStorage() {
+  let saved = localStorage.getItem('bwjump_levels');
+  if (saved) { try { localLevels = JSON.parse(saved); } catch(e) {} }
+
+  // FIX: 一次性清除旧版本本地登录状态（仅执行一次）
+  if (!localStorage.getItem('bwjump_v6_migrated')) {
+    localStorage.removeItem('bwjump_user');
+    localStorage.removeItem('bwjump_users');
+    localStorage.setItem('bwjump_v6_migrated', 'true');
+  }
+
+  // 恢复云端登录状态
+  let user = localStorage.getItem('bwjump_user');
+  if (user) { try { currentUser = JSON.parse(user); updateUserDisplay(); } catch(e) {} }
+}
+
+function saveLocalLevels() { localStorage.setItem('bwjump_levels', JSON.stringify(localLevels)); }
+
+function updateUserDisplay() {
+  const el = document.getElementById('user-display');
+  el.textContent = currentUser ? '用户: ' + currentUser.username : '未登录';
+}
+
+async function cloudAuth(username, password, isRegister) {
+  const passwordHash = await sha256(password);
+
+  if (isRegister) {
+    // 检查用户名是否已存在
+    const existing = await supabaseGet('users', { 
+      username: `eq.${username}`, 
+      select: 'id',
+      limit: 1 
+    });
+    if (existing && existing.length > 0) {
+      throw new Error('用户名已存在');
+    }
+
+    // 创建新用户
+    const result = await supabasePost('users', {
+      username,
+      password_hash: passwordHash
+    });
+
+    const newUser = { username, id: Number(result[0]?.id) || Date.now() };
+    // FIX: 注册成功后保存本地登录状态
+    currentUser = newUser;
+    localStorage.setItem('bwjump_user', JSON.stringify(newUser));
+    return newUser;
+  } else {
+    // 登录验证
+    const users = await supabaseGet('users', { 
+      username: `eq.${username}`, 
+      select: '*',
+      limit: 1 
+    });
+
+    if (!users || users.length === 0) {
+      throw new Error('用户名或密码错误');
+    }
+
+    const user = users[0];
+    if (user.password_hash !== passwordHash) {
+      throw new Error('用户名或密码错误');
+    }
+
+    const loginUser = { username: user.username, id: Number(user.id) };
+    // FIX: 登录成功后保存本地登录状态
+    currentUser = loginUser;
+    localStorage.setItem('bwjump_user', JSON.stringify(loginUser));
+    return loginUser;
+  }
+}
+
+async function shareLevelToLobby(levelData, code) {
+  try {
+    const existing = await supabaseGet('levels', { code: `eq.${code}`, select: '*', limit: 1 });
+    if (existing && existing.length > 0) throw new Error('该关卡已存在于大厅中');
+    const result = await supabasePost('levels', {
+      name: levelData.name || '未命名关卡',
+      description: levelData.description || '',
+      author: currentUser ? currentUser.username : '匿名',
+      code: code,
+      likes: 0,
+      created_at: new Date().toISOString()
+    });
+    // FIX: 分享成功后同步到本地
+    const newLevel = {
+      name: levelData.name || '未命名关卡',
+      code: code,
+      date: new Date().toLocaleString(),
+      shared: true,
+      level_id: result[0]?.id || null
+    };
+    // 检查本地是否已有相同编码的关卡
+    const existingLocal = localLevels.findIndex(l => l.code === code);
+    if (existingLocal >= 0) {
+      localLevels[existingLocal] = newLevel;
+    } else {
+      localLevels.push(newLevel);
+    }
+    saveLocalLevels();
+    return true;
+  } catch (e) { throw e; }
+}
+
+async function getSharedLevels() {
+  try {
+    let levels = await supabaseGet('levels', { select: '*', order: 'created_at.desc' });
+    // 如果已登录，获取当前用户的点赞状态
+    if (currentUser && currentUser.id && levels.length > 0) {
+      try {
+        const likedLevels = await supabaseGet('user_likes', {
+          user_id: `eq.${Number(currentUser.id)}`,
+          select: 'level_id'
+        });
+        const likedIds = new Set(likedLevels.map(l => l.level_id));
+        levels = levels.map(l => ({ ...l, user_liked: likedIds.has(l.id) }));
+      } catch (e) {
+        console.error('获取点赞状态失败:', e);
+      }
+    }
+    return levels;
+  }
+  catch (e) { console.error('获取关卡失败:', e); return []; }
+}
+
+// ==================== 界面切换 ====================
+function showScreen(id) {
+  ['start-screen', 'auth-screen', 'lobby-screen', 'editor-screen', 'level-select-screen', 'dev-screen'].forEach(sid => {
+    let el = document.getElementById(sid);
+    if (el) el.style.display = sid === id ? 'flex' : 'none';
+  });
+}
+
+function startGame() {
+  gameState = 'playing';
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('editor-screen').style.display = 'none';
+  document.getElementById('lobby-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('level-select-screen').style.display = 'none';
+  document.getElementById('game-ui').style.display = 'block';
+  document.getElementById('joystick-zone').style.display = 'block';
+  document.getElementById('jump-btn').style.display = 'flex';
+  document.getElementById('win-modal').style.display = 'none';
+  if (minimapCanvas) { minimapCanvas.style.display = 'block'; invalidateMinimap(); }
+  resetPlayer(true); // 开始游戏，清空存档点
+}
+
+function exitGame() {
+  gameState = 'start';
+  document.getElementById('game-ui').style.display = 'none';
+  document.getElementById('joystick-zone').style.display = 'none';
+  document.getElementById('jump-btn').style.display = 'none';
+  document.getElementById('win-modal').style.display = 'none';
+  if (minimapCanvas) minimapCanvas.style.display = 'none';
+
+  if (isEditorTest) {
+    isEditorTest = false;
+    document.getElementById('editor-screen').style.display = 'flex';
+  } else if (isFromLobby) {
+    isFromLobby = false;
+    showScreen('lobby-screen');
+    refreshLobby();
+  } else {
+    document.getElementById('start-screen').style.display = 'flex';
+  }
+}
+
+// ==================== 开始界面 ====================
+let selectedLevelIdx = -1;
+
+
+
+// ==================== 编辑器导入编码 ====================
+document.getElementById('btn-import-code').addEventListener('click', () => {
+  const code = document.getElementById('level-code-input').value.trim();
+  if (!code) { alert('请输入关卡编码'); return; }
+  const level = decodeLevel(code);
+  if (!level) { alert('关卡编码无效，请检查输入'); return; }
+
+  editorCells.clear();
+  editorTestWon = false;
+
+  // 关卡名统一到发布页填写，导入时不设置
+
+  const ox = level.spawn ? level.spawn.x : 0;
+  const oy = level.spawn ? level.spawn.y : 0;
+  editorSpawn = { x: ox, y: oy };
+
+  for (let l of level.lands || []) {
+    for (let dy = 0; dy < l.h; dy++) {
+      for (let dx = 0; dx < l.w; dx++) {
+        const gx = l.x + dx + ox;
+        const gy = l.y + dy + oy;
+        editorCells.set(gx + ',' + gy, TILE_LAND);
+      }
+    }
+  }
+
+  for (let s of level.spikes || []) {
+    const gx = s.x + ox;
+    const gy = s.y + oy;
+    editorCells.set(gx + ',' + gy, TILE_SPIKE_AUTO);
+  }
+
+  for (let s of level.spikeAutos || []) {
+    const gx = s.x + ox;
+    const gy = s.y + oy;
+    editorCells.set(gx + ',' + gy, TILE_SPIKE_AUTO);
+  }
+
+  for (let c of level.crates || []) {
+    const gx = c.x + ox;
+    const gy = c.y + oy;
+    editorCells.set(gx + ',' + gy, TILE_CRATE);
+  }
+
+  for (let b of level.bouncers || []) {
+    const gx = b.x + ox;
+    const gy = b.y + oy;
+    editorCells.set(gx + ',' + gy, TILE_BOUNCER);
+  }
+
+  for (let c of level.checkpoints || []) {
+    const gx = c.x + ox;
+    const gy = c.y + oy;
+    editorCells.set(gx + ',' + gy, TILE_CHECKPOINT);
+  }
+
+  if (level.portal) {
+    const px = level.portal.x + ox;
+    const py = level.portal.y + oy;
+    editorCells.set(px + ',' + py, TILE_PORTAL);
+    editorPortal = { x: px, y: py };
+  }
+
+  editorCells.set(ox + ',' + oy, TILE_SPAWN);
+
+  const optInd = document.getElementById('opt-show-indicator');
+  const optMap = document.getElementById('opt-show-minimap');
+  if (optInd) optInd.checked = level.showIndicator !== false;
+  if (optMap) optMap.checked = level.showMinimap !== false;
+
+  renderEditor();
+  document.getElementById('level-code-input').value = '';
+  alert('关卡已导入到编辑器');
+});
+
+initStorage();
+
+initMinimap();
+
+// Initial render
+ctx.fillStyle = COLORS.bg;
+ctx.fillRect(0, 0, canvasW, canvasH);
+
+// 确保所有按钮事件已绑定
+console.log('时空跃动 V7 加载完成');
+console.log('按钮状态:', {
+  start: !!document.getElementById('btn-start-game'),
+  editor: !!document.getElementById('btn-editor'),
+  lobby: !!document.getElementById('btn-lobby')
+});
+
+// 所有按钮事件绑定
+window.onload = function() {
+  console.log('窗口加载完成，开始绑定按钮事件');
+
+document.getElementById('btn-start-game').addEventListener('click', () => {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('level-select-screen').style.display = 'flex';
+  resetLevelSelect();
+  // 自动选中第1关并滚动到中央
+  setTimeout(() => {
+    const container = document.getElementById('level-cards');
+    const card0 = document.getElementById('lvl-0');
+    if (container && card0) {
+      const cardRect = card0.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const scrollLeft = container.scrollLeft + cardRect.left - containerRect.left - (containerRect.width - cardRect.width) / 2;
+      container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      // 强制更新一次选中状态
+      updateCardsTransform();
+    }
+  }, 100);
+});
+
+function resetLevelSelect() {
+  selectedLevelIdx = -1;
+  for (let i = 0; i < 20; i++) {
+    let card = document.getElementById('lvl-' + i);
+    if (card) {
+      card.className = 'lvl-card';
+      card.removeAttribute('style');
+      const numEl = card.querySelector('.lvl-num');
+      const infoEl = card.querySelector('.lvl-info');
+      const nameEl = card.querySelector('.lvl-name');
+      const tagEl = card.querySelector('.lvl-tag');
+      if (numEl) numEl.removeAttribute('style');
+      if (infoEl) {
+        infoEl.removeAttribute('style');
+        infoEl.style.position = 'absolute';
+        infoEl.style.pointerEvents = 'none';
+      }
+      if (nameEl) nameEl.removeAttribute('style');
+      if (tagEl) tagEl.removeAttribute('style');
+    }
+  }
+  document.getElementById('btn-level-start').style.opacity = '0.3';
+  document.getElementById('btn-level-start').style.pointerEvents = 'none';
+  const nameDisplay = document.getElementById('selected-level-name');
+  if (nameDisplay) { nameDisplay.textContent = ''; nameDisplay.style.opacity = '0'; }
+  const hint = document.getElementById('scroll-hint');
+  if (hint) hint.classList.remove('visible');
+}
+
+for (let i = 0; i < 20; i++) {
+  (function(idx) {
+    let card = document.getElementById('lvl-' + idx);
+    if (!card) return;
+    card.addEventListener('click', function() {
+      if (selectedLevelIdx === idx) { resetLevelSelect(); return; }
+      const container = document.getElementById('level-cards');
+      if (container) {
+        const cardRect = this.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const scrollLeft = container.scrollLeft + cardRect.left - containerRect.left - (containerRect.width - cardRect.width) / 2;
+        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
+    });
+  })(i);
+}
+
+function selectLevel(idx) {
+  selectedLevelIdx = idx;
+  document.getElementById('btn-level-start').style.opacity = '1';
+  document.getElementById('btn-level-start').style.pointerEvents = 'auto';
+}
+
+document.getElementById('btn-level-start').addEventListener('click', () => {
+  if (selectedLevelIdx < 0) return;
+  document.getElementById('level-select-screen').style.display = 'none';
+  isEditorTest = false;
+  editorTestWon = false;
+  loadLevel(selectedLevelIdx);
+  startGame();
+});
+
+document.getElementById('btn-level-back').addEventListener('click', () => {
+  document.getElementById('level-select-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'flex';
+});
+
+// 选关界面滚动监听 - 基于距离的连续缩放
+const levelCardsContainer = document.getElementById('level-cards');
+if (levelCardsContainer) {
+  let scrollHintTimer = null;
+  let rafId = null;
+
+  function updateCardsTransform() {
+    const container = document.getElementById('level-cards');
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const centerX = containerRect.left + containerRect.width / 2;
+    const maxDist = containerRect.width * 0.6;
+
+    let closestIdx = -1;
+    let closestDist = Infinity;
+
+    for (let i = 0; i < 20; i++) {
+      const card = document.getElementById('lvl-' + i);
+      if (!card) continue;
+      const cardRect = card.getBoundingClientRect();
+      const cardCenterX = cardRect.left + cardRect.width / 2;
+      const dist = Math.abs(cardCenterX - centerX);
+
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestIdx = i;
+      }
+
+      // 基于距离计算平滑的缩放和透明度
+      const t = Math.min(1, dist / maxDist);
+      const ease = 1 - t * t; // ease-out quad
+      const scale = 0.72 + 0.43 * ease;
+      const opacity = 0.3 + 0.7 * ease;
+      const brightness = 0.5 + 0.5 * ease;
+
+      const isCenter = dist < 60;
+
+      card.style.transform = `scale(${scale.toFixed(3)}) translateY(${isCenter ? -4 : 0}px)`;
+      card.style.opacity = opacity.toFixed(3);
+      card.style.filter = `brightness(${brightness.toFixed(3)})`;
+      card.style.borderColor = isCenter ? '#00F6FF' : '#707070';
+      card.style.background = isCenter ? '#1f1f1f' : '#1a1a1a';
+      card.style.color = isCenter ? '#FFFFFF' : '#707070';
+      card.style.boxShadow = isCenter ? '0 0 20px rgba(0,246,255,0.15)' : 'none';
+      card.style.zIndex = isCenter ? '10' : '1';
+      card.style.width = isCenter ? '100px' : '72px';
+      card.style.height = isCenter ? '88px' : '72px';
+
+      const numEl = card.querySelector('.lvl-num');
+      const infoEl = card.querySelector('.lvl-info');
+      const nameEl = card.querySelector('.lvl-name');
+      const tagEl = card.querySelector('.lvl-tag');
+
+      if (numEl) numEl.style.fontSize = isCenter ? '32px' : '';
+      if (infoEl) {
+        infoEl.style.opacity = isCenter ? '1' : '0';
+        infoEl.style.transform = isCenter ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.9)';
+        infoEl.style.position = isCenter ? 'static' : 'absolute';
+        infoEl.style.pointerEvents = isCenter ? 'auto' : 'none';
+      }
+      if (nameEl) nameEl.style.letterSpacing = isCenter ? '2px' : '';
+      if (tagEl) {
+        tagEl.style.borderColor = isCenter ? '#00F6FF' : '';
+        tagEl.style.color = isCenter ? '#00F6FF' : '';
+        tagEl.style.background = isCenter ? 'rgba(0,246,255,0.08)' : '';
+      }
+    }
+
+    if (closestIdx >= 0 && selectedLevelIdx !== closestIdx) {
+      selectedLevelIdx = closestIdx;
+      document.getElementById('btn-level-start').style.opacity = '1';
+      document.getElementById('btn-level-start').style.pointerEvents = 'auto';
+      // 更新顶部显示的关卡名
+      const nameEl = document.getElementById('selected-level-name');
+      if (nameEl) {
+        const card = document.getElementById('lvl-' + closestIdx);
+        const lvlName = card ? (card.querySelector('.lvl-name')?.textContent || '') : '';
+        nameEl.textContent = lvlName;
+        nameEl.style.opacity = lvlName ? '1' : '0';
+      }
+    }
+  }
+
+  levelCardsContainer.addEventListener('scroll', () => {
+    const hint = document.getElementById('scroll-hint');
+    if (hint) hint.classList.remove('visible');
+    if (scrollHintTimer) clearTimeout(scrollHintTimer);
+    scrollHintTimer = setTimeout(() => {}, 150);
+
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      updateCardsTransform();
+      rafId = null;
+    });
+  }, { passive: true });
+
+  // 初始化时执行一次
+  requestAnimationFrame(updateCardsTransform);
+}
+
+document.getElementById('btn-editor').addEventListener('click', () => {
+  gameState = 'editor';
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('editor-screen').style.display = 'flex';
+  initEditor();
+});
+
+document.getElementById('btn-lobby').addEventListener('click', () => {
+  if (!currentUser) { showScreen('auth-screen'); return; }
+  showScreen('lobby-screen');
+  refreshLobby();
+});
+
+// ==================== 游戏内按钮 ====================
+document.getElementById('btn-restart').addEventListener('click', () => { resetPlayer(false); });
+document.getElementById('btn-exit').addEventListener('click', () => { exitGame(); });
+
+document.getElementById('btn-next-level').addEventListener('click', () => {
+  document.getElementById('win-modal').style.display = 'none';
+  if (isEditorTest) {
+    if (shareAfterTest && editorTestWon) {
+      shareAfterTest = false;
+      // 测试通过，显示发布页
+      document.getElementById('editor-screen').style.display = 'none';
+      showPublishPage();
+    } else {
+      isEditorTest = true;
+      resetPlayer(true); // 重新测试，清空存档点
+    }
+  } else if (isFromLobby) {
+    resetPlayer(false);
+  } else if (!isCustomLevel && currentLevelIdx < BUILTIN_LEVELS.length - 1) {
+    loadLevel(currentLevelIdx + 1); resetPlayer(false);
+  } else {
+    exitGame();
+  }
+});
+
+document.getElementById('btn-back-menu').addEventListener('click', () => {
+  document.getElementById('win-modal').style.display = 'none';
+  if (shareAfterTest && editorTestWon) {
+    shareAfterTest = false;
+    // 测试通过，显示发布页
+    document.getElementById('editor-screen').style.display = 'none';
+    showPublishPage();
+  } else {
+    exitGame();
+  }
+});
+// ==================== 认证界面 ====================
+let authMode = 'login';
+document.getElementById('auth-switch').addEventListener('click', () => {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  document.getElementById('auth-title').textContent = authMode === 'login' ? '登录' : '注册';
+  document.getElementById('btn-auth-submit').textContent = authMode === 'login' ? '登录' : '注册';
+  document.getElementById('auth-switch').textContent = authMode === 'login' ? '没有账号？点击注册' : '已有账号？点击登录';
+  document.getElementById('auth-msg').textContent = '';
+});
+
+document.getElementById('btn-auth-submit').addEventListener('click', async () => {
+  const username = document.getElementById('auth-username').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!username || !password) { document.getElementById('auth-msg').textContent = '请填写用户名和密码'; return; }
+
+  document.getElementById('auth-msg').textContent = '处理中...';
+  try {
+    // cloudAuth 内部已处理 currentUser 和 localStorage
+    await cloudAuth(username, password, authMode === 'register');
+    updateUserDisplay(); showScreen('lobby-screen'); refreshLobby();
+    document.getElementById('auth-username').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-msg').textContent = '';
+  } catch (err) {
+    document.getElementById('auth-msg').textContent = err.message || '操作失败';
+  }
+});
+
+document.getElementById('btn-auth-back').addEventListener('click', () => { showScreen('start-screen'); });
+
+// ==================== 大厅渲染（新版）====================
+// 全局：当前选中的关卡数据（用于详情页）
+let detailLevelData = null;
+let detailLevelId = null;
+let detailLevelLiked = false;
+
+async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
+
+async function renderPublicLevels(filter = '') {
+  const container = document.getElementById('public-levels-list');
+  const levels = await getSharedLevels();
+  publicLevelsCache = levels;
+
+  let displayLevels = levels;
+  if (filter.trim()) {
+    const keyword = filter.trim().toLowerCase();
+    displayLevels = levels.filter(l =>
+      (l.name && l.name.toLowerCase().includes(keyword)) ||
+      (l.author && l.author.toLowerCase().includes(keyword))
+    );
+  }
+
+  if (displayLevels.length === 0) {
+    container.innerHTML = filter
+      ? '<div class="levels-empty">没有找到匹配的关卡</div>'
+      : '<div class="levels-empty">暂无分享关卡，快去编辑器创建并分享吧！</div>';
+    return;
+  }
+
+  container.innerHTML = displayLevels.map(l => {
+    let hasPortal = false;
+    try {
+      const decoded = decodeLevel(l.code);
+      hasPortal = levelHasPortal(decoded);
+    } catch(e) { hasPortal = false; }
+
+    const isLiked = l.user_liked || false;
+    const isOldVersion = l.code && l.code.split('.')[0] !== '7';
+
+    const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    return `
+    <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${(l.author || '').replace(/"/g, '&quot;')}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${l.showMinimap !== false ? '1' : '0'}">
+      ${!hasPortal ? '<span class="lc-no-portal">无传送门</span>' : ''}
+      ${isOldVersion ? '<span class="lc-badge">旧版</span>' : ''}
+      <div class="lc-name">${l.name || '未命名'}</div>
+      <div class="lc-author">${l.author || '匿名'}</div>
+      <div class="lc-likes"><span class="heart">${isLiked ? '&#9829;' : '&#9825;'}</span> ${l.likes || 0}</div>
+    </div>
+  `}).join('');
+
+  container.querySelectorAll('.level-card-square').forEach(card => {
+    card.addEventListener('click', () => openDetailPage(card));
+  });
+}
+
+async function renderMyLevels(filter = '') {
+  const container = document.getElementById('my-levels-list');
+
+  let cloudLevels = [];
+  if (currentUser && currentUser.username) {
+    try {
+      cloudLevels = await supabaseGet('levels', {
+        author: `eq.${currentUser.username}`,
+        select: '*',
+        order: 'created_at.desc'
+      });
+    } catch (e) {
+      console.error('获取云端关卡失败:', e);
+    }
+  }
+
+  let allMyLevels = [];
+
+  for (let i = 0; i < localLevels.length; i++) {
+    const l = localLevels[i];
+    const cloudMatch = cloudLevels.find(cl => cl.code === l.code);
+    allMyLevels.push({
+      ...l,
+      _source: 'local',
+      _localIndex: i,
+      _cloudId: cloudMatch ? cloudMatch.id : null,
+      _id: 'local_' + i + '_' + (l.code ? l.code.slice(0, 20) : Date.now())
+    });
+  }
+
+  for (const cl of cloudLevels) {
+    const existsLocal = localLevels.find(ll => ll.code === cl.code);
+    if (!existsLocal) {
+      allMyLevels.push({
+        name: cl.name,
+        code: cl.code,
+        date: cl.created_at ? new Date(cl.created_at).toLocaleString() : '未知时间',
+        shared: true,
+        level_id: cl.id,
+        _source: 'cloud',
+        _cloudId: cl.id,
+        _id: 'cloud_' + cl.id
+      });
+    }
+  }
+
+  let displayLevels = allMyLevels;
+  if (filter.trim()) {
+    const keyword = filter.trim().toLowerCase();
+    displayLevels = allMyLevels.filter(l => l.name && l.name.toLowerCase().includes(keyword));
+  }
+
+  if (displayLevels.length === 0) {
+    container.innerHTML = filter
+      ? '<div class="levels-empty">没有找到匹配的关卡</div>'
+      : '<div class="levels-empty">你还没有保存任何关卡</div>';
+    return;
+  }
+
+  container.innerHTML = displayLevels.map(l => {
+    let hasPortal = false;
+    try {
+      const decoded = decodeLevel(l.code);
+      hasPortal = levelHasPortal(decoded);
+    } catch(e) { hasPortal = false; }
+
+    const isOldVersion = l.code && l.code.split('.')[0] !== '7';
+    const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    return `
+    <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="1" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
+      ${!hasPortal ? '<span class="lc-no-portal">无传送门</span>' : ''}
+      ${isOldVersion ? '<span class="lc-badge">旧版</span>' : ''}
+      <div class="lc-name">${l.name || '未命名'}</div>
+      <div class="lc-author">${l._source === 'cloud' ? '已分享' : '本地'}</div>
+    </div>
+  `}).join('');
+
+  container.querySelectorAll('.level-card-square').forEach(card => {
+    card.addEventListener('click', () => openDetailPage(card));
+  });
+}
+
+function openDetailPage(card) {
+  const code = card.dataset.code;
+  const name = card.dataset.name;
+  const author = card.dataset.author;
+  const desc = card.dataset.desc;
+  const hasPortal = card.dataset.hasportal === '1';
+  const showMinimap = card.dataset.showminimap === '1';
+  const levelId = card.dataset.id ? parseInt(card.dataset.id) : null;
+  const liked = card.dataset.liked === '1';
+  const likes = parseInt(card.dataset.likes || '0');
+
+  detailLevelData = code;
+  detailLevelId = levelId;
+  detailLevelLiked = liked;
+
+  document.getElementById('detail-name').textContent = name || '未命名关卡';
+  document.getElementById('detail-author').textContent = '作者: ' + (author || '匿名');
+  document.getElementById('detail-desc').textContent = desc || '暂无简介';
+
+  const likeBtn = document.getElementById('btn-detail-like');
+  const likeIcon = likeBtn.querySelector('.like-icon');
+  const likeCount = likeBtn.querySelector('.like-count');
+  likeCount.textContent = likes;
+  if (liked) {
+    likeBtn.classList.add('liked');
+    likeIcon.innerHTML = '&#9829;';
+  } else {
+    likeBtn.classList.remove('liked');
+    likeIcon.innerHTML = '&#9825;';
+  }
+  if (!currentUser || !levelId) {
+    likeBtn.style.display = 'none';
+  } else {
+    likeBtn.style.display = 'flex';
+  }
+
+  const mapArea = document.getElementById('detail-map-area');
+  if (!hasPortal || !showMinimap) {
+    mapArea.innerHTML = '<span class="detail-map-blocked">地图预览已屏蔽</span>';
+  } else {
+    renderDetailMap(code, mapArea);
+  }
+
+  document.getElementById('lobby-detail-screen').style.display = 'flex';
+}
+
+function closeDetailPage() {
+  document.getElementById('lobby-detail-screen').style.display = 'none';
+  detailLevelData = null;
+  detailLevelId = null;
+  detailLevelLiked = false;
+}
+
+function renderDetailMap(code, container) {
+  try {
+    const level = decodeLevel(code);
+    if (!level) {
+      container.innerHTML = '<span class="detail-map-blocked">地图预览加载失败</span>';
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let hasContent = false;
+    const allTiles = [];
+
+    for (let l of level.lands || []) {
+      for (let dy = 0; dy < l.h; dy++) {
+        for (let dx = 0; dx < l.w; dx++) {
+          const x = l.x + dx, y = l.y + dy;
+          allTiles.push({x, y, type: 'land'});
+          minX = Math.min(minX, x); minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+          hasContent = true;
+        }
+      }
+    }
+
+    for (let s of level.spikes || []) {
+      allTiles.push({x: s.x, y: s.y, type: 'spike'});
+      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
+      maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
+      hasContent = true;
+    }
+
+    for (let s of level.spikeAutos || []) {
+      allTiles.push({x: s.x, y: s.y, type: 'spikeAuto'});
+      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
+      maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
+      hasContent = true;
+    }
+
+    for (let c of level.crates || []) {
+      allTiles.push({x: c.x, y: c.y, type: 'crate'});
+      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
+      maxX = Math.max(maxX, c.x); maxY = Math.max(maxY, c.y);
+      hasContent = true;
+    }
+
+    for (let b of level.bouncers || []) {
+      allTiles.push({x: b.x, y: b.y, type: 'bouncer'});
+      minX = Math.min(minX, b.x); minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x); maxY = Math.max(maxY, b.y);
+      hasContent = true;
+    }
+
+    for (let c of level.checkpoints || []) {
+      allTiles.push({x: c.x, y: c.y, type: 'checkpoint'});
+      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
+      maxX = Math.max(maxX, c.x); maxY = Math.max(maxY, c.y);
+      hasContent = true;
+    }
+
+    if (level.portal) {
+      allTiles.push({x: level.portal.x, y: level.portal.y, type: 'portal'});
+      minX = Math.min(minX, level.portal.x); minY = Math.min(minY, level.portal.y);
+      maxX = Math.max(maxX, level.portal.x); maxY = Math.max(maxY, level.portal.y);
+      hasContent = true;
+    }
+
+    if (level.spawn) {
+      allTiles.push({x: level.spawn.x, y: level.spawn.y, type: 'spawn'});
+      minX = Math.min(minX, level.spawn.x); minY = Math.min(minY, level.spawn.y);
+      maxX = Math.max(maxX, level.spawn.x); maxY = Math.max(maxY, level.spawn.y);
+      hasContent = true;
+    }
+
+    if (!hasContent) {
+      container.innerHTML = '<span class="detail-map-blocked">空地图</span>';
+      return;
+    }
+
+    const pad = 2;
+    minX -= pad; minY -= pad;
+    maxX += pad; maxY += pad;
+
+    const levelW = maxX - minX + 1;
+    const levelH = maxY - minY + 1;
+
+    const maxCanvasSize = 800;
+    const tileSize = Math.min(32, Math.floor(maxCanvasSize / Math.max(levelW, levelH)));
+    canvas.width = levelW * tileSize;
+    canvas.height = levelH * tileSize;
+
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= levelW; x++) {
+      ctx.beginPath();
+      ctx.moveTo(x * tileSize, 0);
+      ctx.lineTo(x * tileSize, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= levelH; y++) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * tileSize);
+      ctx.lineTo(canvas.width, y * tileSize);
+      ctx.stroke();
+    }
+
+    for (let t of allTiles) {
+      const dx = (t.x - minX) * tileSize;
+      const dy = (t.y - minY) * tileSize;
+      const s = tileSize;
+      const p = Math.max(1, s * 0.1);
+
+      switch(t.type) {
+        case 'land':
+          ctx.fillStyle = '#E1E3E6';
+          ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
+          break;
+        case 'spike':
+          ctx.fillStyle = '#FFD1D4';
+          ctx.beginPath();
+          ctx.moveTo(dx + s/2, dy + p);
+          ctx.lineTo(dx + s - p, dy + s - p);
+          ctx.lineTo(dx + p, dy + s - p);
+          ctx.closePath();
+          ctx.fill();
+          break;
+        case 'spikeAuto':
+          ctx.fillStyle = '#FF8A95';
+          ctx.beginPath();
+          ctx.moveTo(dx + s/2, dy + p);
+          ctx.lineTo(dx + s - p, dy + s - p);
+          ctx.lineTo(dx + p, dy + s - p);
+          ctx.closePath();
+          ctx.fill();
+          break;
+        case 'crate':
+          ctx.fillStyle = '#C4A77D';
+          ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
+          ctx.strokeStyle = '#8B7355';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
+          break;
+        case 'bouncer':
+          ctx.fillStyle = '#A0DAF7';
+          ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
+          ctx.strokeStyle = '#00F6FF';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
+          break;
+        case 'checkpoint':
+          ctx.strokeStyle = '#B3F4A8';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(dx + s*0.2, dy + s*0.2, s*0.6, s*0.6);
+          ctx.fillStyle = '#B3F4A8';
+          ctx.beginPath();
+          ctx.arc(dx + s/2, dy + s/2, s*0.15, 0, Math.PI*2);
+          ctx.fill();
+          break;
+        case 'portal':
+          ctx.fillStyle = '#F4F9A7';
+          ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
+          ctx.strokeStyle = '#F4F9A7';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
+          break;
+        case 'spawn':
+          ctx.strokeStyle = '#B3F4A8';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
+          ctx.setLineDash([]);
+          break;
+      }
+    }
+
+    container.innerHTML = '';
+    container.appendChild(canvas);
+  } catch (e) {
+    console.error('渲染地图预览失败:', e);
+    container.innerHTML = '<span class="detail-map-blocked">地图预览加载失败</span>';
+  }
+}
+
+window.playLobbyLevel = function(code) {
+  const decodedCode = code.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  isEditorTest = false;
+  isFromLobby = true;
+  const level = decodeLevel(decodedCode);
+  if (level) { loadCustomLevel(level); startGame(); }
+  else { alert('关卡编码无效'); }
+};
+
+window.copyLevelCode = async function(code) {
+  const decodedCode = code.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const ok = await copyToClipboard(decodedCode);
+  alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
+};
+
+window.deleteMyLevel = async function(source, localIndex, cloudId) {
+  if (!confirm('确定删除这个关卡吗？')) return;
+  try {
+    if (cloudId) {
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${cloudId}`, {
+          method: 'DELETE', mode: 'cors', credentials: 'omit',
+          headers: { apikey: SUPABASE_KEY }
+        });
+      } catch (e) { console.error('删除云端关卡失败:', e); }
+    }
+    if (source === 'local' && localIndex !== null && localIndex >= 0 && localIndex < localLevels.length) {
+      localLevels.splice(localIndex, 1);
+      saveLocalLevels();
+    }
+    renderMyLevels();
+  } catch (e) {
+    console.error('删除失败:', e);
+    alert('删除失败，请重试');
+  }
+};
+
+window.toggleLike = async function(levelId, btn) {
+  if (!currentUser || !currentUser.id) { alert('请先登录'); return; }
+  const uid = Number(currentUser.id);
+  const lid = Number(levelId);
+  const iconSpan = btn.querySelector('.like-icon');
+  const countSpan = btn.querySelector('.like-count');
+  if (btn.dataset.processing === 'true') return;
+  btn.dataset.processing = 'true';
+  try {
+    const existing = await supabaseGet('user_likes', {
+      user_id: `eq.${uid}`, level_id: `eq.${lid}`, select: 'id', limit: 1
+    });
+    const isLiked = existing && existing.length > 0;
+    if (isLiked) {
+      await fetch(`${SUPABASE_URL}/rest/v1/user_likes?user_id=eq.${uid}&level_id=eq.${lid}`, {
+        method: 'DELETE', mode: 'cors', credentials: 'omit', headers: { apikey: SUPABASE_KEY }
+      });
+      const level = await supabaseGet('levels', { id: `eq.${lid}`, select: 'likes', limit: 1 });
+      const newLikes = Math.max(0, (level[0]?.likes || 0) - 1);
+      await supabasePatch('levels', levelId, { likes: newLikes });
+      btn.classList.remove('liked');
+      iconSpan.innerHTML = '&#9825;';
+      countSpan.textContent = newLikes;
+      const cached = publicLevelsCache.find(l => l.id === levelId);
+      if (cached) { cached.likes = newLikes; cached.user_liked = false; }
+    } else {
+      await supabasePost('user_likes', { user_id: uid, level_id: lid });
+      const level = await supabaseGet('levels', { id: `eq.${lid}`, select: 'likes', limit: 1 });
+      const newLikes = (level[0]?.likes || 0) + 1;
+      await supabasePatch('levels', levelId, { likes: newLikes });
+      btn.classList.add('liked');
+      iconSpan.innerHTML = '&#9829;';
+      countSpan.textContent = newLikes;
+      const cached = publicLevelsCache.find(l => l.id === levelId);
+      if (cached) { cached.likes = newLikes; cached.user_liked = true; }
+    }
+  } catch (e) {
+    alert('操作失败: ' + (e.message || '网络错误'));
+  } finally {
+    btn.dataset.processing = 'false';
+  }
+};
+// ==================== 分享逻辑（修复版）====================
+// FIX: 修复编码不同步问题 - 分享前总是重新生成编码
+
+document.getElementById('btn-share-level').addEventListener('click', async () => {
+  // 分享前强制重新生成编码，确保使用最新编辑器数据
+  const freshCode = encodeLevel();
+  document.getElementById('level-code-output').value = freshCode;
+
+  if (!freshCode) { alert('请先生成关卡编码'); return; }
+
+  const levelData = buildLevelFromEditor();
+  if (!levelHasPortal(levelData)) {
+    alert('此关卡没有传送门，请先放置传送门后再分享！');
+    return;
+  }
+
+  // 显示测试确认弹窗
+  document.getElementById('test-confirm-modal').style.display = 'flex';
+});
+
+// FIX: 通关后自动分享（仅当来自分享流程时）
+// 使用定时检查而不是 MutationObserver，更可靠
+function checkWinForShare() {
+  const winModal = document.getElementById('win-modal');
+  if (winModal.style.display === 'flex' && isEditorTest && editorTestWon && shareAfterTest) {
+    // 延迟后自动执行分享
+    setTimeout(() => {
+      if (shareAfterTest && editorTestWon) {
+        winModal.style.display = 'none';
+        shareAfterTest = false;
+        doShareLevel();
+      }
+    }, 800);
+  }
+}
+
+// 在 updatePhysics 的通关逻辑中已处理，这里不需要额外监听
+// 但为了保险，在 gameLoop 中检查
+const _originalGameLoop = gameLoop;
+
+function showPublishPage() {
+  const code = encodeLevel();
+  document.getElementById('publish-code-preview').textContent = code;
+
+  // 默认填入一个基于时间的名字
+  const defaultName = '自定义关卡_' + new Date().toLocaleDateString().replace(/\//g, '');
+  document.getElementById('publish-name-input').value = defaultName;
+  document.getElementById('publish-desc-input').value = '';
+  document.getElementById('desc-char-count').textContent = '0/200';
+
+  document.getElementById('publish-page').style.display = 'flex';
+}
+
+async function doShareLevel() {
+  // 强制重新生成编码，确保分享的是最新数据
+  const code = encodeLevel();
+  document.getElementById('level-code-output').value = code;
+
+  const levelData = buildLevelFromEditor();
+  const overlay = document.getElementById('publish-overlay');
+  overlay.classList.add('active');
+
+  try {
+    await shareLevelToLobby(levelData, code);
+    alert('关卡已分享到大厅！');
+  } catch (e) {
+    alert('分享失败: ' + (e.message || '网络错误'));
+  } finally {
+    overlay.classList.remove('active');
+    // 返回编辑器
+    isEditorTest = false;
+    editorTestWon = false;
+    document.getElementById('editor-screen').style.display = 'flex';
+  }
+}
+
+// ==================== 分享弹窗 ====================
+document.getElementById('btn-share-copy').addEventListener('click', async () => {
+  const code = document.getElementById('share-code-display').value;
+  if (code) {
+    const ok = await copyToClipboard(code);
+    alert(ok ? '编码已复制到剪贴板' : '复制失败，请手动复制');
+  }
+});
+
+document.getElementById('btn-share-close').addEventListener('click', () => {
+  document.getElementById('share-modal').style.display = 'none';
+});
+
+// ==================== 大厅事件绑定（新版）====================
+
+// 1. 返回首页按钮
+document.getElementById('btn-lobby-back').addEventListener('click', () => {
+  showScreen('start-screen');
+});
+
+// 2. 标签页切换
+document.querySelectorAll('.lobby-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.lobby-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.lobby-content').forEach(c => c.classList.add('hidden'));
+    const tabName = tab.dataset.tab;
+    const contentEl = document.getElementById('lobby-' + tabName);
+    if (contentEl) contentEl.classList.remove('hidden');
+  });
+});
+
+// 3. 公开关卡搜索
+document.getElementById('btn-public-search').addEventListener('click', () => {
+  const filter = document.getElementById('public-search-input').value;
+  renderPublicLevels(filter);
+});
+document.getElementById('public-search-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const filter = document.getElementById('public-search-input').value;
+    renderPublicLevels(filter);
+  }
+});
+
+// 4. 我的关卡搜索
+document.getElementById('btn-my-search').addEventListener('click', () => {
+  const filter = document.getElementById('my-search-input').value;
+  renderMyLevels(filter);
+});
+document.getElementById('my-search-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const filter = document.getElementById('my-search-input').value;
+    renderMyLevels(filter);
+  }
+});
+
+// 5. 导入关卡 - 立即游玩
+document.getElementById('btn-upload-play').addEventListener('click', () => {
+  const code = document.getElementById('upload-code-input').value.trim();
+  if (!code) { alert('请输入关卡编码'); return; }
+  const level = decodeLevel(code);
+  if (!level) { alert('关卡编码无效'); return; }
+  isEditorTest = false;
+  isFromLobby = true;
+  loadCustomLevel(level);
+  startGame();
+});
+document.getElementById('upload-code-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('btn-upload-play').click();
+  }
+});
+
+// 6. 退出登录
+document.getElementById('btn-lobby-logout').addEventListener('click', () => {
+  if (confirm('确定要退出登录吗？')) {
+    currentUser = null;
+    localStorage.removeItem('bwjump_user');
+    updateUserDisplay();
+    showScreen('start-screen');
+  }
+});
+
+// 7. 详情页返回按钮
+document.getElementById('btn-detail-back').addEventListener('click', () => {
+  closeDetailPage();
+});
+
+// 8. 详情页开始游戏按钮
+document.getElementById('btn-detail-play').addEventListener('click', () => {
+  if (!detailLevelData) return;
+  const decodedCode = detailLevelData.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  isEditorTest = false;
+  isFromLobby = true;
+  const level = decodeLevel(decodedCode);
+  if (level) {
+    closeDetailPage();
+    loadCustomLevel(level);
+    startGame();
+  } else {
+    alert('关卡编码无效');
+  }
+});
+
+// 9. 详情页点赞按钮
+document.getElementById('btn-detail-like').addEventListener('click', async () => {
+  if (!detailLevelId || !currentUser || !currentUser.id) {
+    alert('请先登录');
+    return;
+  }
+  const btn = document.getElementById('btn-detail-like');
+  await toggleLike(detailLevelId, btn);
+  renderPublicLevels();
+});
+
+// ==================== 初始化 ====================
+setTimeout(() => {
+  checkSupabaseHealth().then(result => {
+    if (result.ok) console.log('Supabase 连接正常');
+    else console.warn('Supabase 连接异常:', result.error);
+  });
+}, 1000);
+
+// ==================== 开发人员界面 ====================
+document.getElementById('dev-info').addEventListener('click', () => {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('dev-screen').style.display = 'flex';
+});
+
+document.getElementById('btn-dev-back').addEventListener('click', () => {
+  document.getElementById('dev-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'flex';
+});
+
+document.getElementById('changelog-info').addEventListener('click', () => {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('changelog-screen').style.display = 'flex';
+});
+
+document.getElementById('btn-changelog-back').addEventListener('click', () => {
+  document.getElementById('changelog-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'flex';
+});
+
+  // ========== 测试确认弹窗事件 ==========
+  document.getElementById('btn-test-confirm').addEventListener('click', () => {
+    document.getElementById('test-confirm-modal').style.display = 'none';
+    shareAfterTest = true;
+    editorTestWon = false;
+    isEditorTest = true;
+    const levelData = buildLevelFromEditor();
+    loadCustomLevel(levelData);
+    startGame();
+  });
+
+  document.getElementById('btn-test-cancel').addEventListener('click', () => {
+    document.getElementById('test-confirm-modal').style.display = 'none';
+  });
+
+  // ========== 发布页事件 ==========
+  document.getElementById('btn-publish-back').addEventListener('click', () => {
+    document.getElementById('publish-page').style.display = 'none';
+    document.getElementById('editor-screen').style.display = 'flex';
+    isEditorTest = false;
+    editorTestWon = false;
+  });
+
+  document.getElementById('publish-desc-input').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('desc-char-count').textContent = count + '/200';
+  });
+
+  document.getElementById('btn-publish-submit').addEventListener('click', async () => {
+    const name = document.getElementById('publish-name-input').value.trim();
+    const desc = document.getElementById('publish-desc-input').value.trim();
+
+    if (!name) { alert('请输入关卡名称'); return; }
+    if (name.length > 30) { alert('关卡名称不能超过30字'); return; }
+    if (desc.length > 200) { alert('简介不能超过200字'); return; }
+
+    // 用发布页的名字重新生成编码，确保编码中包含正确名字
+    const code = encodeLevel(name);
+
+    const overlay = document.getElementById('publish-overlay');
+    overlay.classList.add('active');
+
+    try {
+      await shareLevelToLobby({ name, description: desc }, code);
+      alert('关卡已发布到大厅！');
+      document.getElementById('publish-page').style.display = 'none';
+      document.getElementById('editor-screen').style.display = 'flex';
+    } catch (e) {
+      alert('发布失败: ' + (e.message || '网络错误'));
+    } finally {
+      overlay.classList.remove('active');
+    }
+  });
+
+  console.log('按钮事件绑定完成');
+};
+</script>
 </body>
 </html>
-
