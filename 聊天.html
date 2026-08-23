@@ -64,7 +64,7 @@
     width: 100%; padding: 12px; border: none; border-radius: 12px;
     font-size: 15px; font-weight: 600; cursor: pointer;
   }
-  .btn-primary { background: var(--green); color: white; margin-bottom: 10px; }
+  .btn-primary { background: var(--green); color: white; margin-bottom: 10px; cursor: pointer; position: relative; z-index: 10; }
   .btn-primary:active { background: var(--green-dark); }
   .btn-secondary { background: var(--gray-100); color: var(--gray-600); }
   .login-tabs {
@@ -305,7 +305,7 @@
     </div>
     <input type="text" id="usernameInput" placeholder="用户名" autocomplete="off">
     <input type="password" id="passwordInput" placeholder="密码">
-    <button class="btn-primary" id="authBtn" onclick="handleAuth()">登录</button>
+    <button class="btn-primary" id="authBtn">登录</button>
 
   </div>
 </div>
@@ -569,7 +569,6 @@ function buildChats() {
         chats.push({ type: 'private', id: friendId, name: friend.username, preview: '', pinned: false, unread: 0, friendshipId: f.id });
       }
     }
-  }
 }
 
 function renderChatList() {
@@ -961,6 +960,36 @@ window.addEventListener('resize', () => {
 window.onclick = function(e) {
   if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('show');
 };
+
+// 绑定登录页事件
+document.addEventListener('DOMContentLoaded', function() {
+  var authBtn = document.getElementById('authBtn');
+  var tabLogin = document.getElementById('tabLogin');
+  var tabRegister = document.getElementById('tabRegister');
+
+  if (authBtn) {
+    authBtn.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      alert('按钮 touchstart');
+      handleAuth();
+    });
+    authBtn.addEventListener('click', function() {
+      alert('按钮 click');
+      handleAuth();
+    });
+  }
+
+  if (tabLogin) {
+    tabLogin.addEventListener('click', function() {
+      switchTab('login', this);
+    });
+  }
+  if (tabRegister) {
+    tabRegister.addEventListener('click', function() {
+      switchTab('register', this);
+    });
+  }
+});
 
 // textarea 自动高度
 document.getElementById('messageInput').addEventListener('input', function() {
