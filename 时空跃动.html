@@ -1524,6 +1524,7 @@ html, body {
       <div class="search-box">
         <input type="text" id="public-search-input" placeholder="搜索关卡名称或作者...">
         <button class="btn btn-small" id="btn-public-search">搜索</button>
+        <button class="btn btn-small" id="btn-public-refresh" title="刷新">&#x21bb;</button>
       </div>
       <div id="public-levels-list" class="levels-grid"></div>
     </div>
@@ -1531,6 +1532,7 @@ html, body {
       <div class="search-box">
         <input type="text" id="my-search-input" placeholder="搜索我的关卡...">
         <button class="btn btn-small" id="btn-my-search">搜索</button>
+        <button class="btn btn-small" id="btn-my-refresh" title="刷新">&#x21bb;</button>
       </div>
       <div id="my-levels-list" class="levels-grid"></div>
     </div>
@@ -6196,7 +6198,18 @@ document.getElementById('my-search-input').addEventListener('keydown', (e) => {
   }
 });
 
-// 5. 导入关卡 - 立即游玩
+// 5. 刷新按钮
+  document.getElementById('btn-public-refresh').addEventListener('click', () => {
+    const filter = document.getElementById('public-search-input').value;
+    renderPublicLevels(filter);
+  });
+
+  document.getElementById('btn-my-refresh').addEventListener('click', () => {
+    const filter = document.getElementById('my-search-input').value;
+    renderMyLevels(filter);
+  });
+
+// 6. 导入关卡 - 立即游玩
 document.getElementById('btn-upload-play').addEventListener('click', () => {
   const code = document.getElementById('upload-code-input').value.trim();
   if (!code) { alert('请输入关卡编码'); return; }
