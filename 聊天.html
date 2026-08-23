@@ -964,31 +964,19 @@ window.onclick = function(e) {
 // 绑定登录页事件
 document.addEventListener('DOMContentLoaded', function() {
   var authBtn = document.getElementById('authBtn');
-  var tabLogin = document.getElementById('tabLogin');
-  var tabRegister = document.getElementById('tabRegister');
+  var tabs = document.querySelectorAll('.login-tab');
 
   if (authBtn) {
-    authBtn.addEventListener('touchstart', function(e) {
-      e.preventDefault();
-      alert('按钮 touchstart');
-      handleAuth();
-    });
     authBtn.addEventListener('click', function() {
-      alert('按钮 click');
       handleAuth();
     });
   }
 
-  if (tabLogin) {
-    tabLogin.addEventListener('click', function() {
-      switchTab('login', this);
+  tabs.forEach(function(tab, index) {
+    tab.addEventListener('click', function() {
+      switchTab(index === 0 ? 'login' : 'register', this);
     });
-  }
-  if (tabRegister) {
-    tabRegister.addEventListener('click', function() {
-      switchTab('register', this);
-    });
-  }
+  });
 });
 
 // textarea 自动高度
