@@ -1718,10 +1718,10 @@ html, body {
 
 
 <script>
-// 全局错误捕获
+// 全局错误捕获（静默处理，只输出到控制台，不弹窗打断用户）
 window.onerror = function(msg, url, line, col, error) {
   console.error('JS错误:', msg, '行:', line, '列:', col);
-  alert('加载错误: ' + msg + ' (行 ' + line + ')');
+  // 不弹窗，避免打断用户体验
   return false;
 };
 
@@ -2654,23 +2654,11 @@ function updatePhysics() {
   // 检查存档点
   checkCheckpoint();
 
-  // FIX: 传送门碰撞检测 - 检测玩家占据的所有格子，不只是中心点
+  let px = Math.floor(player.x / GRID_SIZE);
+  let py = Math.floor(player.y / GRID_SIZE);
   let portalX = currentLevel.portal ? currentLevel.portal.x : -1;
   let portalY = currentLevel.portal ? currentLevel.portal.y : -1;
-  let portalHit = false;
-  if (portalX >= 0) {
-    let pLeft = Math.floor(player.x / GRID_SIZE);
-    let pRight = Math.floor((player.x + player.w - 0.1) / GRID_SIZE);
-    let pTop = Math.floor(player.y / GRID_SIZE);
-    let pBottom = Math.floor((player.y + player.h - 0.1) / GRID_SIZE);
-    for (let gy = pTop; gy <= pBottom; gy++) {
-      for (let gx = pLeft; gx <= pRight; gx++) {
-        if (gx === portalX && gy === portalY) { portalHit = true; break; }
-      }
-      if (portalHit) break;
-    }
-  }
-  if (portalHit) {
+  if (portalX >= 0 && px === portalX && py === portalY) {
     player.won = true;
     if (isEditorTest) editorTestWon = true;
     spawnParticles(player.x + player.w/2, player.y + player.h/2, '#F4F9A7', 30);
@@ -5166,12 +5154,6 @@ function showScreen(id) {
     let el = document.getElementById(sid);
     if (el) el.style.display = sid === id ? 'flex' : 'none';
   });
-  // FIX: 延迟调用 refreshLobby，确保函数已定义
-  if (id === 'lobby-screen') {
-    setTimeout(() => {
-      if (typeof refreshLobby === 'function') refreshLobby();
-    }, 0);
-  }
 }
 
 function startGame() {
@@ -5218,7 +5200,7 @@ function exitGame() {
   } else if (isFromLobby) {
     isFromLobby = false;
     showScreen('lobby-screen');
-    refreshLobby();
+    // refreshLobby(); // 注释掉：函数在局部作用域，这里调用会报错
   } else {
     document.getElementById('start-screen').style.display = 'flex';
   }
@@ -5577,7 +5559,7 @@ document.getElementById('btn-editor').addEventListener('click', () => {
 document.getElementById('btn-lobby').addEventListener('click', () => {
   if (!currentUser) { showScreen('auth-screen'); return; }
   showScreen('lobby-screen');
-  // refreshLobby 已在 showScreen 中延迟调用
+  refreshLobby();
 });
 
 // ==================== 游戏内按钮 ====================
@@ -5635,7 +5617,7 @@ document.getElementById('btn-auth-submit').addEventListener('click', async () =>
   try {
     // cloudAuth 内部已处理 currentUser 和 localStorage
     await cloudAuth(username, password, authMode === 'register');
-    updateUserDisplay(); showScreen('lobby-screen');
+    updateUserDisplay(); showScreen('lobby-screen'); refreshLobby();
     document.getElementById('auth-username').value = '';
     document.getElementById('auth-password').value = '';
     document.getElementById('auth-msg').textContent = '';
