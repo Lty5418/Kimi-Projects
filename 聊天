@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>聊跃</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --green: #10b981;
+    --green-light: #d1fae5;
+    --green-dark: #059669;
+    --bg: #f0fdf4;
+    --white: #ffffff;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --red: #ef4444;
+    --red-light: #fee2e2;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); height: 100vh; overflow: hidden; color: var(--gray-800);
+  }
+  .hidden { display: none !important; }
+
+  /* ========== 登录页 ========== */
+  .login-page {
+    position: fixed; inset: 0; z-index: 100;
+    background: linear-gradient(135deg, var(--green-light) 0%, var(--bg) 100%);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .login-box {
+    background: var(--white); padding: 40px; border-radius: 20px;
+    box-shadow: var(--shadow-lg); width: 90%; max-width: 380px; text-align: center;
+  }
+  .logo-icon {
+    width: 64px; height: 64px; margin: 0 auto 20px;
+    background: var(--green); border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-icon svg { width: 36px; height: 36px; fill: white; }
+  .login-box h1 { font-size: 24px; color: var(--gray-800); margin-bottom: 4px; }
+  .login-box .subtitle { font-size: 13px; color: var(--gray-400); margin-bottom: 20px; }
+  .login-box .hint {
+    font-size: 12px; color: var(--green-dark); background: var(--green-light);
+    padding: 8px 12px; border-radius: 8px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 6px; justify-content: center;
+  }
+  .login-box input {
+    width: 100%; padding: 12px 16px; border: 1.5px solid var(--gray-200);
+    border-radius: 12px; font-size: 15px; margin-bottom: 12px; outline: none;
+  }
+  .login-box input:focus { border-color: var(--green); }
+  .login-box button {
+    width: 100%; padding: 12px; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .btn-primary { background: var(--green); color: white; margin-bottom: 10px; }
+  .btn-primary:active { background: var(--green-dark); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-600); }
+  .login-tabs {
+    display: flex; gap: 8px; margin-bottom: 20px;
+    background: var(--gray-100); padding: 4px; border-radius: 10px;
+  }
+  .login-tab { flex: 1; padding: 8px; border: none; border-radius: 8px;
+    font-size: 14px; cursor: pointer; background: transparent; color: var(--gray-500);
+  }
+  .login-tab.active { background: var(--white); color: var(--green); font-weight: 600; box-shadow: var(--shadow); }
+
+  /* ========== 主应用布局 ========== */
+  .app { display: flex; height: 100vh; }
+
+  /* ========== 侧边栏（聊天列表） ========== */
+  .sidebar {
+    width: 300px; background: var(--white); border-right: 1px solid var(--gray-200);
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .sidebar-header {
+    padding: 14px 16px; border-bottom: 1px solid var(--gray-100);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .user-info { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--green); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 600; flex-shrink: 0;
+  }
+  .user-name { font-size: 15px; font-weight: 600; }
+  .user-status { font-size: 12px; color: var(--green); }
+  .sidebar-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 10px; border: none;
+    background: var(--gray-100); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-500);
+  }
+  .icon-btn:active { background: var(--gray-200); transform: scale(0.95); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .chat-list { flex: 1; overflow-y: auto; padding: 6px; }
+  .chat-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 12px; cursor: pointer;
+    margin-bottom: 2px; transition: background 0.15s;
+  }
+  .chat-item:hover { background: var(--gray-50); }
+  .chat-item.active { background: var(--green-light); }
+  .chat-item.pinned {
+    border-left: 3px solid var(--green);
+    background: linear-gradient(90deg, rgba(16,185,129,0.06) 0%, transparent 100%);
+  }
+  .chat-item.pinned .chat-name { color: var(--green-dark); }
+  .chat-info { flex: 1; min-width: 0; }
+  .chat-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-preview { font-size: 12px; color: var(--gray-400); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-meta { text-align: right; flex-shrink: 0; }
+  .chat-time { font-size: 11px; color: var(--gray-400); }
+  .badge { display: inline-block; min-width: 18px; height: 18px; background: var(--red); color: white;
+    font-size: 11px; border-radius: 9px; text-align: center; line-height: 18px; margin-top: 4px; padding: 0 5px; }
+  .pin-label { font-size: 10px; color: var(--green); background: var(--green-light); padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
+
+  /* ========== 聊天区 ========== */
+  .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--white); }
+  .chat-header {
+    padding: 12px 20px; border-bottom: 1px solid var(--gray-100);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .chat-header-left { display: flex; align-items: center; gap: 12px; }
+  .chat-title { font-size: 16px; font-weight: 600; }
+  .chat-subtitle { font-size: 12px; color: var(--gray-400); }
+  .messages-container {
+    flex: 1; overflow-y: auto; padding: 20px; background: var(--gray-50);
+  }
+  .message-group { margin-bottom: 16px; }
+  .message-group.own { text-align: right; }
+  .message-sender { font-size: 12px; color: var(--gray-400); margin-bottom: 3px; padding-left: 44px; }
+  .message-group.own .message-sender { padding-left: 0; padding-right: 44px; }
+  .message-bubble-wrap { display: flex; align-items: flex-end; gap: 8px; }
+  .message-group.own .message-bubble-wrap { flex-direction: row-reverse; }
+  .message-bubble {
+    max-width: 70%; padding: 10px 14px; border-radius: 16px;
+    font-size: 14px; line-height: 1.5; word-break: break-word;
+  }
+  .message-group:not(.own) .message-bubble { background: var(--white); color: var(--gray-800); border-bottom-left-radius: 4px; box-shadow: var(--shadow); }
+  .message-group.own .message-bubble { background: var(--green); color: white; border-bottom-right-radius: 4px; }
+  .message-time { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+  .message-group.own .message-time { text-align: right; }
+
+  .input-area {
+    padding: 12px 20px; border-top: 1px solid var(--gray-100);
+    display: flex; gap: 10px; align-items: flex-end; background: var(--white);
+  }
+  .input-area textarea {
+    flex: 1; padding: 10px 14px; border: 1.5px solid var(--gray-200);
+    border-radius: 16px; font-size: 14px; resize: none; outline: none;
+    max-height: 120px; min-height: 44px; font-family: inherit;
+  }
+  .input-area textarea:focus { border-color: var(--green); }
+  .send-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: none;
+    background: var(--green); color: white; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .send-btn:active { background: var(--green-dark); transform: scale(0.95); }
+  .send-btn svg { width: 20px; height: 20px; }
+
+  /* ========== 空状态 ========== */
+  .empty-chat {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--gray-50); color: var(--gray-400);
+  }
+  .empty-chat svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-chat h3 { font-size: 18px; color: var(--gray-500); margin-bottom: 6px; }
+  .empty-chat p { font-size: 14px; }
+
+  /* ========== 公共大厅用户列表 ========== */
+  .hall-users {
+    padding: 16px 20px; border-bottom: 1px solid var(--gray-100);
+    background: var(--white);
+  }
+  .hall-users h4 { font-size: 13px; color: var(--gray-400); margin-bottom: 10px; font-weight: 500; }
+  .hall-users-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hall-user-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 20px; background: var(--gray-50);
+    border: 1px solid var(--gray-200); cursor: pointer; transition: all 0.15s;
+  }
+  .hall-user-chip:hover { border-color: var(--green); background: var(--green-light); }
+  .hall-user-chip .chip-avatar {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--green);
+    color: white; font-size: 11px; display: flex; align-items: center; justify-content: center;
+  }
+  .hall-user-chip .chip-name { font-size: 13px; color: var(--gray-700); }
+  .hall-user-chip .chip-add {
+    width: 18px; height: 18px; border-radius: 50%; background: var(--green);
+    color: white; border: none; font-size: 14px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hall-user-chip .chip-add.added { background: var(--gray-300); cursor: default; }
+
+  /* ========== 弹窗 ========== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 16px; width: 90%; max-width: 400px;
+    max-height: 80vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  .modal-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--gray-100);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 16px; }
+  .modal-close { background: none; border: none; font-size: 22px; color: var(--gray-400); cursor: pointer; }
+  .modal-body { padding: 14px 20px; overflow-y: auto; flex: 1; }
+  .modal-body input {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-200);
+    border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 10px;
+  }
+  .modal-body input:focus { border-color: var(--green); }
+  .user-list-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; border-radius: 10px; cursor: pointer;
+  }
+  .user-list-item:hover { background: var(--gray-50); }
+  .user-list-name { flex: 1; font-size: 14px; }
+  .user-list-action {
+    font-size: 12px; padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;
+  }
+  .btn-add { background: var(--green); color: white; }
+  .btn-pending { background: var(--gray-100); color: var(--gray-400); }
+  .btn-accept { background: var(--green-light); color: var(--green-dark); }
+  .btn-reject { background: var(--red-light); color: var(--red); margin-left: 4px; }
+  .empty-state { text-align: center; padding: 30px; color: var(--gray-400); }
+  .request-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; border-radius: 10px; margin-bottom: 6px; background: var(--gray-50);
+  }
+  .req-name { flex: 1; font-size: 14px; }
+  .req-actions { display: flex; gap: 6px; }
+
+  /* ========== Toast ========== */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--gray-800); color: white; padding: 10px 20px;
+    border-radius: 10px; font-size: 14px; z-index: 300; transition: transform 0.3s; pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ========== 移动端适配 ========== */
+  @media (max-width: 768px) {
+    .app { position: relative; }
+    .sidebar {
+      position: absolute; left: 0; top: 0; bottom: 0; z-index: 50;
+      width: 85%; max-width: 320px;
+      transform: translateX(-100%); transition: transform 0.25s ease;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-backdrop {
+      position: absolute; inset: 0; z-index: 40; background: rgba(0,0,0,0.3);
+      display: none;
+    }
+    .sidebar-backdrop.show { display: block; }
+    .chat-area {
+      position: absolute; inset: 0; z-index: 10;
+      transform: translateX(100%); transition: transform 0.25s ease;
+    }
+    .chat-area.show { transform: translateX(0); }
+    .mobile-menu-btn {
+      display: flex !important; width: 36px; height: 36px; border-radius: 10px;
+      border: none; background: var(--gray-100); cursor: pointer;
+      align-items: center; justify-content: center;
+    }
+  }
+  .mobile-menu-btn { display: none; }
+</style>
+</head>
+<body>
+
+<!-- 登录页 -->
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/><path d="M7 9h10v2H7zm0-3h7v2H7z"/></svg>
+    </div>
+    <h1>聊跃</h1>
+    <p class="subtitle">简洁、纯粹的聊天体验</p>
+    <div class="hint">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      时空跃动账号可直接登录
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchTab('login')">登录</button>
+      <button class="login-tab" onclick="switchTab('register')">注册</button>
+    </div>
+    <input type="text" id="usernameInput" placeholder="用户名" autocomplete="off">
+    <input type="password" id="passwordInput" placeholder="密码">
+    <button class="btn-primary" id="authBtn" onclick="handleAuth()">登录</button>
+
+  </div>
+</div>
+
+<!-- 主应用 -->
+<div class="app" id="app">
+  <!-- 侧边栏 -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="user-info">
+        <div class="avatar" id="currentAvatar">?</div>
+        <div>
+          <div class="user-name" id="currentUserName">未登录</div>
+          <div class="user-status">● 在线</div>
+        </div>
+      </div>
+      <div class="sidebar-actions">
+        <button class="icon-btn" onclick="openRequests()" title="好友申请">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button class="icon-btn" onclick="logout()" title="退出">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="chat-list" id="chatList"></div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="goBackToList()"></div>
+
+  <!-- 聊天区 / 空状态 -->
+  <div class="chat-area" id="chatArea">
+    <!-- 空状态 -->
+    <div class="empty-chat" id="emptyChat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <h3>选择一个聊天</h3>
+      <p>点击左侧列表开始对话</p>
+    </div>
+
+    <!-- 聊天内容 -->
+    <div id="chatContent" class="hidden" style="display:flex;flex-direction:column;height:100%;">
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <button class="mobile-menu-btn" onclick="goBackToList()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div>
+            <div class="chat-title" id="chatTitle">公共大厅</div>
+            <div class="chat-subtitle" id="chatSubtitle">所有人都在这儿</div>
+          </div>
+        </div>
+      </div>
+      <!-- 公共大厅用户列表 -->
+      <div class="hall-users" id="hallUsers" style="display:none;">
+        <h4>在线用户</h4>
+        <div class="hall-users-list" id="hallUsersList"></div>
+      </div>
+      <div class="messages-container" id="messagesContainer"></div>
+      <div class="input-area">
+        <textarea id="messageInput" placeholder="输入消息..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
+        <button class="send-btn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 好友申请弹窗 -->
+<div class="modal-overlay" id="requestsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>好友申请</h3>
+      <button class="modal-close" onclick="closeModal('requestsModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="requestsList"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== Supabase 配置 ====================
+const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
+const _s = ['c2Jf','cHVibGlj','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN','kRwSDZ','2TzhYd1','96ME','JYdGtSVg','=='];
+const SUPABASE_KEY = (() => { try { return atob(_s.join('')); } catch(e) { return ''; } })();
+
+// ==================== 辅助函数 ====================
+function buildRestUrl(table, params) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  if (!params) return url;
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    url.searchParams.set(k, String(v));
+  });
+  return url;
+}
+
+async function supabaseGet(table, params = {}) {
+  const url = buildRestUrl(table, params);
+  const res = await fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', headers: { apikey: SUPABASE_KEY } });
+  if (!res.ok) { const errText = await res.text().catch(() => ''); throw new Error(`${table}: ${res.status}`); }
+  return res.json();
+}
+
+async function supabasePost(table, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST', mode: 'cors', credentials: 'omit',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) { const errText = await res.text().catch(() => ''); throw new Error(`${table}: ${res.status}`); }
+  if (res.status === 204) return [];
+  return res.json().catch(() => []);
+}
+
+async function supabasePatch(table, id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH', mode: 'cors', credentials: 'omit',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) { const errText = await res.text().catch(() => ''); throw new Error(`${table}: ${res.status}`); }
+  return true;
+}
+
+// ==================== 全局状态 ====================
+let currentUser = null;
+let currentChat = null; // null = 没选中任何聊天
+let chats = [];
+let allUsers = [];
+let friendships = [];
+let pollInterval = null;
+let isMobile = window.innerWidth <= 768;
+
+// 本地消息缓存: { "group_1": [...], "private_123": [...] }
+let localMessages = {};
+let lastMessageIds = {}; // 记录每聊天最后一条消息的id，用于增量同步
+
+// ==================== 工具函数 ====================
+function sha256(str) {
+  const encoder = new TextEncoder();
+  return crypto.subtle.digest('SHA-256', encoder.encode(str)).then(buf =>
+    Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+  );
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso), now = new Date();
+  if (d.toDateString() === now.toDateString()) {
+    return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  }
+  return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+}
+
+function getInitials(name) { return name ? name.charAt(0).toUpperCase() : '?'; }
+function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+function getChatKey() { return currentChat ? `${currentChat.type}_${currentChat.id}` : null; }
+
+// ==================== 登录/注册 ====================
+let authMode = 'login';
+function switchTab(mode) {
+  authMode = mode;
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('authBtn').textContent = mode === 'login' ? '登录' : '注册';
+}
+
+async function handleAuth() {
+  const username = document.getElementById('usernameInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  if (!username || !password) { showToast('请填写用户名和密码'); return; }
+
+  try {
+    const hash = await sha256(password);
+    if (authMode === 'login') {
+      const users = await supabaseGet('users', { select: '*', username: `eq.${username}`, password_hash: `eq.${hash}` });
+      if (users.length === 0) { showToast('用户名或密码错误'); return; }
+      currentUser = users[0];
+      loginSuccess();
+    } else {
+      const existing = await supabaseGet('users', { select: 'id', username: `eq.${username}` });
+      if (existing.length > 0) { showToast('用户名已存在'); return; }
+      await supabasePost('users', { username, password_hash: hash });
+      const users = await supabaseGet('users', { select: '*', username: `eq.${username}` });
+      currentUser = users[0];
+      loginSuccess();
+      showToast('注册成功！');
+    }
+  } catch (e) { showToast('操作失败'); }
+}
+
+function guestLogin() {
+  currentUser = { id: 0, username: '游客' + Math.floor(Math.random() * 10000) };
+  loginSuccess();
+  showToast('以游客身份进入');
+}
+
+async function loginSuccess() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('currentUserName').textContent = currentUser.username;
+  document.getElementById('currentAvatar').textContent = getInitials(currentUser.username);
+
+  // 清空之前的状态
+  localMessages = {};
+  lastMessageIds = {};
+  currentChat = null;
+
+  await loadAllUsers();
+  await loadFriendships();
+  buildChats();
+  renderChatList();
+  showEmptyState();
+  startPolling();
+}
+
+function logout() {
+  currentUser = null; currentChat = null; chats = []; allUsers = []; friendships = [];
+  localMessages = {}; lastMessageIds = {};
+  if (pollInterval) clearInterval(pollInterval);
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('usernameInput').value = '';
+  document.getElementById('passwordInput').value = '';
+}
+
+// ==================== 聊天列表 ====================
+function buildChats() {
+  chats = [];
+  // 主群始终置顶
+  chats.push({ type: 'group', id: 1, name: '公共大厅', preview: '所有人都在这儿', pinned: true, unread: 0 });
+
+  // 已接受的好友私聊
+  const accepted = friendships.filter(f => f.status === 'accepted');
+    for (const f of accepted) {
+      const friendId = f.requester_id === currentUser.id ? f.addressee_id : f.requester_id;
+      const friend = allUsers.find(u => u.id === friendId);
+      if (friend) {
+        chats.push({ type: 'private', id: friendId, name: friend.username, preview: '', pinned: false, unread: 0, friendshipId: f.id });
+      }
+    }
+  }
+}
+
+function renderChatList() {
+  const list = document.getElementById('chatList');
+  list.innerHTML = '';
+  chats.forEach(chat => {
+    const item = document.createElement('div');
+    item.className = 'chat-item' + (chat.pinned ? ' pinned' : '') + (currentChat && currentChat.id === chat.id && currentChat.type === chat.type ? ' active' : '');
+    item.onclick = () => selectChat(chat);
+    item.innerHTML = `
+      <div class="avatar" style="background:${chat.pinned ? 'var(--green)' : 'var(--gray-400)'}">${getInitials(chat.name)}</div>
+      <div class="chat-info">
+        <div class="chat-name">${chat.name}${chat.pinned ? '<span class="pin-label">置顶</span>' : ''}</div>
+        <div class="chat-preview">${chat.preview || '点击开始聊天'}</div>
+      </div>
+      <div class="chat-meta">
+        <div class="chat-time">${chat.time || ''}</div>
+        ${chat.unread > 0 ? `<span class="badge">${chat.unread}</span>` : ''}
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function selectChat(chat) {
+  currentChat = chat;
+  renderChatList();
+
+  // 移动端：显示聊天区
+  if (isMobile) {
+    document.getElementById('chatArea').classList.add('show');
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarBackdrop').classList.remove('show');
+  }
+
+  // 显示聊天内容，隐藏空状态
+  document.getElementById('emptyChat').classList.add('hidden');
+  document.getElementById('chatContent').classList.remove('hidden');
+  document.getElementById('chatContent').style.display = 'flex';
+
+  document.getElementById('chatTitle').textContent = chat.name;
+  document.getElementById('chatSubtitle').textContent = chat.pinned ? '所有人都在这儿' : '私聊';
+
+  // 公共大厅显示用户列表
+  const hallUsers = document.getElementById('hallUsers');
+  if (chat.pinned) {
+    hallUsers.style.display = 'block';
+    renderHallUsers();
+  } else {
+    hallUsers.style.display = 'none';
+  }
+
+  // 从本地缓存渲染消息，然后同步
+  renderMessagesFromCache();
+  syncMessages();
+}
+
+function showEmptyState() {
+  currentChat = null;
+  document.getElementById('emptyChat').classList.remove('hidden');
+  document.getElementById('chatContent').classList.add('hidden');
+  document.getElementById('chatContent').style.display = 'none';
+  renderChatList();
+}
+
+function goBackToList() {
+  if (isMobile) {
+    document.getElementById('chatArea').classList.remove('show');
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarBackdrop').classList.add('show');
+  }
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').classList.add('show');
+}
+
+// ==================== 公共大厅用户列表 ====================
+function renderHallUsers() {
+  const list = document.getElementById('hallUsersList');
+  // 排除自己
+  const others = allUsers.filter(u => u.id !== currentUser.id);
+
+  if (others.length === 0) {
+    list.innerHTML = '<span style="font-size:12px;color:var(--gray-400)">暂无其他用户</span>';
+    return;
+  }
+
+  list.innerHTML = others.map(u => {
+    // 检查是否已是好友或已申请
+    const f = friendships.find(f =>
+      (f.requester_id === currentUser.id && f.addressee_id === u.id) ||
+      (f.addressee_id === currentUser.id && f.requester_id === u.id)
+    );
+
+    let addBtn = '';
+    if (!f) {
+      addBtn = `<button class="chip-add" onclick="event.stopPropagation();sendFriendRequest(${u.id})">+</button>`;
+    } else if (f.status === 'pending') {
+      addBtn = `<button class="chip-add added">···</button>`;
+    } else if (f.status === 'accepted') {
+      addBtn = `<button class="chip-add added">✓</button>`;
+    }
+
+    return `
+      <div class="hall-user-chip" onclick="startPrivateChat(${u.id}, '${escapeHtml(u.username)}')">
+        <div class="chip-avatar">${getInitials(u.username)}</div>
+        <span class="chip-name">${escapeHtml(u.username)}</span>
+        ${addBtn}
+      </div>
+    `;
+  }).join('');
+}
+
+async function startPrivateChat(userId, username) {
+  // 检查是否已有私聊
+  const existing = chats.find(c => c.type === 'private' && c.id === userId);
+  if (existing) {
+    selectChat(existing);
+    return;
+  }
+  // 检查是否是好友
+  const f = friendships.find(f =>
+    (f.requester_id === currentUser.id && f.addressee_id === userId) ||
+    (f.addressee_id === currentUser.id && f.requester_id === userId)
+  );
+  if (!f || f.status !== 'accepted') {
+    showToast('需要先添加对方为好友');
+    return;
+  }
+  // 创建聊天项
+  const newChat = { type: 'private', id: userId, name: username, preview: '', pinned: false, unread: 0, friendshipId: f.id };
+  chats.push(newChat);
+  renderChatList();
+  selectChat(newChat);
+}
+
+// ==================== 消息系统（本地缓存 + 增量同步） ====================
+function renderMessagesFromCache() {
+  const key = getChatKey();
+  if (!key) return;
+  const msgs = localMessages[key] || [];
+  renderMessages(msgs);
+}
+
+function renderMessages(msgs) {
+  const container = document.getElementById('messagesContainer');
+  if (msgs.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;color:var(--gray-400)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;margin-bottom:12px;opacity:0.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div>还没有消息，来说点什么吧</div>
+      </div>`;
+    return;
+  }
+
+  let lastSender = null;
+  container.innerHTML = msgs.map(msg => {
+    const isOwn = msg.sender_id === currentUser.id;
+    const senderName = msg.sender_name || msg.users?.username || '未知用户';
+    const showSender = !isOwn && currentChat.pinned && lastSender !== msg.sender_id;
+    const html = `
+      <div class="message-group ${isOwn ? 'own' : ''}">
+        ${showSender ? `<div class="message-sender">${escapeHtml(senderName)}</div>` : ''}
+        <div class="message-bubble-wrap">
+          <div class="message-bubble">${escapeHtml(msg.content)}</div>
+        </div>
+        <div class="message-time">${formatTime(msg.created_at)}</div>
+      </div>
+    `;
+    lastSender = msg.sender_id;
+    return html;
+  }).join('');
+
+  container.scrollTop = container.scrollHeight;
+}
+
+async function syncMessages() {
+  if (!currentChat) return;
+  const key = getChatKey();
+
+  try {
+    let msgs = [];
+    const lastId = lastMessageIds[key] || 0;
+
+    if (currentChat.type === 'group') {
+      // 群聊：获取所有消息（因为id递增，可以用id过滤）
+      msgs = await supabaseGet('messages', {
+        select: '*,users!messages_sender_id_fkey(username)',
+        chat_type: 'eq.group', chat_id: 'eq.1',
+        id: `gt.${lastId}`,
+        order: 'created_at.asc'
+      });
+    } else {
+      // 私聊：找到会话id
+      const pcs = await supabaseGet('private_chats', {
+        select: '*',
+        or: `and(user1_id.eq.${currentUser.id},user2_id.eq.${currentChat.id}),and(user1_id.eq.${currentChat.id},user2_id.eq.${currentUser.id})`
+      });
+      if (pcs.length > 0) {
+        msgs = await supabaseGet('messages', {
+          select: '*,users!messages_sender_id_fkey(username)',
+          chat_type: 'eq.private', chat_id: `eq.${pcs[0].id}`,
+          id: `gt.${lastId}`,
+          order: 'created_at.asc'
+        });
+      }
+    }
+
+    if (msgs.length > 0) {
+      // 合并到本地缓存
+      if (!localMessages[key]) localMessages[key] = [];
+      // 去重：只添加新id的消息
+      const existingIds = new Set(localMessages[key].map(m => m.id));
+      const newMsgs = msgs.filter(m => !existingIds.has(m.id));
+      if (newMsgs.length > 0) {
+        localMessages[key] = [...localMessages[key], ...newMsgs];
+        // 更新最后id
+        const maxId = Math.max(...localMessages[key].map(m => m.id));
+        lastMessageIds[key] = maxId;
+        // 如果当前正在看这个聊天，渲染
+        renderMessages(localMessages[key]);
+      }
+    }
+  } catch (e) {
+    // 静默失败，下次轮询再试
+  }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const content = input.value.trim();
+  if (!content || !currentChat) return;
+
+  const tempId = Date.now(); // 临时id用于本地显示
+  const key = getChatKey();
+
+  // 先添加到本地缓存显示
+  const tempMsg = {
+    id: tempId,
+    sender_id: currentUser.id,
+    sender_name: currentUser.username,
+    chat_type: currentChat.type,
+    chat_id: currentChat.type === 'group' ? 1 : currentChat.id,
+    content: content,
+    created_at: new Date().toISOString(),
+    users: { username: currentUser.username }
+  };
+  if (!localMessages[key]) localMessages[key] = [];
+  localMessages[key].push(tempMsg);
+  renderMessages(localMessages[key]);
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  try {
+    if (currentChat.type === 'private') {
+      const pc = await findOrCreatePrivateChat();
+      if (!pc) { showToast('无法创建私聊'); return; }
+      await supabasePost('messages', {
+        sender_id: currentUser.id, chat_type: 'private', chat_id: pc.id, content: content
+      });
+    } else {
+      await supabasePost('messages', {
+        sender_id: currentUser.id, chat_type: 'group', chat_id: 1, content: content
+      });
+    }
+    // 发送后同步一次，获取真实id
+    setTimeout(syncMessages, 500);
+  } catch (e) {
+    showToast('发送失败');
+  }
+}
+
+async function findOrCreatePrivateChat() {
+  const existing = await supabaseGet('private_chats', {
+    select: '*',
+    or: `and(user1_id.eq.${currentUser.id},user2_id.eq.${currentChat.id}),and(user1_id.eq.${currentChat.id},user2_id.eq.${currentUser.id})`
+  });
+  if (existing.length > 0) return existing[0];
+  await supabasePost('private_chats', { user1_id: currentUser.id, user2_id: currentChat.id });
+  const newChats = await supabaseGet('private_chats', {
+    select: '*',
+    or: `and(user1_id.eq.${currentUser.id},user2_id.eq.${currentChat.id}),and(user1_id.eq.${currentChat.id},user2_id.eq.${currentUser.id})`
+  });
+  return newChats[0];
+}
+
+function handleKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+// ==================== 好友系统 ====================
+async function loadAllUsers() {
+  try { allUsers = await supabaseGet('users', { select: '*' }); } catch (e) {}
+}
+
+async function loadFriendships() {
+  try { friendships = await supabaseGet('friendships', { select: '*' }); } catch (e) {}
+}
+
+async function sendFriendRequest(userId) {
+  try {
+    await supabasePost('friendships', { requester_id: currentUser.id, addressee_id: userId, status: 'pending' });
+    showToast('好友申请已发送');
+    await loadFriendships();
+    renderHallUsers();
+  } catch (e) { showToast('发送失败'); }
+}
+
+function openRequests() {
+  document.getElementById('requestsModal').classList.add('show');
+  renderRequests();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function renderRequests() {
+  const list = document.getElementById('requestsList');
+  const pending = friendships.filter(f => f.addressee_id === currentUser.id && f.status === 'pending');
+  if (pending.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div>暂无好友申请</div></div>';
+    return;
+  }
+  list.innerHTML = pending.map(f => {
+    const requester = allUsers.find(u => u.id === f.requester_id);
+    const name = requester ? requester.username : '未知用户';
+    return `
+      <div class="request-item">
+        <div class="avatar" style="width:32px;height:32px;font-size:12px">${getInitials(name)}</div>
+        <div class="req-name">${name}</div>
+        <div class="req-actions">
+          <button class="user-list-action btn-accept" onclick="acceptFriend(${f.id})">接受</button>
+          <button class="user-list-action btn-reject" onclick="rejectFriend(${f.id})">拒绝</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function acceptFriend(friendshipId) {
+  try {
+    await supabasePatch('friendships', friendshipId, { status: 'accepted' });
+    showToast('已接受好友申请');
+    await loadFriendships();
+    buildChats();
+    renderChatList();
+    closeModal('requestsModal');
+  } catch (e) { showToast('操作失败'); }
+}
+
+async function rejectFriend(friendshipId) {
+  try {
+    await supabasePatch('friendships', friendshipId, { status: 'rejected' });
+    showToast('已拒绝');
+    await loadFriendships();
+    renderRequests();
+  } catch (e) { showToast('操作失败'); }
+}
+
+// ==================== 轮询（2秒增量同步） ====================
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    if (!currentUser) return;
+    // 同步当前聊天消息
+    if (currentChat) await syncMessages();
+    // 刷新好友关系（可能有新申请）
+    await loadFriendships();
+    // 如果好友列表变了，重建聊天列表
+    const oldCount = chats.filter(c => c.type === 'private').length;
+    const newAccepted = friendships.filter(f => f.status === 'accepted').length;
+    if (oldCount !== newAccepted) {
+      buildChats();
+      renderChatList();
+    }
+    // 如果在公共大厅，刷新用户列表
+    if (currentChat && currentChat.pinned) renderHallUsers();
+  }, 2000);
+}
+
+// ==================== 窗口大小监听 ====================
+window.addEventListener('resize', () => {
+  isMobile = window.innerWidth <= 768;
+});
+
+// 点击弹窗外部关闭
+window.onclick = function(e) {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('show');
+};
+
+// textarea 自动高度
+document.getElementById('messageInput').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+</script>
+</body>
+</html>
