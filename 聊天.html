@@ -300,8 +300,8 @@
       时空跃动账号可直接登录
     </div>
     <div class="login-tabs">
-      <button class="login-tab active" onclick="switchTab('login')">登录</button>
-      <button class="login-tab" onclick="switchTab('register')">注册</button>
+      <button class="login-tab active" onclick="switchTab('login', this)">登录</button>
+      <button class="login-tab" onclick="switchTab('register', this)">注册</button>
     </div>
     <input type="text" id="usernameInput" placeholder="用户名" autocomplete="off">
     <input type="password" id="passwordInput" placeholder="密码">
@@ -476,10 +476,15 @@ function getChatKey() { return currentChat ? `${currentChat.type}_${currentChat.
 
 // ==================== 登录/注册 ====================
 let authMode = 'login';
-function switchTab(mode) {
+function switchTab(mode, btn) {
   authMode = mode;
   document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  if (btn) btn.classList.add('active');
+  else {
+    const tabs = document.querySelectorAll('.login-tab');
+    if (mode === 'login' && tabs[0]) tabs[0].classList.add('active');
+    if (mode === 'register' && tabs[1]) tabs[1].classList.add('active');
+  }
   document.getElementById('authBtn').textContent = mode === 'login' ? '登录' : '注册';
 }
 
@@ -524,8 +529,10 @@ async function loginSuccess() {
   lastMessageIds = {};
   currentChat = null;
 
-  await loadAllUsers();
-  await loadFriendships();
+  try {
+    await loadAllUsers();
+    await loadFriendships();
+  } catch (e) {}
   buildChats();
   renderChatList();
   showEmptyState();
