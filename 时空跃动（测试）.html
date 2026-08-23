@@ -4428,15 +4428,27 @@ document.addEventListener('keydown', e => {
 
 
 // FIX v14: 编辑器折叠功能 - 实时响应屏幕宽度
+// 修复：记住用户手动展开的折叠状态，避免自动缩回
+let toolbarManuallyExpanded = false;
+let bottomManuallyExpanded = false;
+
 function updateEditorLayout() {
   const toolbar = document.getElementById('editor-toolbar');
   const bottom = document.getElementById('editor-bottom');
   const isMobile = window.innerWidth <= 1024;
 
   if (isMobile) {
-    toolbar.classList.remove('expanded');
-    bottom.classList.remove('expanded');
+    // 移动端：只在首次加载时设置默认状态，不强制重置用户手动展开的状态
+    if (!toolbar.dataset.initialized) {
+      toolbar.classList.remove('expanded');
+      toolbar.dataset.initialized = 'true';
+    }
+    if (!bottom.dataset.initialized) {
+      bottom.classList.remove('expanded');
+      bottom.dataset.initialized = 'true';
+    }
   } else {
+    // 桌面端：默认展开
     toolbar.classList.add('expanded');
     bottom.classList.add('expanded');
   }
@@ -4445,18 +4457,28 @@ function updateEditorLayout() {
 // 初始检测
 updateEditorLayout();
 
-// 实时响应窗口大小变化
-window.addEventListener('resize', updateEditorLayout);
+// 实时响应窗口大小变化（只在桌面端强制展开，移动端不强制折叠）
+window.addEventListener('resize', () => {
+  const isMobile = window.innerWidth <= 1024;
+  if (!isMobile) {
+    // 桌面端始终展开
+    document.getElementById('editor-toolbar').classList.add('expanded');
+    document.getElementById('editor-bottom').classList.add('expanded');
+  }
+  // 移动端：不强制折叠，保留用户手动展开的状态
+});
 
 // 折叠按钮点击事件
 document.getElementById('btn-toolbar-fold').addEventListener('click', () => {
   const toolbar = document.getElementById('editor-toolbar');
   toolbar.classList.toggle('expanded');
+  toolbarManuallyExpanded = toolbar.classList.contains('expanded');
 });
 
 document.getElementById('btn-bottom-fold').addEventListener('click', () => {
   const bottom = document.getElementById('editor-bottom');
   bottom.classList.toggle('expanded');
+  bottomManuallyExpanded = bottom.classList.contains('expanded');
 });
 
 // ==================== 输入处理 ====================
@@ -5347,8 +5369,6 @@ async function doShareLevel() {
   }
 }
 
-async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
-
 // Initial render
 ctx.fillStyle = COLORS.bg;
 ctx.fillRect(0, 0, canvasW, canvasH);
@@ -5636,7 +5656,61 @@ let detailLevelData = null;
 let detailLevelId = null;
 let detailLevelLiked = false;
 
+async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
 
+async function renderPublicLevels(filter = '') {
+  const container = document.getElementById('public-levels-list');
+  const levels = await getSharedLevels();
+  publicLevelsCache = levels;
+
+  let displayLevels = levels;
+  if (filter.trim()) {
+    const keyword = filter.trim().toLowerCase();
+    displayLevels = levels.filter(l =>
+      (l.name && l.name.toLowerCase().includes(keyword)) ||
+      (l.author && l.author.toLowerCase().includes(keyword))
+    );
+  }
+
+  if (displayLevels.length === 0) {
+    container.innerHTML = filter
+      ? '<div class="levels-empty">没有找到匹配的关卡</div>'
+      : '<div class="levels-empty">暂无分享关卡，快去编辑器创建并分享吧！</div>';
+    return;
+  }
+
+  container.innerHTML = displayLevels.map(l => {
+    let hasPortal = false;
+    let showMinimap = true;
+    let showIndicator = true;
+    try {
+      const decoded = decodeLevel(l.code);
+      hasPortal = levelHasPortal(decoded);
+      if (decoded) {
+        showMinimap = decoded.showMinimap !== false;
+        showIndicator = decoded.showIndicator !== false;
+      }
+    } catch(e) { hasPortal = false; }
+
+    const isLiked = l.user_liked || false;
+    const isOldVersion = l.code && l.code.split('.')[0] !== '7';
+
+    const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    return `
+    <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${(l.author || '').replace(/"/g, '&quot;')}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}">
+      ${!hasPortal ? '<span class="lc-no-portal">无传送门</span>' : ''}
+      ${isOldVersion ? '<span class="lc-badge">旧版</span>' : ''}
+      <div class="lc-name">${l.name || '未命名'}</div>
+      <div class="lc-author">${l.author || '匿名'}</div>
+      <div class="lc-likes"><span class="heart">${isLiked ? '&#9829;' : '&#9825;'}</span> ${l.likes || 0}</div>
+    </div>
+  `}).join('');
+
+  container.querySelectorAll('.level-card-square').forEach(card => {
+    card.addEventListener('click', () => openDetailPage(card));
+  });
+}
 
 async function renderMyLevels(filter = '') {
   const container = document.getElementById('my-levels-list');
