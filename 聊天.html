@@ -80,9 +80,9 @@
   .app { display: flex; height: 100vh; }
   .chat-content {
     display: none;
+    position: absolute;
+    inset: 0;
     flex-direction: column;
-    flex: 1;
-    min-height: 0;
     overflow: hidden;
   }
   .chat-content.active {
@@ -151,6 +151,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 20px;
+    padding-bottom: 80px;
     background: var(--gray-50);
     min-height: 0;
   }
@@ -315,7 +316,8 @@
       display: flex; flex-direction: column;
     }
     .chat-content {
-      height: 100%;
+      position: absolute;
+      inset: 0;
       overflow: hidden;
     }
     .chat-area.show { transform: translateX(0); }
