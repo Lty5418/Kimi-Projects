@@ -390,10 +390,15 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// 检查环境
+if (!window.crypto || !window.crypto.subtle) {
+  alert('浏览器不支持 crypto.subtle，无法使用哈希功能');
+}
 // ==================== Supabase 配置 ====================
 const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
 const _s = ['c2Jf','cHVibGlj','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN','kRwSDZ','2TzhYd1','96ME','JYdGtSVg','=='];
-const SUPABASE_KEY = (() => { try { return atob(_s.join('')); } catch(e) { return ''; } })();
+const SUPABASE_KEY = (() => { try { return atob(_s.join('')); } catch(e) { alert('Key解码失败: ' + e.message); return ''; } })();
+if (!SUPABASE_KEY) alert('SUPABASE_KEY 为空!');
 
 // ==================== 辅助函数 ====================
 function buildRestUrl(table, params) {
