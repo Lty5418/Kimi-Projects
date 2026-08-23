@@ -400,42 +400,72 @@ const _s = ['c2Jf','cHVibGlj','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN','kRwSDZ','2Tz
 const SUPABASE_KEY = (() => { try { return atob(_s.join('')); } catch(e) { alert('Key解码失败: ' + e.message); return ''; } })();
 if (!SUPABASE_KEY) alert('SUPABASE_KEY 为空!');
 
-// ==================== 辅助函数 ====================
-function buildRestUrl(table, params) {
-  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
-  if (!params) return url;
-  Object.entries(params).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    url.searchParams.set(k, String(v));
+// 加载 supabase-js SDK
+const supabaseScript = document.createElement('script');
+supabaseScript.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+supabaseScript.onload = function() {
+  window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+};
+document.head.appendChild(supabaseScript);
+
+// 等待 supabaseClient 可用的辅助函数
+function waitForSupabase() {
+  return new Promise((resolve, reject) => {
+    if (window.supabaseClient) { resolve(window.supabaseClient); return; }
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (window.supabaseClient) { clearInterval(interval); resolve(window.supabaseClient); }
+      else if (attempts > 50) { clearInterval(interval); reject(new Error('Supabase SDK 加载超时')); }
+    }, 100);
   });
-  return url;
 }
 
+// ==================== 辅助函数 ====================
 async function supabaseGet(table, params = {}) {
-  const url = buildRestUrl(table, params);
-  const res = await fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
-  if (!res.ok) { const errText = await res.text().catch(() => ''); throw new Error(`${table}: ${res.status} ${errText}`); }
-  return res.json();
+  const sb = await waitForSupabase();
+  let query = sb.from(table).select(params.select || '*');
+
+  // 应用过滤条件
+  Object.entries(params).forEach(([k, v]) => {
+    if (k === 'select' || k === 'order' || k === 'limit') return;
+    if (v === undefined || v === null) return;
+    if (typeof v === 'string' && v.startsWith('eq.')) query = query.eq(k, v.slice(3));
+    else if (typeof v === 'string' && v.startsWith('gt.')) query = query.gt(k, v.slice(3));
+    else if (typeof v === 'string' && v.startsWith('lt.')) query = query.lt(k, v.slice(3));
+    else if (typeof v === 'string' && v.startsWith('gte.')) query = query.gte(k, v.slice(4));
+    else if (typeof v === 'string' && v.startsWith('lte.')) query = query.lte(k, v.slice(4));
+    else if (typeof v === 'string' && v.startsWith('neq.')) query = query.neq(k, v.slice(4));
+    else if (typeof v === 'string' && v.startsWith('ilike.')) query = query.ilike(k, v.slice(6));
+    else if (typeof v === 'string' && v.startsWith('like.')) query = query.like(k, v.slice(5));
+    else if (typeof v === 'string' && v.startsWith('in.')) query = query.in(k, v.slice(3).split(','));
+    else if (typeof v === 'string' && v.startsWith('is.')) query = query.is(k, v.slice(3));
+    else if (k === 'or') query = query.or(v);
+    else query = query.eq(k, v);
+  });
+
+  if (params.order) {
+    const parts = params.order.split('.');
+    query = query.order(parts[0], { ascending: parts[1] !== 'desc' });
+  }
+  if (params.limit) query = query.limit(parseInt(params.limit));
+
+  const { data, error } = await query;
+  if (error) throw new Error(`${table}: ${error.code} ${error.message}`);
+  return data || [];
 }
 
 async function supabasePost(table, data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST', mode: 'cors', credentials: 'omit',
-    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) { const errText = await res.text().catch(() => ''); throw new Error(`${table}: ${res.status} ${errText}`); }
-  if (res.status === 204) return [];
-  return res.json().catch(() => []);
+  const sb = await waitForSupabase();
+  const { data: result, error } = await sb.from(table).insert(data).select();
+  if (error) throw new Error(`${table}: ${error.code} ${error.message}`);
+  return result || [];
 }
 
 async function supabasePatch(table, id, data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'PATCH', mode: 'cors', credentials: 'omit',
-    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) { const errText = await res.text().catch(() => ''); throw new Error(`${table}: ${res.status} ${errText}`); }
+  const sb = await waitForSupabase();
+  const { error } = await sb.from(table).update(data).eq('id', id);
+  if (error) throw new Error(`${table}: ${error.code} ${error.message}`);
   return true;
 }
 
@@ -514,7 +544,7 @@ async function handleAuth() {
       loginSuccess();
       showToast('注册成功！');
     }
-  } catch (e) { showToast('操作失败'); }
+  } catch (e) { showToast('操作失败: ' + e.message); }
 }
 
 function guestLogin() {
@@ -537,7 +567,7 @@ async function loginSuccess() {
   try {
     await loadAllUsers();
     await loadFriendships();
-  } catch (e) {}
+  } catch (e) { showToast('加载数据失败: ' + e.message); }
   buildChats();
   renderChatList();
   showEmptyState();
