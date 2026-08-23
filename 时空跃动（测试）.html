@@ -4625,152 +4625,221 @@ initMouseControl();
 
 // ==================== 关卡编码/解码 ====================
 
-// FIX: 检查 editor 中是否实际放置了传送门方块
-function editorHasPortal() {
-  for (let [key, tile] of editorCells) {
-    if (tile === TILE_PORTAL) return true;
+// ==================== V7 编码解码系统（重写版）====================
+// 格式: V7.<base64url>
+// 二进制结构（小端序）:
+//   [1字节]  flags: bit0=hasPortal, bit1=showIndicator, bit2=showMinimap
+//   [1字节]  nameLen (0-255)
+//   [N字节]  name (UTF-8)
+//   [2字节]  portalX (int16)
+//   [2字节]  portalY (int16)
+//   [2字节]  tileCount (uint16)
+//   [N*5字节] tiles: [1字节 type][2字节 x][2字节 y]
+// type编码: 0=land, 1=spike, 2=spikeAuto, 3=crate, 4=bouncer, 5=checkpoint, 6=portal
+
+const B64URL_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+function uint8ToBase64url(bytes) {
+  let result = '';
+  let i = 0;
+  while (i < bytes.length) {
+    let b1 = bytes[i++];
+    let b2 = i < bytes.length ? bytes[i++] : 0;
+    let b3 = i < bytes.length ? bytes[i++] : 0;
+    result += B64URL_CHARS[b1 >> 2];
+    result += B64URL_CHARS[((b1 & 0x03) << 4) | (b2 >> 4)];
+    result += B64URL_CHARS[((b2 & 0x0F) << 2) | (b3 >> 6)];
+    result += B64URL_CHARS[b3 & 0x3F];
   }
-  return false;
+  let padCount = (3 - (bytes.length % 3)) % 3;
+  return result.slice(0, result.length - padCount);
 }
 
-function encodeLevel(customName) {
+function base64urlToUint8(str) {
+  let padCount = (4 - (str.length % 4)) % 4;
+  str += '='.repeat(padCount);
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  let binary = atob(str);
+  let bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function writeInt16(bytes, offset, value) {
+  bytes[offset] = value & 0xFF;
+  bytes[offset + 1] = (value >> 8) & 0xFF;
+  return offset + 2;
+}
+
+function readInt16(bytes, offset) {
+  let val = bytes[offset] | (bytes[offset + 1] << 8);
+  return val >= 32768 ? val - 65536 : val;
+}
+
+function writeUint16(bytes, offset, value) {
+  bytes[offset] = value & 0xFF;
+  bytes[offset + 1] = (value >> 8) & 0xFF;
+  return offset + 2;
+}
+
+function readUint16(bytes, offset) {
+  return bytes[offset] | (bytes[offset + 1] << 8);
+}
+
+const TILE_TYPE_TO_CODE = {
+  [TILE_LAND]: 0, [TILE_SPIKE]: 1, [TILE_SPIKE_AUTO]: 2,
+  [TILE_CRATE]: 3, [TILE_BOUNCER]: 4, [TILE_CHECKPOINT]: 5,
+  [TILE_PORTAL]: 6, [TILE_SPAWN]: 7
+};
+
+const CODE_TO_TILE_TYPE = {
+  0: TILE_LAND, 1: TILE_SPIKE, 2: TILE_SPIKE_AUTO,
+  3: TILE_CRATE, 4: TILE_BOUNCER, 5: TILE_CHECKPOINT,
+  6: TILE_PORTAL, 7: TILE_SPAWN
+};
+
+function encodeLevelV7(customName) {
   let ox = editorSpawn.x, oy = editorSpawn.y;
-  let landCoords = [], spikeCoords = [], spikeAutoCoords = [];
-  let crateCoords = [], bouncerCoords = [], checkpointCoords = [];
-
   let hasPortal = editorHasPortal();
-  let prx = hasPortal ? (editorPortal.x - ox) : '';
-  let pry = hasPortal ? (editorPortal.y - oy) : '';
 
+  let tiles = [];
   for (let [key, tile] of editorCells) {
+    if (tile === TILE_SPAWN) continue;
     let [x, y] = key.split(',').map(Number);
     let rx = x - ox, ry = y - oy;
-    if (tile === TILE_LAND) landCoords.push(`a(${rx},${ry})`);
-    else if (tile === TILE_SPIKE) spikeCoords.push(`s(${rx},${ry})`);
-    else if (tile === TILE_SPIKE_AUTO) spikeAutoCoords.push(`t(${rx},${ry})`);
-    else if (tile === TILE_CRATE) crateCoords.push(`c(${rx},${ry})`);
-    else if (tile === TILE_BOUNCER) bouncerCoords.push(`b(${rx},${ry})`);
-    else if (tile === TILE_CHECKPOINT) checkpointCoords.push(`k(${rx},${ry})`);
+    let typeCode = TILE_TYPE_TO_CODE[tile];
+    if (typeCode !== undefined) tiles.push({ type: typeCode, x: rx, y: ry });
   }
-  // 如果有传入自定义名字则使用，否则默认"自定义"
+
+  const showInd = document.getElementById('opt-show-indicator')?.checked ?? true;
+  const showMap = document.getElementById('opt-show-minimap')?.checked ?? true;
   const levelName = customName || '自定义';
+  const nameBytes = new TextEncoder().encode(levelName);
 
-  const showInd = document.getElementById('opt-show-indicator') && document.getElementById('opt-show-indicator').checked ? '1' : '0';
-  const showMap = document.getElementById('opt-show-minimap') && document.getElementById('opt-show-minimap').checked ? '1' : '0';
+  let totalSize = 1 + 1 + nameBytes.length + 2 + 2 + 2 + tiles.length * 5;
+  let bytes = new Uint8Array(totalSize);
+  let offset = 0;
 
-  let parts = ['7', prx, pry, showInd, showMap, levelName];
-  parts.push(landCoords.join(''), spikeCoords.join(''), spikeAutoCoords.join(''));
-  parts.push(crateCoords.join(''), bouncerCoords.join(''), checkpointCoords.join(''));
-  return parts.join('.');
+  let flags = 0;
+  if (hasPortal) flags |= 0x01;
+  if (showInd) flags |= 0x02;
+  if (showMap) flags |= 0x04;
+  bytes[offset++] = flags;
+
+  bytes[offset++] = nameBytes.length;
+  for (let i = 0; i < nameBytes.length; i++) bytes[offset++] = nameBytes[i];
+
+  let prx = hasPortal ? (editorPortal.x - ox) : 0;
+  let pry = hasPortal ? (editorPortal.y - oy) : 0;
+  offset = writeInt16(bytes, offset, prx);
+  offset = writeInt16(bytes, offset, pry);
+  offset = writeUint16(bytes, offset, tiles.length);
+
+  for (let t of tiles) {
+    bytes[offset++] = t.type;
+    offset = writeInt16(bytes, offset, t.x);
+    offset = writeInt16(bytes, offset, t.y);
+  }
+
+  return '7.' + uint8ToBase64url(bytes);
 }
-function decodeLevel(code) {
+
+function decodeLevelV7(code) {
+  try {
+    let dotIdx = code.indexOf('.');
+    if (dotIdx < 0) return null;
+    let payload = code.slice(dotIdx + 1);
+    if (!payload) return null;
+
+    let bytes = base64urlToUint8(payload);
+    let offset = 0;
+
+    let flags = bytes[offset++];
+    let hasPortal = (flags & 0x01) !== 0;
+    let showIndicator = (flags & 0x02) !== 0;
+    let showMinimap = (flags & 0x04) !== 0;
+
+    let nameLen = bytes[offset++];
+    let nameBytes = bytes.slice(offset, offset + nameLen);
+    let name = new TextDecoder().decode(nameBytes);
+    offset += nameLen;
+
+    let prx = readInt16(bytes, offset); offset += 2;
+    let pry = readInt16(bytes, offset); offset += 2;
+    let tileCount = readUint16(bytes, offset); offset += 2;
+
+    let lands = [], spikes = [], spikeAutos = [];
+    let crates = [], bouncers = [], checkpoints = [];
+    let landSet = new Set();
+
+    for (let i = 0; i < tileCount; i++) {
+      let typeCode = bytes[offset++];
+      let x = readInt16(bytes, offset); offset += 2;
+      let y = readInt16(bytes, offset); offset += 2;
+
+      let tileType = CODE_TO_TILE_TYPE[typeCode];
+      if (tileType === TILE_LAND) landSet.add(x + ',' + y);
+      else if (tileType === TILE_SPIKE) spikes.push({x, y});
+      else if (tileType === TILE_SPIKE_AUTO) spikeAutos.push({x, y});
+      else if (tileType === TILE_CRATE) crates.push({x, y});
+      else if (tileType === TILE_BOUNCER) bouncers.push({x, y});
+      else if (tileType === TILE_CHECKPOINT) checkpoints.push({x, y});
+    }
+
+    let landRects = [];
+    if (landSet.size > 0) {
+      let landGrid = new Map();
+      for (let key of landSet) landGrid.set(key, 1);
+      let processed = new Set();
+      for (let key of landSet) {
+        if (processed.has(key)) continue;
+        let [x, y] = key.split(',').map(Number);
+        let w = 1;
+        while (landGrid.has((x + w) + ',' + y)) w++;
+        let h = 1;
+        let canExpandH = true;
+        while (canExpandH) {
+          for (let dx = 0; dx < w; dx++) {
+            if (!landGrid.has((x + dx) + ',' + (y + h))) { canExpandH = false; break; }
+          }
+          if (canExpandH) h++;
+        }
+        for (let dy = 0; dy < h; dy++) {
+          for (let dx = 0; dx < w; dx++) processed.add((x + dx) + ',' + (y + dy));
+        }
+        landRects.push({x, y, w, h});
+      }
+    }
+
+    return {
+      name: name || '自定义关卡', w: 100, h: 100,
+      spawn: {x: 0, y: 0},
+      portal: hasPortal ? {x: prx, y: pry} : null,
+      lands: landRects, spikes, spikeAutos, crates, bouncers, checkpoints,
+      showIndicator, showMinimap
+    };
+  } catch (e) {
+    alert('V7解码错误: ' + e.message);
+    return null;
+  }
+}
+
+function decodeLevelOld(code) {
   try {
     let parts = code.split('.');
     let ver = parts[0];
 
-    // V7 解码（支持所有新元素）
-    if (ver === '7') {
-      let hasPortal = parts[1] !== '' && parts[2] !== '';
-      let prx = hasPortal ? parseInt(parts[1]) : 0;
-      let pry = hasPortal ? parseInt(parts[2]) : 0;
-      let showIndicator = parts[3] !== '0';
-      let showMinimap = parts[4] !== '0';
-      let nameEndIdx = 5;
-      for (let i = 5; i < parts.length; i++) {
-        let p = parts[i];
-        if (p.startsWith('a(') || p.startsWith('s(') || p.startsWith('t(') || 
-            p.startsWith('c(') || p.startsWith('b(') || p.startsWith('k(') || p === '') { 
-          nameEndIdx = i; break; 
-        }
-      }
-      let name = parts.slice(5, nameEndIdx).join('.') || '自定义关卡';
-      let remaining = parts.slice(nameEndIdx).join('.');
-
-      let landStr = '', spikeStr = '', spikeAutoStr = '';
-      let crateStr = '', bouncerStr = '', checkpointStr = '';
-
-      let segments = [];
-      let current = '';
-      for (let i = 0; i < remaining.length; i++) {
-        if (remaining[i] === 'a' || remaining[i] === 's' || remaining[i] === 't' ||
-            remaining[i] === 'c' || remaining[i] === 'b' || remaining[i] === 'k') {
-          if (current) segments.push(current);
-          current = remaining[i];
-        } else {
-          current += remaining[i];
-        }
-      }
-      if (current) segments.push(current);
-
-      for (let seg of segments) {
-        if (seg.startsWith('a(')) landStr += seg;
-        else if (seg.startsWith('s(')) spikeStr += seg;
-        else if (seg.startsWith('t(')) spikeAutoStr += seg;
-        else if (seg.startsWith('c(')) crateStr += seg;
-        else if (seg.startsWith('b(')) bouncerStr += seg;
-        else if (seg.startsWith('k(')) checkpointStr += seg;
-      }
-
-      function parseCoords(str, prefix) {
-        let regex = new RegExp(prefix + '\((-?\d+),(-?\d+)\)', 'g');
-        let matches = [];
-        let m;
-        while ((m = regex.exec(str)) !== null) {
-          matches.push({x: parseInt(m[1]), y: parseInt(m[2])});
-        }
-        return matches;
-      }
-
-      let lands = parseCoords(landStr, 'a');
-      let spikes = parseCoords(spikeStr, 's');
-      let spikeAutos = parseCoords(spikeAutoStr, 't');
-      let crates = parseCoords(crateStr, 'c');
-      let bouncers = parseCoords(bouncerStr, 'b');
-      let checkpoints = parseCoords(checkpointStr, 'k');
-
-      let landRects = [];
-      if (lands.length > 0) {
-        let landSet = new Set(lands.map(l => l.x + ',' + l.y));
-        let landGrid = new Map();
-        for (let key of landSet) landGrid.set(key, 1);
-        let processed = new Set();
-        for (let key of landSet) {
-          if (processed.has(key)) continue;
-          let [x, y] = key.split(',').map(Number);
-          let w = 1;
-          while (landGrid.has((x + w) + ',' + y)) w++;
-          let h = 1;
-          let canExpandH = true;
-          while (canExpandH) {
-            for (let dx = 0; dx < w; dx++) {
-              if (!landGrid.has((x + dx) + ',' + (y + h))) { canExpandH = false; break; }
-            }
-            if (canExpandH) h++;
-          }
-          for (let dy = 0; dy < h; dy++) {
-            for (let dx = 0; dx < w; dx++) processed.add((x + dx) + ',' + (y + dy));
-          }
-          landRects.push({x, y, w, h});
-        }
-      }
-
-      return {
-        name, w: 100, h: 100,
-        spawn: {x: 0, y: 0},
-        portal: hasPortal ? {x: prx, y: pry} : null,
-        lands: landRects, spikes, spikeAutos, crates, bouncers, checkpoints,
-        showIndicator, showMinimap
-      };
-    }
-
-    // 兼容旧版本编码（v4/v5/v6/v6.1）
-    if (ver === '4' || ver === '5' || ver === '6' || ver === '6.1') {
+    function parseOldVersion(nameStart, hasSettings) {
       let hasPortal = parts[1] !== '' && parts[2] !== '';
       let prx = hasPortal ? parseInt(parts[1]) : 0;
       let pry = hasPortal ? parseInt(parts[2]) : 0;
       let showIndicator = true, showMinimap = true;
-      let nameStart = 3;
-      if (ver === '6.1') { showIndicator = parts[3] !== '0'; showMinimap = parts[4] !== '0'; nameStart = 5; }
+
+      if (hasSettings) {
+        showIndicator = parts[3] !== '0';
+        showMinimap = parts[4] !== '0';
+        nameStart = 5;
+      }
 
       let nameEndIdx = nameStart;
       for (let i = nameStart; i < parts.length; i++) {
@@ -4829,18 +4898,44 @@ function decodeLevel(code) {
       }
 
       return {
-        name, w: 100, h: 100,
-        spawn: {x: 0, y: 0},
+        name, w: 100, h: 100, spawn: {x: 0, y: 0},
         portal: hasPortal ? {x: prx, y: pry} : null,
-        lands, spikes,
-        spikeAutos: [], crates: [], bouncers: [], checkpoints: [],
+        lands, spikes, spikeAutos: [], crates: [], bouncers: [], checkpoints: [],
         showIndicator, showMinimap
       };
     }
 
+    if (ver === '6.1') return parseOldVersion(5, true);
+    if (ver === '4' || ver === '5' || ver === '6') return parseOldVersion(3, false);
     return null;
-  } catch (e) { console.error('解码失败:', e); return null; }
+  } catch (e) { 
+    alert('旧版解码错误: ' + e.message); 
+    return null; 
+  }
 }
+
+function encodeLevel(customName) {
+  return encodeLevelV7(customName);
+}
+
+function decodeLevel(code) {
+  if (!code || typeof code !== 'string') return null;
+  if (code.startsWith('7.')) return decodeLevelV7(code);
+  let parts = code.split('.');
+  let ver = parts[0];
+  if (ver === '4' || ver === '5' || ver === '6' || ver === '6.1') return decodeLevelOld(code);
+  return decodeLevelV7('7.' + code);
+}
+
+
+// FIX: 检查 editor 中是否实际放置了传送门方块
+function editorHasPortal() {
+  for (let [key, tile] of editorCells) {
+    if (tile === TILE_PORTAL) return true;
+  }
+  return false;
+}
+
 
 function buildLevelFromEditor() {
   let ox = editorSpawn.x, oy = editorSpawn.y;
@@ -5145,7 +5240,7 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
   for (let s of level.spikes || []) {
     const gx = s.x + ox;
     const gy = s.y + oy;
-    editorCells.set(gx + ',' + gy, TILE_SPIKE_AUTO);
+    editorCells.set(gx + ',' + gy, TILE_SPIKE);
   }
 
   for (let s of level.spikeAutos || []) {
@@ -5187,6 +5282,25 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
   if (optMap) optMap.checked = level.showMinimap !== false;
 
   renderEditor();
+
+  // 调整视角到导入的关卡中心
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  let hasTiles = false;
+  for (let [key, tile] of editorCells) {
+    let [x, y] = key.split(',').map(Number);
+    if (tile !== 0) {
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+      hasTiles = true;
+    }
+  }
+  if (hasTiles) {
+    editorViewX = (minX + maxX) / 2;
+    editorViewY = (minY + maxY) / 2;
+    updateEditorCoords();
+    renderEditor();
+  }
+
   document.getElementById('level-code-input').value = '';
   alert('关卡已导入到编辑器');
 });
@@ -5194,6 +5308,46 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
 initStorage();
 
 initMinimap();
+
+
+// ==================== 发布页相关函数（全局作用域）====================
+function showPublishPage() {
+  const code = encodeLevel();
+  document.getElementById('publish-code-preview').textContent = code;
+
+  // 默认填入一个基于时间的名字
+  const defaultName = '自定义关卡_' + new Date().toLocaleDateString().replace(/\//g, '');
+  document.getElementById('publish-name-input').value = defaultName;
+  document.getElementById('publish-desc-input').value = '';
+  document.getElementById('desc-char-count').textContent = '0/200';
+
+  document.getElementById('publish-page').style.display = 'flex';
+}
+
+async function doShareLevel() {
+  // 强制重新生成编码，确保分享的是最新数据
+  const code = encodeLevel();
+  document.getElementById('level-code-output').value = code;
+
+  const levelData = buildLevelFromEditor();
+  const overlay = document.getElementById('publish-overlay');
+  overlay.classList.add('active');
+
+  try {
+    await shareLevelToLobby(levelData, code);
+    alert('关卡已分享到大厅！');
+  } catch (e) {
+    alert('分享失败: ' + (e.message || '网络错误'));
+  } finally {
+    overlay.classList.remove('active');
+    // 返回编辑器
+    isEditorTest = false;
+    editorTestWon = false;
+    document.getElementById('editor-screen').style.display = 'flex';
+  }
+}
+
+async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
 
 // Initial render
 ctx.fillStyle = COLORS.bg;
@@ -5482,61 +5636,7 @@ let detailLevelData = null;
 let detailLevelId = null;
 let detailLevelLiked = false;
 
-async function refreshLobby() { await renderPublicLevels(); renderMyLevels(); }
 
-async function renderPublicLevels(filter = '') {
-  const container = document.getElementById('public-levels-list');
-  const levels = await getSharedLevels();
-  publicLevelsCache = levels;
-
-  let displayLevels = levels;
-  if (filter.trim()) {
-    const keyword = filter.trim().toLowerCase();
-    displayLevels = levels.filter(l =>
-      (l.name && l.name.toLowerCase().includes(keyword)) ||
-      (l.author && l.author.toLowerCase().includes(keyword))
-    );
-  }
-
-  if (displayLevels.length === 0) {
-    container.innerHTML = filter
-      ? '<div class="levels-empty">没有找到匹配的关卡</div>'
-      : '<div class="levels-empty">暂无分享关卡，快去编辑器创建并分享吧！</div>';
-    return;
-  }
-
-  container.innerHTML = displayLevels.map(l => {
-    let hasPortal = false;
-    let showMinimap = true;
-    let showIndicator = true;
-    try {
-      const decoded = decodeLevel(l.code);
-      hasPortal = levelHasPortal(decoded);
-      if (decoded) {
-        showMinimap = decoded.showMinimap !== false;
-        showIndicator = decoded.showIndicator !== false;
-      }
-    } catch(e) { hasPortal = false; }
-
-    const isLiked = l.user_liked || false;
-    const isOldVersion = l.code && l.code.split('.')[0] !== '7';
-
-    const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-    return `
-    <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${(l.author || '').replace(/"/g, '&quot;')}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}">
-      ${!hasPortal ? '<span class="lc-no-portal">无传送门</span>' : ''}
-      ${isOldVersion ? '<span class="lc-badge">旧版</span>' : ''}
-      <div class="lc-name">${l.name || '未命名'}</div>
-      <div class="lc-author">${l.author || '匿名'}</div>
-      <div class="lc-likes"><span class="heart">${isLiked ? '&#9829;' : '&#9825;'}</span> ${l.likes || 0}</div>
-    </div>
-  `}).join('');
-
-  container.querySelectorAll('.level-card-square').forEach(card => {
-    card.addEventListener('click', () => openDetailPage(card));
-  });
-}
 
 async function renderMyLevels(filter = '') {
   const container = document.getElementById('my-levels-list');
@@ -5987,42 +6087,6 @@ function checkWinForShare() {
 // 在 updatePhysics 的通关逻辑中已处理，这里不需要额外监听
 // 但为了保险，在 gameLoop 中检查
 const _originalGameLoop = gameLoop;
-
-function showPublishPage() {
-  const code = encodeLevel();
-  document.getElementById('publish-code-preview').textContent = code;
-
-  // 默认填入一个基于时间的名字
-  const defaultName = '自定义关卡_' + new Date().toLocaleDateString().replace(/\//g, '');
-  document.getElementById('publish-name-input').value = defaultName;
-  document.getElementById('publish-desc-input').value = '';
-  document.getElementById('desc-char-count').textContent = '0/200';
-
-  document.getElementById('publish-page').style.display = 'flex';
-}
-
-async function doShareLevel() {
-  // 强制重新生成编码，确保分享的是最新数据
-  const code = encodeLevel();
-  document.getElementById('level-code-output').value = code;
-
-  const levelData = buildLevelFromEditor();
-  const overlay = document.getElementById('publish-overlay');
-  overlay.classList.add('active');
-
-  try {
-    await shareLevelToLobby(levelData, code);
-    alert('关卡已分享到大厅！');
-  } catch (e) {
-    alert('分享失败: ' + (e.message || '网络错误'));
-  } finally {
-    overlay.classList.remove('active');
-    // 返回编辑器
-    isEditorTest = false;
-    editorTestWon = false;
-    document.getElementById('editor-screen').style.display = 'flex';
-  }
-}
 
 // ==================== 分享弹窗 ====================
 document.getElementById('btn-share-copy').addEventListener('click', async () => {
