@@ -80,10 +80,11 @@
   .app { display: flex; height: 100vh; }
   .chat-content {
     display: none;
-    position: absolute;
-    inset: 0;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
+    width: 100%;
   }
   .chat-content.active {
     display: flex;
@@ -151,7 +152,6 @@
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    padding-bottom: 80px;
     background: var(--gray-50);
     min-height: 0;
   }
@@ -174,7 +174,6 @@
     padding: 12px 20px; border-top: 1px solid var(--gray-100);
     display: flex; gap: 10px; align-items: flex-end; background: var(--white);
     flex-shrink: 0;
-  ;
     min-height: 60px;
   }
   .input-area textarea {
@@ -316,9 +315,10 @@
       display: flex; flex-direction: column;
     }
     .chat-content {
-      position: absolute;
-      inset: 0;
+      flex: 1;
+      min-height: 0;
       overflow: hidden;
+      width: 100%;
     }
     .chat-area.show { transform: translateX(0); }
     .mobile-menu-btn {
@@ -403,7 +403,8 @@
             <div class="chat-subtitle" id="chatSubtitle">所有人都在这儿</div>
           </div>
         </div>
-      </div>
+      
+      <!-- 公共大厅用户列表 -->
       <!-- 公共大厅用户列表 -->
       <div class="hall-users" id="hallUsers" style="display:none;">
         <div class="hall-users-header" onclick="toggleHallUsers()">
@@ -416,6 +417,10 @@
       </div>
       <div class="messages-container" id="messagesContainer"></div>
       <div class="input-area">
+        <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+        <button class="icon-btn" onclick="document.getElementById('imageInput').click()" title="发送图片" style="width:40px;height:40px;border-radius:50%;background:var(--gray-100);flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
         <textarea id="messageInput" placeholder="输入消息..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
         <button class="send-btn" onclick="sendMessage()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9"/></svg>
@@ -519,18 +524,59 @@ async function supabasePatch(table, id, data) {
   return true;
 }
 
+// ==================== 本地状态持久化 ====================
+const STORAGE_KEYS = {
+  USER: 'chat_user',
+  CHATS: 'chat_chats',
+  MESSAGES: 'chat_messages',
+  LAST_IDS: 'chat_last_ids',
+  CURRENT_CHAT: 'chat_current'
+};
+
+function saveState() {
+  try {
+    if (currentUser) localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+    localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(chats));
+    localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(localMessages));
+    localStorage.setItem(STORAGE_KEYS.LAST_IDS, JSON.stringify(lastMessageIds));
+    if (currentChat) localStorage.setItem(STORAGE_KEYS.CURRENT_CHAT, JSON.stringify(currentChat));
+  } catch (e) {
+    // localStorage 不可用或配额已满，静默失败
+  }
+}
+
+function loadState() {
+  try {
+    const user = localStorage.getItem(STORAGE_KEYS.USER);
+    if (user) currentUser = JSON.parse(user);
+    const chatsData = localStorage.getItem(STORAGE_KEYS.CHATS);
+    if (chatsData) chats = JSON.parse(chatsData);
+    const msgs = localStorage.getItem(STORAGE_KEYS.MESSAGES);
+    if (msgs) localMessages = JSON.parse(msgs);
+    const ids = localStorage.getItem(STORAGE_KEYS.LAST_IDS);
+    if (ids) lastMessageIds = JSON.parse(ids);
+    const cur = localStorage.getItem(STORAGE_KEYS.CURRENT_CHAT);
+    if (cur) currentChat = JSON.parse(cur);
+  } catch (e) {}
+}
+
+function clearState() {
+  Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
+}
+
 // ==================== 全局状态 ====================
 let currentUser = null;
-let currentChat = null; // null = 没选中任何聊天
+let currentChat = null;
 let chats = [];
 let allUsers = [];
 let friendships = [];
 let pollInterval = null;
 let isMobile = window.innerWidth <= 768;
-
-// 本地消息缓存: { "group_1": [...], "private_123": [...] }
 let localMessages = {};
-let lastMessageIds = {}; // 记录每聊天最后一条消息的id，用于增量同步
+let lastMessageIds = {};
+
+// 页面加载时恢复状态
+loadState();
 
 // ==================== 工具函数 ====================
 function sha256(str) {
@@ -620,6 +666,7 @@ async function loginSuccess() {
   } catch (e) { showToast('加载数据失败: ' + e.message); }
   buildChats();
   renderChatList();
+  saveState();
   showEmptyState();
   startPolling();
 }
@@ -627,6 +674,7 @@ async function loginSuccess() {
 function logout() {
   currentUser = null; currentChat = null; chats = []; allUsers = []; friendships = [];
   localMessages = {}; lastMessageIds = {};
+  clearState();
   if (pollInterval) clearInterval(pollInterval);
   document.getElementById('loginPage').classList.remove('hidden');
   document.getElementById('app').style.display = 'none';
@@ -675,6 +723,7 @@ function renderChatList() {
 
 function selectChat(chat) {
   currentChat = chat;
+  saveState();
   renderChatList();
 
   // 移动端：显示聊天区
@@ -686,9 +735,7 @@ function selectChat(chat) {
 
   // 显示聊天内容，隐藏空状态
   document.getElementById('emptyChat').classList.add('hidden');
-  const chatContentEl = document.getElementById('chatContent');
-  chatContentEl.classList.remove('hidden');
-  chatContentEl.style.display = 'flex';
+  document.getElementById('chatContent').classList.add('active');
   
 
   document.getElementById('chatTitle').textContent = chat.name;
@@ -716,9 +763,7 @@ function selectChat(chat) {
 function showEmptyState() {
   currentChat = null;
   document.getElementById('emptyChat').classList.remove('hidden');
-  const chatContentEl = document.getElementById('chatContent');
-  chatContentEl.classList.add('hidden');
-  chatContentEl.style.display = 'none';
+  document.getElementById('chatContent').classList.remove('active');
   renderChatList();
 }
 
@@ -834,11 +879,20 @@ function renderMessages(msgs) {
     const isOwn = msg.sender_id === currentUser.id;
     const senderName = msg.sender_name || msg.users?.username || '未知用户';
     const showSender = !isOwn && currentChat.pinned && lastSender !== msg.sender_id;
+    const isImage = msg.content_type === 'image' || msg.content.startsWith('data:image');
+
+    let contentHtml;
+    if (isImage) {
+      contentHtml = `<img src="${escapeHtml(msg.content)}" style="max-width:100%;max-height:300px;border-radius:8px;display:block;" onclick="window.open(this.src)" alt="图片">`;
+    } else {
+      contentHtml = escapeHtml(msg.content);
+    }
+
     const html = `
       <div class="message-group ${isOwn ? 'own' : ''}">
         ${showSender ? `<div class="message-sender">${escapeHtml(senderName)}</div>` : ''}
         <div class="message-bubble-wrap">
-          <div class="message-bubble">${escapeHtml(msg.content)}</div>
+          <div class="message-bubble">${contentHtml}</div>
         </div>
         <div class="message-time">${formatTime(msg.created_at)}</div>
       </div>
@@ -890,15 +944,74 @@ async function syncMessages() {
       const newMsgs = msgs.filter(m => !existingIds.has(m.id));
       if (newMsgs.length > 0) {
         localMessages[key] = [...localMessages[key], ...newMsgs];
-        // 更新最后id
         const maxId = Math.max(...localMessages[key].map(m => m.id));
         lastMessageIds[key] = maxId;
-        // 如果当前正在看这个聊天，渲染
+        saveState();
         renderMessages(localMessages[key]);
       }
     }
   } catch (e) {
     // 静默失败，下次轮询再试
+  }
+}
+
+async function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file || !currentChat) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('图片不能超过 2MB');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64 = e.target.result;
+    await sendImageMessage(base64);
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+async function sendImageMessage(base64) {
+  if (!currentChat) return;
+  const tempId = Date.now();
+  const key = getChatKey();
+
+  const tempMsg = {
+    id: tempId,
+    sender_id: currentUser.id,
+    sender_name: currentUser.username,
+    chat_type: currentChat.type,
+    chat_id: currentChat.type === 'group' ? 1 : currentChat.id,
+    content: base64,
+    content_type: 'image',
+    created_at: new Date().toISOString(),
+    users: { username: currentUser.username }
+  };
+
+  if (!localMessages[key]) localMessages[key] = [];
+  localMessages[key].push(tempMsg);
+  saveState();
+  renderMessages(localMessages[key]);
+
+  try {
+    if (currentChat.type === 'private') {
+      const pc = await findOrCreatePrivateChat();
+      if (!pc) { showToast('无法创建私聊'); return; }
+      await supabasePost('messages', {
+        sender_id: currentUser.id, chat_type: 'private', chat_id: pc.id, 
+        content: base64, content_type: 'image'
+      });
+    } else {
+      await supabasePost('messages', {
+        sender_id: currentUser.id, chat_type: 'group', chat_id: 1, 
+        content: base64, content_type: 'image'
+      });
+    }
+    setTimeout(syncMessages, 500);
+  } catch (e) {
+    showToast('发送失败');
   }
 }
 
@@ -923,6 +1036,7 @@ async function sendMessage() {
   };
   if (!localMessages[key]) localMessages[key] = [];
   localMessages[key].push(tempMsg);
+  saveState();
   renderMessages(localMessages[key]);
 
   input.value = '';
