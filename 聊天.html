@@ -183,11 +183,30 @@
 
   /* ========== 公共大厅用户列表 ========== */
   .hall-users {
-    padding: 16px 20px; border-bottom: 1px solid var(--gray-100);
+    padding: 12px 20px; border-bottom: 1px solid var(--gray-100);
     background: var(--white);
   }
-  .hall-users h4 { font-size: 13px; color: var(--gray-400); margin-bottom: 10px; font-weight: 500; }
-  .hall-users-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hall-users-header {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
+    padding: 4px 0;
+  }
+  .hall-users-header h4 { font-size: 13px; color: var(--gray-400); font-weight: 500; }
+  .hall-toggle-icon {
+    width: 20px; height: 20px; color: var(--gray-400);
+    transition: transform 0.2s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hall-toggle-icon.collapsed { transform: rotate(-90deg); }
+  .hall-users-list {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    max-height: 200px; overflow: hidden;
+    transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.2s ease;
+    opacity: 1; margin-top: 10px;
+  }
+  .hall-users-list.collapsed {
+    max-height: 0; opacity: 0; margin-top: 0;
+  }
   .hall-user-chip {
     display: flex; align-items: center; gap: 6px;
     padding: 6px 10px; border-radius: 20px; background: var(--gray-50);
@@ -361,7 +380,12 @@
       </div>
       <!-- 公共大厅用户列表 -->
       <div class="hall-users" id="hallUsers" style="display:none;">
-        <h4>在线用户</h4>
+        <div class="hall-users-header" onclick="toggleHallUsers()">
+          <h4>在线用户</h4>
+          <div class="hall-toggle-icon" id="hallToggleIcon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
         <div class="hall-users-list" id="hallUsersList"></div>
       </div>
       <div class="messages-container" id="messagesContainer"></div>
@@ -678,6 +702,21 @@ function openSidebar() {
 }
 
 // ==================== 公共大厅用户列表 ====================
+let hallUsersCollapsed = false;
+
+function toggleHallUsers() {
+  hallUsersCollapsed = !hallUsersCollapsed;
+  const list = document.getElementById('hallUsersList');
+  const icon = document.getElementById('hallToggleIcon');
+  if (hallUsersCollapsed) {
+    list.classList.add('collapsed');
+    icon.classList.add('collapsed');
+  } else {
+    list.classList.remove('collapsed');
+    icon.classList.remove('collapsed');
+  }
+}
+
 function renderHallUsers() {
   const list = document.getElementById('hallUsersList');
   // 排除自己
