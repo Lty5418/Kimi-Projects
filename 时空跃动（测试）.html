@@ -61,9 +61,9 @@ html, body {
 /* ===== 返回按钮（统一左上角） ===== */
 .back-btn {
   position: absolute;
-  top: 16px; left: 16px;
-  padding: 8px 18px;
-  font-size: 13px;
+  top: 20px; left: 20px;
+  padding: 10px 22px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 2px;
   border: 1px solid #707070;
@@ -365,16 +365,15 @@ html, body {
   padding: 4px;
 }
 .level-card-square {
-  aspect-ratio: 1;
+  height: 90px;
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 0;
   transition: all 0.25s ease;
   position: relative;
   overflow: hidden;
@@ -387,28 +386,52 @@ html, body {
 .level-card-square:active {
   transform: scale(0.97);
 }
+.level-card-square .lc-minimap {
+  width: 90px;
+  height: 100%;
+  background: #0a0a0a;
+  border-right: 1px solid #2a2a2a;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.level-card-square .lc-minimap img,
+.level-card-square .lc-minimap canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.level-card-square .lc-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8px 12px;
+  min-width: 0;
+}
 .level-card-square .lc-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: #FFFFFF;
-  text-align: center;
   line-height: 1.4;
-  word-break: break-word;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
-  margin-bottom: 6px;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
 }
-.level-card-square .lc-author {
-  font-size: 11px;
+.level-card-square .lc-desc {
+  font-size: 12px;
   color: #8D9390;
-  text-align: center;
-  letter-spacing: 1px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .level-card-square .lc-likes {
   position: absolute;
-  bottom: 8px;
+  bottom: 6px;
   right: 10px;
   font-size: 11px;
   color: #FFD1D4;
@@ -421,8 +444,8 @@ html, body {
 }
 .level-card-square .lc-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 6px;
   font-size: 9px;
   color: #FFAA00;
   background: rgba(255,170,0,0.1);
@@ -432,8 +455,8 @@ html, body {
 }
 .level-card-square .lc-no-portal {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 6px;
+  left: 96px;
   font-size: 9px;
   color: #FF4444;
   background: rgba(255,68,68,0.1);
@@ -587,13 +610,14 @@ html, body {
     gap: 10px;
   }
   .level-card-square {
-    padding: 10px;
+    padding: 0;
+    height: 80px;
   }
   .level-card-square .lc-name {
-    font-size: 12px;
+    font-size: 13px;
   }
-  .level-card-square .lc-author {
-    font-size: 10px;
+  .level-card-square .lc-desc {
+    font-size: 11px;
   }
 }
 @media (max-width: 360px) {
@@ -838,8 +862,8 @@ html, body {
 /* ===== 虚拟摇杆 ===== */
 #joystick-zone {
   position: absolute;
-  left: 24px; bottom: 24px;
-  width: 120px; height: 120px;
+  left: 32px; bottom: 32px;
+  width: 150px; height: 150px;
   z-index: 50;
   display: none;
   touch-action: none;
@@ -852,23 +876,23 @@ html, body {
 }
 #joystick-thumb {
   position: absolute;
-  width: 48px; height: 48px;
+  width: 56px; height: 56px;
   border-radius: 50%;
   background: rgba(0,246,255,0.2);
   border: 2px solid rgba(0,246,255,0.4);
-  top: 36px; left: 36px;
+  top: 47px; left: 47px;
   transition: none;
 }
 /* ===== 跳跃按钮 ===== */
 #jump-btn {
   position: absolute;
-  right: 30px; bottom: 30px;
-  width: 80px; height: 80px;
+  right: 36px; bottom: 36px;
+  width: 100px; height: 100px;
   border-radius: 50%;
   border: 2px solid rgba(0,246,255,0.3);
   background: rgba(0,246,255,0.08);
   color: #FFFFFF;
-  font-size: 22px; font-weight: 700;
+  font-size: 26px; font-weight: 700;
   display: none;
   align-items: center; justify-content: center;
   z-index: 50;
@@ -889,15 +913,15 @@ html, body {
   display: none;
 }
 #game-ui .top-bar {
-  position: absolute; top: 16px; left: 16px;
-  display: flex; gap: 12px;
+  position: absolute; top: 20px; left: 20px;
+  display: flex; gap: 14px;
 }
 #game-ui .top-bar .ui-btn {
-  padding: 6px 14px;
+  padding: 8px 18px;
   background: rgba(18,18,18,0.8);
   border: 1px solid #707070;
   color: #FFFFFF;
-  font-size: 13px;
+  font-size: 15px;
   pointer-events: auto;
   cursor: pointer;
   transition: all 0.2s;
@@ -912,6 +936,50 @@ html, body {
   left: 50%; transform: translateX(-50%);
   font-size: 16px; color: #8D9390;
   letter-spacing: 2px;
+}
+/* ===== 新手引导对话框 ===== */
+#tutorial-overlay {
+  position: absolute; inset: 0;
+  display: none;
+  z-index: 70;
+  background: rgba(18,18,18,0.55);
+}
+#tutorial-overlay.active { display: block; }
+#tutorial-dialog {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(26,26,26,0.97);
+  border-top: 1px solid #707070;
+  border-radius: 14px 14px 0 0;
+  padding: 20px 28px 28px;
+  color: #E1E3E6;
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: 1px;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#tutorial-dialog:hover {
+  background: rgba(40,40,40,0.97);
+}
+#tutorial-dialog .td-speaker {
+  font-size: 12px;
+  color: #8D9390;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+#tutorial-dialog .td-text {
+  color: #FFFFFF;
+}
+#tutorial-dialog .td-hint {
+  font-size: 11px;
+  color: #8D9390;
+  letter-spacing: 2px;
+  margin-top: 12px;
+  opacity: 0.7;
 }
 /* ===== 过关弹窗 ===== */
 #win-modal {
@@ -1193,9 +1261,9 @@ html, body {
 @media (max-width: 768px) {
   #start-screen .title { font-size: 42px; letter-spacing: 8px; }
   .btn { padding: 10px 28px; font-size: 14px; }
-  #joystick-zone { width: 100px; height: 100px; }
-  #joystick-thumb { width: 40px; height: 40px; top: 30px; left: 30px; }
-  #jump-btn { width: 70px; height: 70px; }
+  #joystick-zone { width: 120px; height: 120px; left: 20px; bottom: 20px; }
+  #joystick-thumb { width: 44px; height: 44px; top: 38px; left: 38px; }
+  #jump-btn { width: 85px; height: 85px; right: 24px; bottom: 24px; font-size: 22px; }
   .level-card { padding: 12px; }
   .level-info h4 { font-size: 14px; }
   #lobby-screen { padding: 60px 12px 12px 12px; }
@@ -1209,9 +1277,9 @@ html, body {
   .lvl-card { width: 52px; height: 52px; font-size: 16px; }
   .lvl-card .lvl-name { font-size: 11px; }
   #level-cards { padding-left: calc(50% - 26px) !important; padding-right: calc(50% - 26px) !important; }
-  #joystick-zone { width: 90px; height: 90px; left: 16px; bottom: 16px; }
-  #joystick-thumb { width: 36px; height: 36px; top: 27px; left: 27px; }
-  #jump-btn { width: 60px; height: 60px; right: 16px; bottom: 16px; font-size: 18px; }
+  #joystick-zone { width: 100px; height: 100px; left: 16px; bottom: 16px; }
+  #joystick-thumb { width: 38px; height: 38px; top: 31px; left: 31px; }
+  #jump-btn { width: 75px; height: 75px; right: 16px; bottom: 16px; font-size: 20px; }
   .level-actions .btn { padding: 5px 12px; font-size: 12px; }
   .search-box { flex-direction: column; }
   .search-box .btn { width: 100%; }
@@ -1224,9 +1292,9 @@ html, body {
   #start-screen .title { font-size: 28px; letter-spacing: 6px; margin-bottom: 12px; }
   .btn-row { gap: 12px; }
   .btn { padding: 6px 16px; font-size: 12px; }
-  #joystick-zone { width: 70px; height: 70px; }
-  #joystick-thumb { width: 28px; height: 28px; top: 21px; left: 21px; }
-  #jump-btn { width: 50px; height: 50px; font-size: 16px; }
+  #joystick-zone { width: 80px; height: 80px; left: 14px; bottom: 14px; }
+  #joystick-thumb { width: 32px; height: 32px; top: 24px; left: 24px; }
+  #jump-btn { width: 60px; height: 60px; right: 14px; bottom: 14px; font-size: 16px; }
   .lvl-card { width: 48px; height: 48px; font-size: 14px; }
   #level-cards { padding-left: calc(50% - 24px) !important; padding-right: calc(50% - 24px) !important; }
 }
@@ -1412,6 +1480,27 @@ html, body {
     <div class="screen-title">更新日志</div>
     <div class="screen-subtitle">CHANGELOG</div>
     <div style="width:100%;max-width:480px;overflow-y:auto;flex:1;">
+      <div class="changelog-entry">
+        <div class="changelog-time">2026-08-27 19:54</div>
+        <ul class="changelog-list">
+          <li>重构统一碰撞检测系统：所有物体（玩家、木箱、移动平台）独立计算碰撞</li>
+          <li>木箱完全独立于 grid，不再覆盖传送门/出生点/存档点/弹板</li>
+          <li>修复木箱破碎后残留碰撞体积的问题</li>
+          <li>木箱现在可以与移动平台正确碰撞</li>
+          <li>移动平台颜色改为与普通陆地一致</li>
+        </ul>
+      </div>
+      <div class="changelog-entry">
+        <div class="changelog-time">2026-08-27 19:35</div>
+        <ul class="changelog-list">
+          <li>增大虚拟摇杆尺寸：默认 150px（原 120px），thumb 56px（原 48px）</li>
+          <li>增大跳跃按钮尺寸：默认 100px（原 80px），字体 26px（原 22px）</li>
+          <li>增大游戏内顶部按钮（重新开始/退出）尺寸和字号</li>
+          <li>增大返回按钮尺寸：padding 10px 22px，字号 15px（原 8px 18px / 13px）</li>
+          <li>摇杆最大拖拽距离改为动态计算，适配不同屏幕尺寸</li>
+          <li>各响应式断点同步增大控件尺寸</li>
+        </ul>
+      </div>
             <div class="changelog-entry">
         <div class="changelog-time">2026-08-22 20:08</div>
         <ul class="changelog-list">
@@ -1465,141 +1554,22 @@ html, body {
       <div class="lvl-card" id="lvl-0">
         <span class="lvl-num">1</span>
         <span class="lvl-info">
-          <span class="lvl-name">起跳平台</span>
+          <span class="lvl-name">初识</span>
           <span class="lvl-tag">入门</span>
         </span>
       </div>
       <div class="lvl-card" id="lvl-1">
         <span class="lvl-num">2</span>
         <span class="lvl-info">
-          <span class="lvl-name">第一个坎</span>
+          <span class="lvl-name">尖刺</span>
           <span class="lvl-tag">入门</span>
         </span>
       </div>
       <div class="lvl-card" id="lvl-2">
         <span class="lvl-num">3</span>
         <span class="lvl-info">
-          <span class="lvl-name">连续小跳</span>
-          <span class="lvl-tag">入门</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-3">
-        <span class="lvl-num">4</span>
-        <span class="lvl-info">
-          <span class="lvl-name">初见尖刺</span>
+          <span class="lvl-name">出门测</span>
           <span class="lvl-tag">进阶</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-4">
-        <span class="lvl-num">5</span>
-        <span class="lvl-info">
-          <span class="lvl-name">尖刺间隙</span>
-          <span class="lvl-tag">进阶</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-5">
-        <span class="lvl-num">6</span>
-        <span class="lvl-info">
-          <span class="lvl-name">需要二段</span>
-          <span class="lvl-tag">进阶</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-6">
-        <span class="lvl-num">7</span>
-        <span class="lvl-info">
-          <span class="lvl-name">高空恐惧</span>
-          <span class="lvl-tag">进阶</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-7">
-        <span class="lvl-num">8</span>
-        <span class="lvl-info">
-          <span class="lvl-name">回环路线</span>
-          <span class="lvl-tag">进阶</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-8">
-        <span class="lvl-num">9</span>
-        <span class="lvl-info">
-          <span class="lvl-name">极限距离</span>
-          <span class="lvl-tag">挑战</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-9">
-        <span class="lvl-num">10</span>
-        <span class="lvl-info">
-          <span class="lvl-name">二段极限</span>
-          <span class="lvl-tag">挑战</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-10">
-        <span class="lvl-num">11</span>
-        <span class="lvl-info">
-          <span class="lvl-name">头顶即死</span>
-          <span class="lvl-tag">挑战</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-11">
-        <span class="lvl-num">12</span>
-        <span class="lvl-info">
-          <span class="lvl-name">窄缝求生</span>
-          <span class="lvl-tag">挑战</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-12">
-        <span class="lvl-num">13</span>
-        <span class="lvl-info">
-          <span class="lvl-name">连续极限二段</span>
-          <span class="lvl-tag">挑战</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-13">
-        <span class="lvl-num">14</span>
-        <span class="lvl-info">
-          <span class="lvl-name">踩边而过</span>
-          <span class="lvl-tag">挑战</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-14">
-        <span class="lvl-num">15</span>
-        <span class="lvl-info">
-          <span class="lvl-name">尖刺回廊</span>
-          <span class="lvl-tag">极限</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-15">
-        <span class="lvl-num">16</span>
-        <span class="lvl-info">
-          <span class="lvl-name">高空二段</span>
-          <span class="lvl-tag">极限</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-16">
-        <span class="lvl-num">17</span>
-        <span class="lvl-info">
-          <span class="lvl-name">顶头二段</span>
-          <span class="lvl-tag">极限</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-17">
-        <span class="lvl-num">18</span>
-        <span class="lvl-info">
-          <span class="lvl-name">踩边二段</span>
-          <span class="lvl-tag">极限</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-18">
-        <span class="lvl-num">19</span>
-        <span class="lvl-info">
-          <span class="lvl-name">无地可落</span>
-          <span class="lvl-tag">极限</span>
-        </span>
-      </div>
-      <div class="lvl-card" id="lvl-19">
-        <span class="lvl-num">20</span>
-        <span class="lvl-info">
-          <span class="lvl-name">不可能任务</span>
-          <span class="lvl-tag">极限</span>
         </span>
       </div>
     </div>
@@ -1765,6 +1735,14 @@ html, body {
     </div>
     <div id="level-name-display">关卡 1</div>
   </div>
+  <!-- ========== 新手引导对话框 ========== -->
+  <div id="tutorial-overlay">
+    <div id="tutorial-dialog">
+      <div class="td-speaker">引导方块</div>
+      <div class="td-text" id="tutorial-text"></div>
+      <div class="td-hint">点击此处跳过</div>
+    </div>
+  </div>
   <!-- ========== 过关弹窗 ========== -->
   <div id="win-modal">
     <h2>过关!</h2>
@@ -1805,12 +1783,13 @@ html, body {
     <div class="publish-form">
       <div class="form-group">
         <label>关卡名称</label>
-        <input type="text" id="publish-name-input" placeholder="输入关卡名称..." maxlength="30">
+        <input type="text" id="publish-name-input" placeholder="输入关卡名称..." maxlength="40">
+        <span class="char-count" id="name-char-count">0/40</span>
       </div>
       <div class="form-group">
         <label>关卡简介</label>
-        <textarea id="publish-desc-input" placeholder="介绍你的关卡玩法、难度或设计思路..." maxlength="200" rows="4"></textarea>
-        <span class="char-count" id="desc-char-count">0/200</span>
+        <textarea id="publish-desc-input" placeholder="介绍你的关卡玩法、难度或设计思路..." maxlength="100" rows="4"></textarea>
+        <span class="char-count" id="desc-char-count">0/100</span>
       </div>
       <div class="publish-preview">
         <div class="preview-label">关卡编码预览</div>
@@ -1962,571 +1941,37 @@ const COLORS = {
 };
 const BUILTIN_LEVELS = [
   {
-    name: "起跳平台", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 14, y: 0},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:5,y:1,w:3,h:1},
-      {x:10,y:1,w:3,h:1},
-      {x:14,y:1,w:3,h:1}
-    ],
-    spikes: []
+    name: "初识", w: 100, h: 100,
+    spawn: {x: 0, y: 0}, portal: {x:16,y:0},
+    lands: [{x:0,y:1,w:3,h:1}, {x:7,y:1,w:3,h:1}, {x:13,y:1,w:4,h:1}],
+    spikes: [],
+    spikeAutos: [],
+    crates: [],
+    bouncers: [],
+    checkpoints: [],
+    showIndicator: true, showMinimap: true
   },
   {
-    name: "第一个坎", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 16, y: -4},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:1,w:2,h:1},
-      {x:7,y:-1,w:2,h:1},
-      {x:11,y:-2,w:2,h:1},
-      {x:16,y:-3,w:3,h:1}
-    ],
-    spikes: [
-      {x:5,y:1}, {x:6,y:1},
-      {x:9,y:-1}, {x:10,y:-1},
-      {x:13,y:-2}, {x:14,y:-2}
-    ]
+    name: "尖刺", w: 100, h: 100,
+    spawn: {x: 0, y: 0}, portal: {x:29,y:0},
+    lands: [{x:0,y:1,w:4,h:1}, {x:6,y:1,w:4,h:1}, {x:12,y:1,w:4,h:1}, {x:20,y:0,w:4,h:1}, {x:26,y:1,w:4,h:1}],
+    spikes: [{x:3,y:0}, {x:7,y:0}, {x:8,y:0}, {x:14,y:0}, {x:21,y:-1}, {x:22,y:-1}, {x:26,y:0}],
+    spikeAutos: [],
+    crates: [],
+    bouncers: [],
+    checkpoints: [],
+    showIndicator: true, showMinimap: true
   },
   {
-    name: "连续小跳", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 26, y: -6},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:0,w:1,h:1},
-      {x:6,y:-1,w:1,h:1},
-      {x:9,y:-2,w:1,h:1},
-      {x:12,y:-3,w:1,h:1},
-      {x:15,y:-4,w:1,h:1},
-      {x:18,y:-5,w:1,h:1},
-      {x:21,y:-5,w:3,h:1},
-      {x:26,y:-5,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:0}, {x:5,y:0},
-      {x:7,y:-1}, {x:8,y:-1},
-      {x:10,y:-2}, {x:11,y:-2},
-      {x:13,y:-3}, {x:14,y:-3},
-      {x:16,y:-4}, {x:17,y:-4},
-      {x:19,y:-5}, {x:20,y:-5}
-    ]
-  },
-  {
-    name: "初见尖刺", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 24, y: -4},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:1,w:2,h:1},
-      {x:7,y:0,w:2,h:1},
-      {x:11,y:-1,w:2,h:1},
-      {x:15,y:0,w:2,h:1},
-      {x:19,y:-1,w:2,h:1},
-      {x:23,y:-3,w:3,h:1}
-    ],
-    spikes: [
-      {x:5,y:1}, {x:6,y:1},
-      {x:9,y:0}, {x:10,y:0},
-      {x:13,y:-1}, {x:14,y:-1},
-      {x:17,y:0}, {x:18,y:0},
-      {x:21,y:-1}, {x:22,y:-1}
-    ]
-  },
-  {
-    name: "尖刺间隙", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 30, y: -6},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:0,w:1,h:1},
-      {x:6,y:-1,w:1,h:1},
-      {x:9,y:-2,w:1,h:1},
-      {x:12,y:-3,w:1,h:1},
-      {x:15,y:-4,w:1,h:1},
-      {x:18,y:-5,w:1,h:1},
-      {x:21,y:-5,w:3,h:1},
-      {x:27,y:-5,w:3,h:1}
-    ],
-    spikes: [
-      {x:1,y:1}, {x:2,y:1},
-      {x:4,y:0}, {x:5,y:0},
-      {x:7,y:-1}, {x:8,y:-1},
-      {x:10,y:-2}, {x:11,y:-2},
-      {x:13,y:-3}, {x:14,y:-3},
-      {x:16,y:-4}, {x:17,y:-4},
-      {x:19,y:-5}, {x:20,y:-5},
-      {x:23,y:-5}, {x:24,y:-5}, {x:25,y:-5}, {x:26,y:-5}
-    ]
-  },
-  {
-    name: "需要二段", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 26, y: -12},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-3,w:1,h:1},
-      {x:7,y:-6,w:1,h:1},
-      {x:11,y:-9,w:1,h:1},
-      {x:15,y:-6,w:1,h:1},
-      {x:19,y:-10,w:1,h:1},
-      {x:23,y:-11,w:3,h:1},
-      {x:26,y:-11,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-3}, {x:5,y:-3}, {x:6,y:-3},
-      {x:8,y:-6}, {x:9,y:-6}, {x:10,y:-6},
-      {x:12,y:-9}, {x:13,y:-9}, {x:14,y:-9},
-      {x:16,y:-6}, {x:17,y:-6}, {x:18,y:-6},
-      {x:20,y:-10}, {x:21,y:-10}, {x:22,y:-10}
-    ]
-  },
-  {
-    name: "高空恐惧", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 34, y: -17},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-4,w:1,h:1},
-      {x:7,y:-8,w:1,h:1},
-      {x:11,y:-12,w:1,h:1},
-      {x:15,y:-9,w:1,h:1},
-      {x:19,y:-14,w:1,h:1},
-      {x:23,y:-11,w:1,h:1},
-      {x:27,y:-16,w:1,h:1},
-      {x:31,y:-16,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4},
-      {x:8,y:-8}, {x:9,y:-8}, {x:10,y:-8},
-      {x:12,y:-12}, {x:13,y:-12}, {x:14,y:-12},
-      {x:16,y:-9}, {x:17,y:-9}, {x:18,y:-9},
-      {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
-      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11},
-      {x:28,y:-16}, {x:29,y:-16}, {x:30,y:-16}
-    ]
-  },
-  {
-    name: "回环路线", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 40, y: -16},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-1,w:1,h:1},
-      {x:7,y:-4,w:1,h:1},
-      {x:11,y:-7,w:1,h:1},
-      {x:15,y:-9,w:1,h:1},
-      {x:19,y:-7,w:1,h:1},
-      {x:23,y:-11,w:1,h:1},
-      {x:27,y:-9,w:1,h:1},
-      {x:31,y:-13,w:1,h:1},
-      {x:35,y:-11,w:1,h:1},
-      {x:39,y:-15,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-1}, {x:5,y:-1}, {x:6,y:-1},
-      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
-      {x:12,y:-7}, {x:13,y:-7}, {x:14,y:-7},
-      {x:16,y:-9}, {x:17,y:-9}, {x:18,y:-9},
-      {x:20,y:-7}, {x:21,y:-7}, {x:22,y:-7},
-      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11},
-      {x:28,y:-9}, {x:29,y:-9}, {x:30,y:-9},
-      {x:32,y:-13}, {x:33,y:-13}, {x:34,y:-13},
-      {x:36,y:-11}, {x:37,y:-11}, {x:38,y:-11}
-    ]
-  },
-  {
-    name: "极限距离", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 44, y: -17},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-4,w:1,h:1},
-      {x:8,y:-8,w:1,h:1},
-      {x:13,y:-4,w:1,h:1},
-      {x:18,y:-10,w:1,h:1},
-      {x:23,y:-6,w:1,h:1},
-      {x:28,y:-13,w:1,h:1},
-      {x:33,y:-8,w:1,h:1},
-      {x:38,y:-16,w:1,h:1},
-      {x:43,y:-16,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4}, {x:7,y:-4},
-      {x:9,y:-8}, {x:10,y:-8}, {x:11,y:-8}, {x:12,y:-8},
-      {x:14,y:-4}, {x:15,y:-4}, {x:16,y:-4}, {x:17,y:-4},
-      {x:19,y:-10}, {x:20,y:-10}, {x:21,y:-10}, {x:22,y:-10},
-      {x:24,y:-6}, {x:25,y:-6}, {x:26,y:-6}, {x:27,y:-6},
-      {x:29,y:-13}, {x:30,y:-13}, {x:31,y:-13}, {x:32,y:-13},
-      {x:34,y:-8}, {x:35,y:-8}, {x:36,y:-8}, {x:37,y:-8},
-      {x:39,y:-16}, {x:40,y:-16}, {x:41,y:-16}, {x:42,y:-16}
-    ]
-  },
-  {
-    name: "二段极限", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 46, y: -22},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-6,w:1,h:1},
-      {x:8,y:-12,w:1,h:1},
-      {x:13,y:-6,w:1,h:1},
-      {x:18,y:-14,w:1,h:1},
-      {x:23,y:-9,w:1,h:1},
-      {x:28,y:-17,w:1,h:1},
-      {x:33,y:-11,w:1,h:1},
-      {x:38,y:-20,w:1,h:1},
-      {x:43,y:-15,w:1,h:1},
-      {x:46,y:-21,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-6}, {x:5,y:-6}, {x:6,y:-6}, {x:7,y:-6},
-      {x:9,y:-12}, {x:10,y:-12}, {x:11,y:-12}, {x:12,y:-12},
-      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
-      {x:19,y:-14}, {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
-      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
-      {x:29,y:-17}, {x:30,y:-17}, {x:31,y:-17}, {x:32,y:-17},
-      {x:34,y:-11}, {x:35,y:-11}, {x:36,y:-11}, {x:37,y:-11},
-      {x:39,y:-20}, {x:40,y:-20}, {x:41,y:-20}, {x:42,y:-20},
-      {x:44,y:-15}, {x:45,y:-15}
-    ]
-  },
-  {
-    name: "头顶即死", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 42, y: -22},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:1,w:3,h:1}, {x:8,y:1,w:3,h:1}, {x:13,y:1,w:3,h:1},
-      {x:6,y:1,w:1,h:4}, {x:11,y:1,w:1,h:4},
-      {x:3,y:-4,w:3,h:1}, {x:8,y:-4,w:3,h:1}, {x:13,y:-4,w:3,h:1},
-      {x:6,y:-4,w:1,h:4}, {x:11,y:-4,w:1,h:4},
-      {x:3,y:-9,w:3,h:1}, {x:8,y:-9,w:3,h:1}, {x:13,y:-9,w:3,h:1},
-      {x:6,y:-9,w:1,h:4}, {x:11,y:-9,w:1,h:4},
-      {x:3,y:-14,w:3,h:1}, {x:8,y:-14,w:3,h:1}, {x:13,y:-14,w:3,h:1},
-      {x:16,y:-14,w:2,h:1}, {x:20,y:-16,w:2,h:1}, {x:24,y:-18,w:2,h:1},
-      {x:28,y:-20,w:2,h:1}, {x:32,y:-21,w:2,h:1}, {x:36,y:-21,w:2,h:1},
-      {x:40,y:-21,w:3,h:1}
-    ],
-    spikes: [
-      {x:3,y:2}, {x:4,y:2}, {x:5,y:2},
-      {x:8,y:2}, {x:9,y:2}, {x:10,y:2},
-      {x:13,y:2}, {x:14,y:2}, {x:15,y:2},
-      {x:3,y:-3}, {x:4,y:-3}, {x:5,y:-3},
-      {x:8,y:-3}, {x:9,y:-3}, {x:10,y:-3},
-      {x:13,y:-3}, {x:14,y:-3}, {x:15,y:-3},
-      {x:3,y:-13}, {x:4,y:-13}, {x:5,y:-13},
-      {x:8,y:-13}, {x:9,y:-13}, {x:10,y:-13},
-      {x:13,y:-13}, {x:14,y:-13}, {x:15,y:-13},
-      {x:6,y:3}, {x:7,y:3},
-      {x:11,y:3}, {x:12,y:3},
-      {x:6,y:-2}, {x:7,y:-2},
-      {x:11,y:-2}, {x:12,y:-2},
-      {x:6,y:-11}, {x:7,y:-11},
-      {x:11,y:-11}, {x:12,y:-11},
-      {x:18,y:-16}, {x:19,y:-16},
-      {x:22,y:-18}, {x:23,y:-18},
-      {x:26,y:-20}, {x:27,y:-20},
-      {x:30,y:-21}, {x:31,y:-21},
-      {x:34,y:-21}, {x:35,y:-21},
-      {x:38,y:-21}, {x:39,y:-21}
-    ]
-  },
-  {
-    name: "窄缝求生", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 44, y: -24},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-2,w:1,h:5},
-      {x:5,y:-3,w:1,h:1},
-      {x:8,y:-6,w:1,h:5},
-      {x:10,y:-7,w:1,h:1},
-      {x:13,y:-10,w:1,h:5},
-      {x:15,y:-11,w:1,h:1},
-      {x:18,y:-14,w:1,h:5},
-      {x:20,y:-15,w:1,h:1},
-      {x:23,y:-18,w:1,h:4},
-      {x:26,y:-19,w:1,h:1},
-      {x:29,y:-21,w:1,h:1},
-      {x:32,y:-22,w:1,h:1},
-      {x:35,y:-22,w:1,h:1},
-      {x:38,y:-23,w:1,h:1},
-      {x:41,y:-23,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-2}, {x:4,y:-1}, {x:4,y:0}, {x:4,y:1},
-      {x:9,y:-6}, {x:9,y:-5}, {x:9,y:-4}, {x:9,y:-3},
-      {x:14,y:-10}, {x:14,y:-9}, {x:14,y:-8}, {x:14,y:-7},
-      {x:19,y:-14}, {x:19,y:-13}, {x:19,y:-12}, {x:19,y:-11},
-      {x:24,y:-18}, {x:24,y:-17}, {x:24,y:-16},
-      {x:6,y:-3}, {x:7,y:-3},
-      {x:11,y:-7}, {x:12,y:-7},
-      {x:16,y:-11}, {x:17,y:-11},
-      {x:21,y:-15}, {x:22,y:-15},
-      {x:27,y:-19}, {x:28,y:-19},
-      {x:30,y:-21}, {x:31,y:-21},
-      {x:33,y:-22}, {x:34,y:-22},
-      {x:36,y:-22}, {x:37,y:-22},
-      {x:39,y:-23}, {x:40,y:-23}
-    ]
-  },
-  {
-    name: "连续极限二段", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 50, y: -30},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-6,w:1,h:1},
-      {x:8,y:-13,w:1,h:1},
-      {x:13,y:-6,w:1,h:1},
-      {x:18,y:-15,w:1,h:1},
-      {x:23,y:-9,w:1,h:1},
-      {x:28,y:-19,w:1,h:1},
-      {x:33,y:-13,w:1,h:1},
-      {x:38,y:-23,w:1,h:1},
-      {x:43,y:-17,w:1,h:1},
-      {x:48,y:-28,w:1,h:1},
-      {x:50,y:-29,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-6}, {x:5,y:-6}, {x:6,y:-6}, {x:7,y:-6},
-      {x:9,y:-13}, {x:10,y:-13}, {x:11,y:-13}, {x:12,y:-13},
-      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
-      {x:19,y:-15}, {x:20,y:-15}, {x:21,y:-15}, {x:22,y:-15},
-      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
-      {x:29,y:-19}, {x:30,y:-19}, {x:31,y:-19}, {x:32,y:-19},
-      {x:34,y:-13}, {x:35,y:-13}, {x:36,y:-13}, {x:37,y:-13},
-      {x:39,y:-23}, {x:40,y:-23}, {x:41,y:-23}, {x:42,y:-23},
-      {x:44,y:-17}, {x:45,y:-17}, {x:46,y:-17}, {x:47,y:-17},
-      {x:49,y:-28}
-    ]
-  },
-  {
-    name: "踩边而过", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 44, y: -24},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-4,w:1,h:1},
-      {x:7,y:-9,w:1,h:1},
-      {x:11,y:-5,w:1,h:1},
-      {x:15,y:-12,w:1,h:1},
-      {x:19,y:-8,w:1,h:1},
-      {x:23,y:-15,w:1,h:1},
-      {x:27,y:-11,w:1,h:1},
-      {x:31,y:-18,w:1,h:1},
-      {x:35,y:-14,w:1,h:1},
-      {x:39,y:-20,w:1,h:1},
-      {x:43,y:-23,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-4}, {x:5,y:-4}, {x:6,y:-4},
-      {x:8,y:-9}, {x:9,y:-9}, {x:10,y:-9},
-      {x:12,y:-5}, {x:13,y:-5}, {x:14,y:-5},
-      {x:16,y:-12}, {x:17,y:-12}, {x:18,y:-12},
-      {x:20,y:-8}, {x:21,y:-8}, {x:22,y:-8},
-      {x:24,y:-15}, {x:25,y:-15}, {x:26,y:-15},
-      {x:28,y:-11}, {x:29,y:-11}, {x:30,y:-11},
-      {x:32,y:-18}, {x:33,y:-18}, {x:34,y:-18},
-      {x:36,y:-14}, {x:37,y:-14}, {x:38,y:-14},
-      {x:40,y:-20}, {x:41,y:-20}, {x:42,y:-20}
-    ]
-  },
-  {
-    name: "尖刺回廊", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 50, y: -20},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-1,w:1,h:1},
-      {x:7,y:-4,w:1,h:1},
-      {x:11,y:-2,w:1,h:1},
-      {x:15,y:-6,w:1,h:1},
-      {x:19,y:-4,w:1,h:1},
-      {x:23,y:-8,w:1,h:1},
-      {x:27,y:-6,w:1,h:1},
-      {x:31,y:-10,w:1,h:1},
-      {x:35,y:-8,w:1,h:1},
-      {x:39,y:-12,w:1,h:1},
-      {x:43,y:-10,w:1,h:1},
-      {x:47,y:-15,w:1,h:1},
-      {x:50,y:-19,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-1}, {x:5,y:-1}, {x:6,y:-1},
-      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
-      {x:12,y:-2}, {x:13,y:-2}, {x:14,y:-2},
-      {x:16,y:-6}, {x:17,y:-6}, {x:18,y:-6},
-      {x:20,y:-4}, {x:21,y:-4}, {x:22,y:-4},
-      {x:24,y:-8}, {x:25,y:-8}, {x:26,y:-8},
-      {x:28,y:-6}, {x:29,y:-6}, {x:30,y:-6},
-      {x:32,y:-10}, {x:33,y:-10}, {x:34,y:-10},
-      {x:36,y:-8}, {x:37,y:-8}, {x:38,y:-8},
-      {x:40,y:-12}, {x:41,y:-12}, {x:42,y:-12},
-      {x:44,y:-10}, {x:45,y:-10}, {x:46,y:-10},
-      {x:48,y:-15}, {x:49,y:-15}
-    ]
-  },
-  {
-    name: "高空二段", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 46, y: -30},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-7,w:1,h:1},
-      {x:8,y:-14,w:1,h:1},
-      {x:13,y:-8,w:1,h:1},
-      {x:18,y:-17,w:1,h:1},
-      {x:23,y:-11,w:1,h:1},
-      {x:28,y:-21,w:1,h:1},
-      {x:33,y:-15,w:1,h:1},
-      {x:38,y:-25,w:1,h:1},
-      {x:43,y:-19,w:1,h:1},
-      {x:46,y:-29,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-7}, {x:5,y:-7}, {x:6,y:-7}, {x:7,y:-7},
-      {x:9,y:-14}, {x:10,y:-14}, {x:11,y:-14}, {x:12,y:-14},
-      {x:14,y:-8}, {x:15,y:-8}, {x:16,y:-8}, {x:17,y:-8},
-      {x:19,y:-17}, {x:20,y:-17}, {x:21,y:-17}, {x:22,y:-17},
-      {x:24,y:-11}, {x:25,y:-11}, {x:26,y:-11}, {x:27,y:-11},
-      {x:29,y:-21}, {x:30,y:-21}, {x:31,y:-21}, {x:32,y:-21},
-      {x:34,y:-15}, {x:35,y:-15}, {x:36,y:-15}, {x:37,y:-15},
-      {x:39,y:-25}, {x:40,y:-25}, {x:41,y:-25}, {x:42,y:-25},
-      {x:44,y:-19}, {x:45,y:-19}
-    ]
-  },
-  {
-    name: "顶头二段", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 46, y: -24},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:1,w:3,h:1}, {x:8,y:1,w:3,h:1}, {x:13,y:1,w:3,h:1},
-      {x:6,y:1,w:1,h:5}, {x:11,y:1,w:1,h:5},
-      {x:3,y:-5,w:3,h:1}, {x:8,y:-5,w:3,h:1}, {x:13,y:-5,w:3,h:1},
-      {x:6,y:-5,w:1,h:5}, {x:11,y:-5,w:1,h:5},
-      {x:3,y:-11,w:3,h:1}, {x:8,y:-11,w:3,h:1}, {x:13,y:-11,w:3,h:1},
-      {x:6,y:-11,w:1,h:5}, {x:11,y:-11,w:1,h:5},
-      {x:3,y:-17,w:3,h:1}, {x:8,y:-17,w:3,h:1}, {x:13,y:-17,w:3,h:1},
-      {x:16,y:-17,w:2,h:1}, {x:20,y:-19,w:2,h:1}, {x:24,y:-21,w:2,h:1},
-      {x:28,y:-22,w:2,h:1}, {x:32,y:-23,w:2,h:1}, {x:36,y:-23,w:2,h:1},
-      {x:40,y:-23,w:2,h:1}, {x:44,y:-23,w:3,h:1}
-    ],
-    spikes: [
-      {x:3,y:2}, {x:4,y:2}, {x:5,y:2},
-      {x:8,y:2}, {x:9,y:2}, {x:10,y:2},
-      {x:13,y:2}, {x:14,y:2}, {x:15,y:2},
-      {x:3,y:-4}, {x:4,y:-4}, {x:5,y:-4},
-      {x:8,y:-4}, {x:9,y:-4}, {x:10,y:-4},
-      {x:13,y:-4}, {x:14,y:-4}, {x:15,y:-4},
-      {x:3,y:-16}, {x:4,y:-16}, {x:5,y:-16},
-      {x:8,y:-16}, {x:9,y:-16}, {x:10,y:-16},
-      {x:13,y:-16}, {x:14,y:-16}, {x:15,y:-16},
-      {x:6,y:3}, {x:7,y:3},
-      {x:11,y:3}, {x:12,y:3},
-      {x:6,y:-3}, {x:7,y:-3},
-      {x:11,y:-3}, {x:12,y:-3},
-      {x:6,y:-13}, {x:7,y:-13},
-      {x:11,y:-13}, {x:12,y:-13},
-      {x:18,y:-19}, {x:19,y:-19},
-      {x:22,y:-21}, {x:23,y:-21},
-      {x:26,y:-22}, {x:27,y:-22},
-      {x:30,y:-23}, {x:31,y:-23},
-      {x:34,y:-23}, {x:35,y:-23},
-      {x:38,y:-23}, {x:39,y:-23},
-      {x:42,y:-23}, {x:43,y:-23}
-    ]
-  },
-  {
-    name: "踩边二段", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 50, y: -30},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:3,y:-5,w:1,h:1},
-      {x:8,y:-11,w:1,h:1},
-      {x:13,y:-6,w:1,h:1},
-      {x:18,y:-14,w:1,h:1},
-      {x:23,y:-9,w:1,h:1},
-      {x:28,y:-18,w:1,h:1},
-      {x:33,y:-13,w:1,h:1},
-      {x:38,y:-22,w:1,h:1},
-      {x:43,y:-17,w:1,h:1},
-      {x:48,y:-28,w:1,h:1},
-      {x:50,y:-29,w:3,h:1}
-    ],
-    spikes: [
-      {x:4,y:-5}, {x:5,y:-5}, {x:6,y:-5}, {x:7,y:-5},
-      {x:9,y:-11}, {x:10,y:-11}, {x:11,y:-11}, {x:12,y:-11},
-      {x:14,y:-6}, {x:15,y:-6}, {x:16,y:-6}, {x:17,y:-6},
-      {x:19,y:-14}, {x:20,y:-14}, {x:21,y:-14}, {x:22,y:-14},
-      {x:24,y:-9}, {x:25,y:-9}, {x:26,y:-9}, {x:27,y:-9},
-      {x:29,y:-18}, {x:30,y:-18}, {x:31,y:-18}, {x:32,y:-18},
-      {x:34,y:-13}, {x:35,y:-13}, {x:36,y:-13}, {x:37,y:-13},
-      {x:39,y:-22}, {x:40,y:-22}, {x:41,y:-22}, {x:42,y:-22},
-      {x:44,y:-17}, {x:45,y:-17}, {x:46,y:-17}, {x:47,y:-17},
-      {x:49,y:-28}
-    ]
-  },
-  {
-    name: "死亡螺旋", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 56, y: -40},
-    lands: [
-      {x:-2,y:1,w:4,h:1},
-      {x:2,y:-3,w:1,h:1},
-      {x:6,y:-7,w:1,h:1},
-      {x:11,y:-11,w:1,h:1},
-      {x:15,y:-9,w:1,h:1},
-      {x:19,y:-15,w:1,h:1},
-      {x:24,y:-19,w:1,h:1},
-      {x:28,y:-17,w:1,h:1},
-      {x:33,y:-23,w:1,h:1},
-      {x:38,y:-27,w:1,h:1},
-      {x:42,y:-25,w:1,h:1},
-      {x:46,y:-31,w:1,h:1},
-      {x:50,y:-34,w:1,h:1},
-      {x:54,y:-38,w:1,h:1},
-      {x:56,y:-39,w:3,h:1}
-    ],
-    spikes: [
-      {x:0,y:1},{x:1,y:1},{x:2,y:1},
-      {x:3,y:-3},{x:4,y:-3},{x:5,y:-3},
-      {x:7,y:-7},{x:8,y:-7},{x:9,y:-7},{x:10,y:-7},
-      {x:12,y:-11},{x:13,y:-11},{x:14,y:-11},
-      {x:16,y:-9},{x:17,y:-9},{x:18,y:-9},
-      {x:20,y:-15},{x:21,y:-15},{x:22,y:-15},{x:23,y:-15},
-      {x:25,y:-19},{x:26,y:-19},{x:27,y:-19},
-      {x:29,y:-17},{x:30,y:-17},{x:31,y:-17},{x:32,y:-17},
-      {x:34,y:-23},{x:35,y:-23},{x:36,y:-23},{x:37,y:-23},
-      {x:39,y:-27},{x:40,y:-27},{x:41,y:-27},
-      {x:43,y:-25},{x:44,y:-25},{x:45,y:-25},
-      {x:47,y:-31},{x:48,y:-31},{x:49,y:-31},
-      {x:51,y:-34},{x:52,y:-34},{x:53,y:-34},
-      {x:55,y:-38}
-    ]
-  },
-  {
-    name: "不可能任务", w: 100, h: 50,
-    spawn: {x: 0, y: 0}, portal: {x: 62, y: -42},
-    lands: [
-      {x:-2,y:1,w:3,h:1},
-      {x:2,y:-4,w:1,h:1},
-      {x:7,y:-11,w:1,h:1},
-      {x:12,y:-5,w:1,h:1},
-      {x:17,y:-14,w:1,h:1},
-      {x:22,y:-8,w:1,h:1},
-      {x:27,y:-19,w:1,h:1},
-      {x:32,y:-13,w:1,h:1},
-      {x:37,y:-24,w:1,h:1},
-      {x:42,y:-17,w:1,h:1},
-      {x:47,y:-29,w:1,h:1},
-      {x:52,y:-22,w:1,h:1},
-      {x:57,y:-35,w:1,h:1},
-      {x:60,y:-41,w:1,h:1},
-      {x:62,y:-41,w:3,h:1}
-    ],
-    spikes: [
-      {x:0,y:1},{x:1,y:1},{x:2,y:1},
-      {x:3,y:-4},{x:4,y:-4},{x:5,y:-4},{x:6,y:-4},
-      {x:8,y:-11},{x:9,y:-11},{x:10,y:-11},{x:11,y:-11},
-      {x:13,y:-5},{x:14,y:-5},{x:15,y:-5},{x:16,y:-5},
-      {x:18,y:-14},{x:19,y:-14},{x:20,y:-14},{x:21,y:-14},
-      {x:23,y:-8},{x:24,y:-8},{x:25,y:-8},{x:26,y:-8},
-      {x:28,y:-19},{x:29,y:-19},{x:30,y:-19},{x:31,y:-19},
-      {x:33,y:-13},{x:34,y:-13},{x:35,y:-13},{x:36,y:-13},
-      {x:38,y:-24},{x:39,y:-24},{x:40,y:-24},{x:41,y:-24},
-      {x:43,y:-17},{x:44,y:-17},{x:45,y:-17},{x:46,y:-17},
-      {x:48,y:-29},{x:49,y:-29},{x:50,y:-29},{x:51,y:-29},
-      {x:53,y:-22},{x:54,y:-22},{x:55,y:-22},{x:56,y:-22},
-      {x:58,y:-35},{x:59,y:-35},
-      {x:61,y:-41}
-    ]
+    name: "出门测", w: 100, h: 100,
+    spawn: {x: 0, y: 0}, portal: {x:45,y:-8},
+    lands: [{x:-1,y:0,w:1,h:1}, {x:2,y:0,w:1,h:1}, {x:1,y:0,w:2,h:1}, {x:0,y:-2,w:1,h:1}, {x:12,y:0,w:1,h:1}, {x:13,y:-6,w:1,h:1}, {x:13,y:-7,w:1,h:2}, {x:18,y:-7,w:1,h:1}, {x:20,y:-7,w:1,h:1}, {x:24,y:-7,w:1,h:1}, {x:26,y:-7,w:1,h:1}, {x:33,y:-7,w:8,h:1}, {x:34,y:-9,w:12,h:1}, {x:42,y:-7,w:4,h:1}, {x:46,y:-8,w:1,h:1}],
+    spikes: [],
+    spikeAutos: [{x:0,y:1}, {x:3,y:1}, {x:4,y:1}, {x:5,y:1}, {x:6,y:1}, {x:7,y:1}, {x:8,y:1}, {x:9,y:1}, {x:10,y:1}, {x:11,y:1}, {x:0,y:-3}, {x:-1,y:-2}, {x:-1,y:-1}, {x:13,y:-5}, {x:14,y:-6}, {x:14,y:-7}, {x:19,y:-7}, {x:19,y:-8}, {x:25,y:-7}, {x:25,y:-8}, {x:33,y:-9}, {x:41,y:-7}],
+    crates: [],
+    bouncers: [],
+    checkpoints: [],
+    showIndicator: true, showMinimap: true
   }
 ];
 let gameState = 'start';
@@ -2938,6 +2383,7 @@ function updatePhysics() {
   if (player.inPortal) {
     player.won = true;
     player.inPortal = false;
+    closeTutorialDialog();
     if (isEditorTest) editorTestWon = true;
     spawnParticles(player.x + player.w/2, player.y + player.h/2, '#F4F9A7', 30);
     // 如果是分享测试流程，通关后显示发布页
@@ -2995,6 +2441,50 @@ const CollisionPriority = {
 };
 function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
   return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+// 统一碰撞检测：同时检测 grid tile、移动平台、其他木箱
+function getCollisionsAtRect(x, y, w, h, excludeCrate) {
+  if (!currentLevel) return [];
+  let collisions = [];
+  let left = Math.floor(x / GRID_SIZE);
+  let right = Math.floor((x + w - 0.1) / GRID_SIZE);
+  let top = Math.floor(y / GRID_SIZE);
+  let bottom = Math.floor((y + h - 0.1) / GRID_SIZE);
+  // 1. Grid tiles
+  for (let gy = top; gy <= bottom; gy++) {
+    for (let gx = left; gx <= right; gx++) {
+      if (gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) continue;
+      let tile = currentLevel.grid[gy][gx];
+      if (tile !== 0) {
+        let tileX = gx * GRID_SIZE, tileY = gy * GRID_SIZE;
+        if (rectsOverlap(x, y, w, h, tileX, tileY, GRID_SIZE, GRID_SIZE)) {
+          collisions.push({ type: 'tile', tile, gx, gy, x: tileX, y: tileY, priority: CollisionPriority[tile] || 99 });
+        }
+      }
+    }
+  }
+  // 2. Trajectory platforms (moving platforms)
+  if (currentLevel.trajectoryPlatforms) {
+    for (let tp of currentLevel.trajectoryPlatforms) {
+      for (let cellKey of tp.cells) {
+        let [cgx, cgy] = cellKey.split(',').map(Number);
+        let r = tp.getCellRect(cgx, cgy);
+        if (rectsOverlap(x, y, w, h, r.x, r.y, r.w, r.h)) {
+          collisions.push({ type: 'platform', tp, cgx, cgy, x: r.x, y: r.y, w: r.w, h: r.h, priority: 1 });
+        }
+      }
+    }
+  }
+  // 3. Other crates
+  for (let crate of crates) {
+    if (crate.broken) continue;
+    if (excludeCrate && excludeCrate === crate) continue;
+    if (rectsOverlap(x, y, w, h, crate.x, crate.y, GRID_SIZE, GRID_SIZE)) {
+      collisions.push({ type: 'crate', crate, x: crate.x, y: crate.y, priority: 2 });
+    }
+  }
+  collisions.sort((a, b) => a.priority - b.priority);
+  return collisions;
 }
 function spikeRectHit(px, py, pw, ph, tileX, tileY, dir) {
   let pad = 4, s = GRID_SIZE, ax, ay, bx, by, cx, cy;
@@ -3104,36 +2594,11 @@ function movePlayer(dx, dy) {
   if (!currentLevel) return;
   player.x += dx;
   player.y += dy;
-  let left = Math.floor(player.x / GRID_SIZE);
-  let right = Math.floor((player.x + player.w - 0.1) / GRID_SIZE);
-  let top = Math.floor(player.y / GRID_SIZE);
-  let bottom = Math.floor((player.y + player.h - 0.1) / GRID_SIZE);
   player.onGround = false;
-  let collisions = [];
-  for (let gy = top; gy <= bottom; gy++) {
-    for (let gx = left; gx <= right; gx++) {
-      if (gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) continue;
-      let tile = currentLevel.grid[gy][gx];
-      if (tile !== 0) {
-        collisions.push({ tile, gx, gy, priority: CollisionPriority[tile] || 99 });
-      }
-    }
-  }
-  if (currentLevel.trajectoryPlatforms) {
-    for (let tp of currentLevel.trajectoryPlatforms) {
-      for (let cellKey of tp.cells) {
-        let [cgx, cgy] = cellKey.split(',').map(Number);
-        let r = tp.getCellRect(cgx, cgy);
-        if (rectsOverlap(player.x, player.y, player.w, player.h, r.x, r.y, r.w, r.h)) {
-          collisions.push({ tile: 'trajectory', tp, cgx, cgy, priority: 1 });
-        }
-      }
-    }
-  }
-  collisions.sort((a, b) => a.priority - b.priority);
-  for (let col of collisions) {
-    if (col.tile === 'trajectory') {
-      let tp = col.tp, r = tp.getCellRect(col.cgx, col.cgy);
+  let cols = getCollisionsAtRect(player.x, player.y, player.w, player.h);
+  for (let col of cols) {
+    if (col.type === 'platform') {
+      let tp = col.tp, r = { x: col.x, y: col.y, w: col.w, h: col.h };
       if (dy > 0 && (player.y - dy) + player.h <= r.y + 6) {
         player.y = r.y - player.h; player.vy = 0; player.onGround = true; player.jumpCount = 0;
         player.x += tp.getTotalVx(); player.y += tp.getTotalVy();
@@ -3144,10 +2609,24 @@ function movePlayer(dx, dy) {
       } else if (dx < 0 && (player.x - dx) >= r.x + r.w - 6) {
         player.x = r.x + r.w; player.vx = 0;
       }
-    } else {
-      let tileX = col.gx * GRID_SIZE, tileY = col.gy * GRID_SIZE;
+    } else if (col.type === 'tile') {
       let handler = CollisionHandlers[col.tile];
-      if (handler) handler.onCollide(player, tileX, tileY, dx, dy);
+      if (handler) handler.onCollide(player, col.x, col.y, dx, dy);
+    } else if (col.type === 'crate') {
+      let crate = col.crate;
+      if (dy > 0 && (player.y - dy) + player.h <= crate.y + 6) {
+        player.y = crate.y - player.h; player.vy = 0; player.onGround = true; player.jumpCount = 0;
+      } else if (dy < 0 && (player.y - dy) >= crate.y + GRID_SIZE - 6) {
+        player.y = crate.y + GRID_SIZE; player.vy = 0;
+      } else if (dx > 0 && (player.x - dx) + player.w <= crate.x + 6) {
+        player.x = crate.x - player.w;
+        if (!crate.broken) crate.vx = PLAYER_SPEED * 1.2;
+        player.vx = 0;
+      } else if (dx < 0 && (player.x - dx) >= crate.x + GRID_SIZE - 6) {
+        player.x = crate.x + GRID_SIZE;
+        if (!crate.broken) crate.vx = -PLAYER_SPEED * 1.5;
+        player.vx = 0;
+      }
     }
   }
 }
@@ -3305,9 +2784,9 @@ function render() {
       for (let cellKey of tp.cells) {
         let [cgx, cgy] = cellKey.split(',').map(Number);
         let r = tp.getCellRect(cgx, cgy);
-        ctx.fillStyle = '#C4A77D';
+        ctx.fillStyle = '#E1E3E6';
         ctx.fillRect(r.x + 1, r.y + 1, r.w - 2, r.h - 2);
-        ctx.strokeStyle = '#8B7355';
+        ctx.strokeStyle = 'rgba(18,18,18,0.3)';
         ctx.lineWidth = 1.5;
         ctx.strokeRect(r.x + 1, r.y + 1, r.w - 2, r.h - 2);
       }
@@ -3504,20 +2983,19 @@ function buildMinimap() {
       }
     }
   }
-  // 绘制木箱（棕色方块）
-  for (let y = minY; y <= maxY; y++) {
-    for (let x = minX; x <= maxX; x++) {
-      if (y < 0 || y >= currentLevel.h || x < 0 || x >= currentLevel.w) continue;
-      const tile = currentLevel.grid[y][x];
-      if (tile !== TILE_CRATE) continue;
-      const mx = Math.floor(offsetX + (x - minX) * scale);
-      const my = Math.floor(offsetY + (y - minY) * scale);
-      ctx.fillStyle = '#C4A77D';
-      ctx.fillRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
-      ctx.strokeStyle = '#8B7355';
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
-    }
+  // 绘制木箱（棕色方块）- 从 crates 数组读取（木箱已独立于 grid）
+  for (let crate of crates) {
+    if (crate.broken) continue;
+    let cx = Math.floor(crate.x / GRID_SIZE);
+    let cy = Math.floor(crate.y / GRID_SIZE);
+    if (cx < minX || cx > maxX || cy < minY || cy > maxY) continue;
+    const mx = Math.floor(offsetX + (cx - minX) * scale);
+    const my = Math.floor(offsetY + (cy - minY) * scale);
+    ctx.fillStyle = '#C4A77D';
+    ctx.fillRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
+    ctx.strokeStyle = '#8B7355';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(mx + 1, my + 1, tileSize - 1, tileSize - 1);
   }
   // 绘制弹板（青色小方块）
   for (let y = minY; y <= maxY; y++) {
@@ -3792,6 +3270,7 @@ function initCrates() {
     for (let x = 0; x < currentLevel.w; x++) {
       if (currentLevel.grid[y][x] === TILE_CRATE) {
         crates.push({ x: x * GRID_SIZE, y: y * GRID_SIZE, vx: 0, vy: 0, broken: false });
+        currentLevel.grid[y][x] = 0; // 木箱独立化：初始化后从 grid 清除
       }
     }
   }
@@ -3804,138 +3283,187 @@ function updateCrates() {
     crate.vy += GRAVITY * 0.5;
     // 阻力
     crate.vx *= 0.95;
-    // 速度小于阈值时停止，避免微动
     if (Math.abs(crate.vx) < 0.3) crate.vx = 0;
-    // 先从 grid 中移除自己，避免碰撞检测时检测到自己
-    let selfGx = Math.floor((crate.x + GRID_SIZE/2) / GRID_SIZE);
-    let selfGy = Math.floor((crate.y + GRID_SIZE/2) / GRID_SIZE);
-    if (selfGy >= 0 && selfGy < currentLevel.h && selfGx >= 0 && selfGx < currentLevel.w) {
-      if (currentLevel.grid[selfGy][selfGx] === TILE_CRATE) {
-        currentLevel.grid[selfGy][selfGx] = 0;
-      }
-    }
-    // 分别处理 X 和 Y 方向的移动
-    // X 方向
-    let nextX = crate.x + crate.vx;
-    let step = Math.sign(crate.vx);
-    let currLeft = Math.floor(crate.x / GRID_SIZE);
-    let currRight = Math.floor((crate.x + GRID_SIZE - 0.1) / GRID_SIZE);
-    let nextLeft = Math.floor(nextX / GRID_SIZE);
-    let nextRight = Math.floor((nextX + GRID_SIZE - 0.1) / GRID_SIZE);
-    let topY = Math.floor(crate.y / GRID_SIZE);
-    let bottomY = Math.floor((crate.y + GRID_SIZE - 0.1) / GRID_SIZE);
-    let blockedX = false;
-    let hitSpike = false;
-    // 检测所有新进入的格子
-    let checkStart = step > 0 ? currRight + 1 : nextLeft;
-    let checkEnd = step > 0 ? nextRight : currLeft - 1;
-    for (let gx = Math.min(checkStart, checkEnd); gx <= Math.max(checkStart, checkEnd); gx++) {
-      for (let gy = topY; gy <= bottomY; gy++) {
-        if (gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) continue;
-        let tile = currentLevel.grid[gy][gx];
-        if (tile === TILE_LAND || tile === TILE_CRATE || tile === TILE_BOUNCER) {
-          // 弹板反弹（仅方向弹板）
-          if (tile === TILE_BOUNCER) {
-            let bDir = getBouncerDir(gx, gy);
-            if (bDir === 'left' && step > 0) { crate.vx = -PLAYER_SPEED * 1.5; }
-            else if (bDir === 'right' && step < 0) { crate.vx = PLAYER_SPEED * 1.5; }
-            else if (bDir === 'none') { /* 方块弹板：像陆地一样阻挡 */ }
-            else { blockedX = true; }
-          } else {
-            blockedX = true;
+
+    // --- X 方向 ---
+    if (crate.vx !== 0 && !crate.broken) {
+      let nextX = crate.x + crate.vx;
+      let cols = getCollisionsAtRect(nextX, crate.y, GRID_SIZE, GRID_SIZE, crate);
+      let blocked = false;
+      for (let col of cols) {
+        if (col.type === 'platform') {
+          if ((crate.vx > 0 && crate.x + GRID_SIZE <= col.x + 3) ||
+              (crate.vx < 0 && crate.x >= col.x + col.w - 3)) {
+            if (crate.vx > 0) crate.x = col.x - GRID_SIZE;
+            else crate.x = col.x + col.w;
+            crate.vx = 0;
+            blocked = true;
+            break;
           }
-          if (blockedX) {
-            if (step > 0) {
-              crate.x = gx * GRID_SIZE - GRID_SIZE;
+        } else if (col.type === 'tile') {
+          let tile = col.tile;
+          if (tile === TILE_LAND) {
+            if (crate.vx > 0) crate.x = col.x - GRID_SIZE;
+            else crate.x = col.x + GRID_SIZE;
+            crate.vx = 0;
+            blocked = true;
+            break;
+          } else if (tile === TILE_SPIKE || tile === TILE_SPIKE_AUTO) {
+            crate.broken = true;
+            spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
+            blocked = true;
+            break;
+          } else if (tile === TILE_BOUNCER) {
+            let bDir = getBouncerDir(col.gx, col.gy);
+            if (bDir === 'left' && crate.vx > 0) {
+              crate.vx = -PLAYER_SPEED * 1.5;
+            } else if (bDir === 'right' && crate.vx < 0) {
+              crate.vx = PLAYER_SPEED * 1.5;
+            } else if (bDir === 'none') {
+              if (crate.vx > 0) crate.x = col.x - GRID_SIZE;
+              else crate.x = col.x + GRID_SIZE;
+              crate.vx = 0;
+              blocked = true;
+              break;
             } else {
-              crate.x = (gx + 1) * GRID_SIZE;
+              if (crate.vx > 0) crate.x = col.x - GRID_SIZE;
+              else crate.x = col.x + GRID_SIZE;
+              crate.vx = 0;
+              blocked = true;
+              break;
             }
           }
-          break;
-        } else if (tile === TILE_SPIKE || tile === TILE_SPIKE_AUTO) {
-          hitSpike = true;
+          // 传送门/存档点/出生点：不阻挡，可穿过
+        } else if (col.type === 'crate') {
+          let other = col.crate;
+          if (other.broken) continue;
+          if (crate.vx > 0) {
+            crate.x = other.x - GRID_SIZE;
+            other.vx = crate.vx * 0.8;
+          } else {
+            crate.x = other.x + GRID_SIZE;
+            other.vx = crate.vx * 0.8;
+          }
+          crate.vx = 0;
+          blocked = true;
           break;
         }
       }
-      if (blockedX || hitSpike) break;
+      if (!blocked && !crate.broken) {
+        crate.x = nextX;
+      }
     }
-    if (hitSpike) {
-      crate.broken = true;
-      spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
-    } else if (!blockedX) {
-      crate.x = nextX;
-    } else {
-      crate.vx = 0;
-    }
-    // Y 方向
-    let nextY = crate.y + crate.vy;
-    let newTop = Math.floor(nextY / GRID_SIZE);
-    let newBottom = Math.floor((nextY + GRID_SIZE - 0.1) / GRID_SIZE);
-    let crateLeft = Math.floor(crate.x / GRID_SIZE);
-    let crateRight = Math.floor((crate.x + GRID_SIZE - 0.1) / GRID_SIZE);
-    let blockedY = false;
-    let onGround = false;
-    for (let gx = crateLeft; gx <= crateRight; gx++) {
-      for (let gy of [newTop, newBottom]) {
-        if (gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) continue;
-        let tile = currentLevel.grid[gy][gx];
-        if (tile === TILE_LAND || tile === TILE_CRATE || tile === TILE_BOUNCER) {
-          // 弹板反弹逻辑
-          if (tile === TILE_BOUNCER) {
-            let bDir = getBouncerDir(gx, gy);
-            if (bDir === 'up' && crate.vy > 0) {
-              crate.vy = -JUMP_FORCE * 0.8;
-              crate.y = gy * GRID_SIZE - GRID_SIZE;
-              onGround = false;
-              break;
-            } else if (bDir === 'down' && crate.vy < 0) {
-              crate.vy = JUMP_FORCE * 0.8;
-              crate.y = (gy + 1) * GRID_SIZE;
-              break;
-            } else if (bDir === 'none') {
-              /* 方块弹板：像陆地一样阻挡 */
-            } else {
-              blockedY = true;
-            }
-          } else {
-            blockedY = true;
+
+    // --- Y 方向 ---
+    if (!crate.broken) {
+      let nextY = crate.y + crate.vy;
+      let cols = getCollisionsAtRect(crate.x, nextY, GRID_SIZE, GRID_SIZE, crate);
+      let blocked = false;
+      let onGround = false;
+      for (let col of cols) {
+        if (col.type === 'platform') {
+          let tp = col.tp;
+          if (crate.vy > 0 && crate.y + GRID_SIZE <= col.y + 3) {
+            crate.y = col.y - GRID_SIZE;
+            crate.vy = 0;
+            onGround = true;
+            crate.x += tp.getTotalVx();
+            crate.y += tp.getTotalVy();
+            blocked = true;
+            break;
+          } else if (crate.vy < 0 && crate.y >= col.y + col.h - 3) {
+            crate.y = col.y + col.h;
+            crate.vy = 0;
+            blocked = true;
+            break;
           }
-          if (blockedY) {
+        } else if (col.type === 'tile') {
+          let tile = col.tile;
+          if (tile === TILE_LAND) {
             if (crate.vy > 0) {
-              // 高处掉落砸碎检测（先检测，再重置速度）
               if (crate.vy > 6) {
                 crate.broken = true;
                 spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
+              } else {
+                crate.y = col.y - GRID_SIZE;
+                crate.vy = 0;
+                onGround = true;
               }
-              // 下落碰到地面
-              crate.y = gy * GRID_SIZE - GRID_SIZE;
-              crate.vy = 0;
-              onGround = true;
             } else if (crate.vy < 0) {
-              // 上升碰到天花板
-              crate.y = (gy + 1) * GRID_SIZE;
+              crate.y = col.y + GRID_SIZE;
               crate.vy = 0;
             }
+            blocked = true;
+            break;
+          } else if (tile === TILE_SPIKE || tile === TILE_SPIKE_AUTO) {
+            crate.broken = true;
+            spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
+            blocked = true;
+            break;
+          } else if (tile === TILE_BOUNCER) {
+            let bDir = getBouncerDir(col.gx, col.gy);
+            if (bDir === 'up' && crate.vy > 0) {
+              crate.vy = -JUMP_FORCE * 0.8;
+              crate.y = col.y - GRID_SIZE;
+              blocked = true;
+              break;
+            } else if (bDir === 'down' && crate.vy < 0) {
+              crate.vy = JUMP_FORCE * 0.8;
+              crate.y = col.y + GRID_SIZE;
+              blocked = true;
+              break;
+            } else if (bDir === 'none') {
+              if (crate.vy > 0) {
+                crate.y = col.y - GRID_SIZE;
+                crate.vy = 0;
+                onGround = true;
+              } else {
+                crate.y = col.y + GRID_SIZE;
+                crate.vy = 0;
+              }
+              blocked = true;
+              break;
+            } else {
+              if (crate.vy > 0) {
+                crate.y = col.y - GRID_SIZE;
+                crate.vy = 0;
+                onGround = true;
+              } else {
+                crate.y = col.y + GRID_SIZE;
+                crate.vy = 0;
+              }
+              blocked = true;
+              break;
+            }
           }
-          break;
-        } else if (tile === TILE_SPIKE || tile === TILE_SPIKE_AUTO) {
-          // 碰到尖刺，碎掉
-          crate.broken = true;
-          spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
-          break;
+          // 传送门/存档点/出生点：不阻挡，可穿过
+        } else if (col.type === 'crate') {
+          let other = col.crate;
+          if (other.broken) continue;
+          if (crate.vy > 0 && crate.y + GRID_SIZE <= other.y + 3) {
+            if (crate.vy > 6) {
+              crate.broken = true;
+              spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
+            } else {
+              crate.y = other.y - GRID_SIZE;
+              crate.vy = 0;
+              onGround = true;
+            }
+            blocked = true;
+            break;
+          } else if (crate.vy < 0 && crate.y >= other.y + GRID_SIZE - 3) {
+            crate.y = other.y + GRID_SIZE;
+            crate.vy = 0;
+            blocked = true;
+            break;
+          }
         }
       }
-      if (blockedY) break;
+      if (!blocked && !crate.broken) {
+        crate.y = nextY;
+      }
     }
-    if (!blockedY) {
-      crate.y = nextY;
-    }
-    // 移动完成后，把自己加回 grid 的新位置
-    let newGx = Math.floor((crate.x + GRID_SIZE/2) / GRID_SIZE);
-    let newGy = Math.floor((crate.y + GRID_SIZE/2) / GRID_SIZE);
-    if (newGy >= 0 && newGy < currentLevel.h && newGx >= 0 && newGx < currentLevel.w) {
-      currentLevel.grid[newGy][newGx] = TILE_CRATE;
-    }
+
     // 边界检查
     if (crate.y > currentLevel.h * GRID_SIZE) {
       crate.broken = true;
@@ -5224,7 +4752,12 @@ let joystickTouchId = null;
 function initJoystick() {
   const zone = joystickZone;
   const thumb = joystickThumb;
-  const maxDist = 44;
+  // maxDist 根据摇杆尺寸动态计算（约为摇杆半径减去 thumb 半径）
+  const getMaxDist = () => {
+    const rect = zone.getBoundingClientRect();
+    const thumbSize = parseInt(getComputedStyle(thumb).width) || 56;
+    return Math.max(30, rect.width / 2 - thumbSize / 2 - 4);
+  };
   const deadZone = 0.03;
   let centerX = 0, centerY = 0;
   function onStart(clientX, clientY, id) {
@@ -5251,6 +4784,7 @@ function initJoystick() {
     setTimeout(() => { thumb.style.transition = 'none'; }, 100);
   }
   function update(cx, cy) {
+    const maxDist = getMaxDist();
     let dx = cx - centerX;
     let dy = cy - centerY;
     let dist = Math.sqrt(dx * dx + dy * dy);
@@ -5906,6 +5440,17 @@ async function shareLevelToLobby(levelData, code) {
 async function getSharedLevels() {
   try {
     let levels = await supabaseGet('levels', { select: '*', order: 'created_at.desc' });
+    // FIX: 从 level_views 表读取真实浏览量并合并到关卡数据
+    try {
+      let viewsData = await supabaseGet('level_views', { select: 'level_id,view_count' });
+      let viewMap = {};
+      for (let v of viewsData) {
+        viewMap[v.level_id] = (viewMap[v.level_id] || 0) + (v.view_count || 0);
+      }
+      levels = levels.map(l => ({ ...l, views: viewMap[l.id] || l.views || 0 }));
+    } catch (e) {
+      console.error('获取浏览量失败:', e);
+    }
     // 如果已登录，获取当前用户的点赞状态
     if (currentUser && currentUser.id && levels.length > 0) {
       try {
@@ -5956,10 +5501,41 @@ function startGame() {
     document.getElementById('jump-btn').style.display = 'none';
     document.getElementById('desktop-hint').style.display = 'block';
   }
-  resetPlayer(true);
+  // FIX: loadLevel/loadCustomLevel 已经调用过 resetPlayer(true)，
+  // 这里再调用一次会导致 initCrates 二次扫描空 grid，crates 被清空
+  // resetPlayer(true);
+  showTutorialDialog();
 }
+// ==================== 新手引导对话框 ====================
+const TUTORIAL_LINES = {
+  0: '欢迎来到这里，现在我带你过一下新手培训。',
+  1: '好了，现在该加些危险的东西了。',
+  2: '好，这是检验你成果的时候。'
+};
+function showTutorialDialog() {
+  const overlay = document.getElementById('tutorial-overlay');
+  if (!overlay) return;
+  // 仅在正常游玩内置关卡 0/1/2 时显示（排除编辑器测试、大厅关卡、自定义关卡）
+  if (isCustomLevel || isEditorTest || isFromLobby) {
+    overlay.classList.remove('active');
+    return;
+  }
+  const line = TUTORIAL_LINES[currentLevelIdx];
+  if (line == null) {
+    overlay.classList.remove('active');
+    return;
+  }
+  document.getElementById('tutorial-text').textContent = line;
+  overlay.classList.add('active');
+}
+function closeTutorialDialog() {
+  const overlay = document.getElementById('tutorial-overlay');
+  if (overlay) overlay.classList.remove('active');
+}
+document.getElementById('tutorial-dialog').addEventListener('click', closeTutorialDialog);
 function exitGame() {
   gameState = 'start';
+  closeTutorialDialog();
   document.getElementById('game-ui').style.display = 'none';
   document.getElementById('joystick-zone').style.display = 'none';
   document.getElementById('jump-btn').style.display = 'none';
@@ -6093,7 +5669,8 @@ function showPublishPage() {
   const defaultName = '自定义关卡_' + new Date().toLocaleDateString().replace(/\//g, '');
   document.getElementById('publish-name-input').value = defaultName;
   document.getElementById('publish-desc-input').value = '';
-  document.getElementById('desc-char-count').textContent = '0/200';
+  document.getElementById('name-char-count').textContent = getVisualLength(defaultName) + '/40';
+  document.getElementById('desc-char-count').textContent = '0/100';
   document.getElementById('publish-page').style.display = 'flex';
 }
 async function doShareLevel() {
@@ -6359,6 +5936,108 @@ document.getElementById('btn-auth-submit').addEventListener('click', async () =>
   }
 });
 document.getElementById('btn-auth-back').addEventListener('click', () => { showScreen('start-screen'); });
+// 字符截断工具
+function truncateChars(str, maxChars) {
+  if (!str) return '';
+  if (str.length <= maxChars) return str;
+  return str.slice(0, maxChars) + '...';
+}
+// 生成卡片小地图缩略图
+function generateCardMinimap(code) {
+  try {
+    const level = decodeLevel(code);
+    if (!level) return null;
+    const allTiles = [];
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let hasContent = false;
+    for (let l of level.lands || []) {
+      for (let dy = 0; dy < l.h; dy++) {
+        for (let dx = 0; dx < l.w; dx++) {
+          const x = l.x + dx, y = l.y + dy;
+          allTiles.push({x, y, type: 'land'});
+          minX = Math.min(minX, x); minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+          hasContent = true;
+        }
+      }
+    }
+    for (let s of level.spikes || []) {
+      allTiles.push({x: s.x, y: s.y, type: 'spike'});
+      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
+      maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
+      hasContent = true;
+    }
+    for (let s of level.spikeAutos || []) {
+      allTiles.push({x: s.x, y: s.y, type: 'spikeAuto'});
+      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
+      maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
+      hasContent = true;
+    }
+    for (let c of level.crates || []) {
+      allTiles.push({x: c.x, y: c.y, type: 'crate'});
+      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
+      maxX = Math.max(maxX, c.x); maxY = Math.max(maxY, c.y);
+      hasContent = true;
+    }
+    for (let b of level.bouncers || []) {
+      allTiles.push({x: b.x, y: b.y, type: 'bouncer'});
+      minX = Math.min(minX, b.x); minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x); maxY = Math.max(maxY, b.y);
+      hasContent = true;
+    }
+    for (let c of level.checkpoints || []) {
+      allTiles.push({x: c.x, y: c.y, type: 'checkpoint'});
+      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
+      maxX = Math.max(maxX, c.x); maxY = Math.max(maxY, c.y);
+      hasContent = true;
+    }
+    if (level.portal) {
+      allTiles.push({x: level.portal.x, y: level.portal.y, type: 'portal'});
+      minX = Math.min(minX, level.portal.x); minY = Math.min(minY, level.portal.y);
+      maxX = Math.max(maxX, level.portal.x); maxY = Math.max(maxY, level.portal.y);
+      hasContent = true;
+    }
+    if (level.spawn) {
+      allTiles.push({x: level.spawn.x, y: level.spawn.y, type: 'spawn'});
+      minX = Math.min(minX, level.spawn.x); minY = Math.min(minY, level.spawn.y);
+      maxX = Math.max(maxX, level.spawn.x); maxY = Math.max(maxY, level.spawn.y);
+      hasContent = true;
+    }
+    if (!hasContent) return null;
+    const pad = 1;
+    minX -= pad; minY -= pad;
+    maxX += pad; maxY += pad;
+    const levelW = maxX - minX + 1;
+    const levelH = maxY - minY + 1;
+    const canvas = document.createElement('canvas');
+    const maxCanvasSize = 80;
+    const tileSize = Math.min(6, Math.floor(maxCanvasSize / Math.max(levelW, levelH)));
+    canvas.width = levelW * tileSize;
+    canvas.height = levelH * tileSize;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (let t of allTiles) {
+      const dx = (t.x - minX) * tileSize;
+      const dy = (t.y - minY) * tileSize;
+      const s = tileSize;
+      const p = Math.max(0.5, s * 0.08);
+      switch(t.type) {
+        case 'land': ctx.fillStyle = '#E1E3E6'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
+        case 'spike': ctx.fillStyle = '#FFD1D4'; ctx.beginPath(); ctx.moveTo(dx + s/2, dy + p); ctx.lineTo(dx + s - p, dy + s - p); ctx.lineTo(dx + p, dy + s - p); ctx.closePath(); ctx.fill(); break;
+        case 'spikeAuto': ctx.fillStyle = '#FF8A95'; ctx.beginPath(); ctx.moveTo(dx + s/2, dy + p); ctx.lineTo(dx + s - p, dy + s - p); ctx.lineTo(dx + p, dy + s - p); ctx.closePath(); ctx.fill(); break;
+        case 'crate': ctx.fillStyle = '#C4A77D'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
+        case 'bouncer': ctx.fillStyle = '#A0DAF7'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
+        case 'checkpoint': ctx.strokeStyle = '#B3F4A8'; ctx.lineWidth = 1; ctx.strokeRect(dx + s*0.2, dy + s*0.2, s*0.6, s*0.6); ctx.fillStyle = '#B3F4A8'; ctx.beginPath(); ctx.arc(dx + s/2, dy + s/2, s*0.12, 0, Math.PI*2); ctx.fill(); break;
+        case 'portal': ctx.fillStyle = '#F4F9A7'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
+        case 'spawn': ctx.strokeStyle = '#B3F4A8'; ctx.lineWidth = 0.5; ctx.setLineDash([2, 2]); ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2); ctx.setLineDash([]); break;
+      }
+    }
+    return canvas.toDataURL('image/png');
+  } catch (e) {
+    return null;
+  }
+}
 // ==================== 时空中枢渲染（新版）====================
 // 全局：当前选中的关卡数据（用于详情页）
 let detailLevelData = null;
@@ -6402,8 +6081,11 @@ async function renderPublicLevels(filter = '') {
     <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${(l.author || '').replace(/"/g, '&quot;')}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}">
       ${!hasPortal ? '<span class="lc-no-portal">无传送门</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">旧版</span>' : ''}
-      <div class="lc-name">${l.name || '未命名'}</div>
-      <div class="lc-author">${l.author || '匿名'}</div>
+      <div class="lc-minimap"><img src="${generateCardMinimap(l.code) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" alt=""></div>
+      <div class="lc-info">
+        <div class="lc-name">${truncateChars(l.name || '未命名', 5)}</div>
+        <div class="lc-desc">${truncateChars(l.description || l.author || '匿名', 10)}</div>
+      </div>
       <div class="lc-likes"><span class="heart">''</span> ${l.likes || 0}</div>
     </div>
   `}).join('');
@@ -6481,8 +6163,11 @@ async function renderMyLevels(filter = '') {
     <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
       ${!hasPortal ? '<span class="lc-no-portal">无传送门</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">旧版</span>' : ''}
-      <div class="lc-name">${l.name || '未命名'}</div>
-      <div class="lc-author">${l._source === 'cloud' ? '已分享' : '本地'}</div>
+      <div class="lc-minimap"><img src="${generateCardMinimap(l.code) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" alt=""></div>
+      <div class="lc-info">
+        <div class="lc-name">${truncateChars(l.name || '未命名', 5)}</div>
+        <div class="lc-desc">${truncateChars(l.description || (l._source === 'cloud' ? '已分享' : '本地'), 10)}</div>
+      </div>
     </div>
   `}).join('');
   container.querySelectorAll('.level-card-square').forEach(card => {
@@ -6841,7 +6526,8 @@ document.getElementById('btn-lobby-back').addEventListener('click', () => {
 // 时空中枢右下角编辑器加号按钮
 document.getElementById('lobby-editor-btn').addEventListener('click', () => {
   document.getElementById('lobby-screen').style.display = 'none';
-  openEditor();
+  document.getElementById('editor-screen').style.display = 'flex';
+  initEditor();
 });
 // 2. 标签页切换
 document.querySelectorAll('.lobby-tab').forEach(tab => {
@@ -6990,16 +6676,48 @@ document.getElementById('btn-changelog-back').addEventListener('click', () => {
     isEditorTest = false;
     editorTestWon = false;
   });
+  // 视觉长度计算：中文/全角字符=2，英文/半角=1
+  function getVisualLength(str) {
+    let len = 0;
+    for (let ch of str) {
+      let code = ch.charCodeAt(0);
+      if ((code >= 0x4e00 && code <= 0x9fff) ||
+          (code >= 0x3400 && code <= 0x4dbf) ||
+          (code >= 0x3000 && code <= 0x303f) ||
+          (code >= 0xff00 && code <= 0xffef)) {
+        len += 2;
+      } else {
+        len += 1;
+      }
+    }
+    return len;
+  }
+  document.getElementById('publish-name-input').addEventListener('input', function() {
+    let val = this.value;
+    let len = getVisualLength(val);
+    while (len > 40 && val.length > 0) {
+      val = val.slice(0, -1);
+      len = getVisualLength(val);
+    }
+    if (val !== this.value) this.value = val;
+    document.getElementById('name-char-count').textContent = len + '/40';
+  });
   document.getElementById('publish-desc-input').addEventListener('input', function() {
-    const count = this.value.length;
-    document.getElementById('desc-char-count').textContent = count + '/200';
+    let val = this.value;
+    let len = getVisualLength(val);
+    while (len > 100 && val.length > 0) {
+      val = val.slice(0, -1);
+      len = getVisualLength(val);
+    }
+    if (val !== this.value) this.value = val;
+    document.getElementById('desc-char-count').textContent = len + '/100';
   });
   document.getElementById('btn-publish-submit').addEventListener('click', async () => {
     const name = document.getElementById('publish-name-input').value.trim();
     const desc = document.getElementById('publish-desc-input').value.trim();
     if (!name) { alert('请输入关卡名称'); return; }
-    if (name.length > 30) { alert('关卡名称不能超过30字'); return; }
-    if (desc.length > 200) { alert('简介不能超过200字'); return; }
+    if (getVisualLength(name) > 40) { alert('关卡名称不能超过40字符（约20个汉字）'); return; }
+    if (getVisualLength(desc) > 100) { alert('简介不能超过100字符（约50个汉字）'); return; }
     // 用发布页的名字重新生成编码，确保编码中包含正确名字
     const code = encodeLevel(name);
     const overlay = document.getElementById('publish-overlay');
