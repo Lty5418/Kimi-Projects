@@ -2333,8 +2333,8 @@ const I18N = {
     '操作失败': '操作失败'
   }
 };
-let CURRENT_LANG = 'en';
-try { CURRENT_LANG = localStorage.getItem('st_lang') || 'en'; } catch (e) {}
+let CURRENT_LANG = 'zh';
+try { CURRENT_LANG = localStorage.getItem('st_lang') || 'zh'; } catch (e) {}
 function t(zh) {
   if (CURRENT_LANG === 'zh') return zh;
   return (I18N.en && I18N.en[zh]) || zh;
@@ -3075,8 +3075,18 @@ function updatePhysics() {
   }
   let targetCamX = player.x - canvasW / 2 + player.w / 2;
   let targetCamY = player.y - canvasH / 2 + player.h / 2;
-  camera.x += (targetCamX - camera.x) * 0.1;
-  camera.y += (targetCamY - camera.y) * 0.1;
+  // 摄像机延迟跟随：水平移速越快，跟随越慢（滞后越远）
+  let pSpeed = Math.abs(player.vx);
+  let maxSpeed = PLAYER_SPEED * 1.3;
+  let r = Math.min(pSpeed, maxSpeed) / maxSpeed; // 0(静止) .. 1(全速)
+  let gapX = Math.abs(targetCamX - camera.x); // 相机离玩家的水平距离
+  let maxLag = PLAYER_SPEED / 0.04; // 全速时的最大滞后距离(≈70px)
+  let gapFactor = Math.min(gapX / maxLag, 1); // 0(贴身) .. 1(最大滞后)
+  // 回弹 ease-out：离得远追得快(系数大)，越近追得越慢(系数小)；移动时(r=1)系数压到最小形成滞后
+  let followX = 0.04 + (1 - r) * (0.06 + gapFactor * 0.26);
+  // 垂直方向用较快固定系数，避免跳跃时相机过度晃动
+  camera.x += (targetCamX - camera.x) * followX;
+  camera.y += (targetCamY - camera.y) * 0.18;
 }
 // ==================== 可扩展碰撞系统 ====================
 const CollisionPriority = {
@@ -6056,11 +6066,19 @@ async function cloudAuth(username, password, isRegister) {
       throw new Error('用户名已存在');
     }
     // 创建新用户
-    const result = await supabasePost('users', {
+    await supabasePost('users', {
       username,
       password_hash: passwordHash
     });
-    const newUser = { username, id: Number(result[0]?.id) || Date.now() };
+    // supabasePost 使用 Prefer: return=minimal 不返回记录，再查一次拿数据库真实自增 ID
+    const created = await supabaseGet('users', {
+      username: `eq.${username}`,
+      select: 'id',
+      limit: 1
+    });
+    const realId = created && created[0] ? Number(created[0].id) : null;
+    if (!realId) throw new Error('注册失败：无法获取用户ID');
+    const newUser = { username, id: realId };
     // FIX: 注册成功后保存本地登录状态
     currentUser = newUser;
     localStorage.setItem('bwjump_user', JSON.stringify(newUser));
@@ -6119,26 +6137,34 @@ async function shareLevelToLobby(levelData, code) {
 }
 async function getSharedLevels() {
   try {
-    // 并行拉取：关卡 / 浏览量 / 点赞状态，避免串行等待叠加网络延迟
+    // 并行拉取：关卡 / 浏览量 / 所有点赞记录（用于统计每关点赞数 + 当前用户点赞状态）
     const hasUser = !!(currentUser && currentUser.id);
-    const [levels, viewsData, likedLevels] = await Promise.all([
+    const [levels, viewsData, allLikes] = await Promise.all([
       supabaseGet('levels', { select: '*', order: 'created_at.desc' }),
       supabaseGet('level_views', { select: 'level_id,view_count' }).catch(() => []),
-      hasUser
-        ? supabaseGet('user_likes', { user_id: `eq.${Number(currentUser.id)}`, select: 'level_id' }).catch(() => [])
-        : Promise.resolve([])
+      supabaseGet('user_likes', { select: 'level_id,user_id' }).catch(() => [])
     ]);
-    // 合并浏览量（从 level_views 读取真实值）
+    // 浏览量：从 level_views 聚合
     const viewMap = {};
     for (const v of viewsData) {
       viewMap[v.level_id] = (viewMap[v.level_id] || 0) + (v.view_count || 0);
     }
-    let result = levels.map(l => ({ ...l, views: viewMap[l.id] || l.views || 0 }));
-    // 合并点赞状态
-    if (hasUser) {
-      const likedIds = new Set(likedLevels.map(l => l.level_id));
-      result = result.map(l => ({ ...l, user_liked: likedIds.has(l.id) }));
+    // 点赞数：从 user_likes 实时统计（不再依赖 levels.likes——该字段无 UPDATE 权限永远写不进去）
+    const likeCount = {};
+    const myLiked = new Set();
+    const myId = hasUser ? Number(currentUser.id) : null;
+    for (const lk of allLikes) {
+      likeCount[lk.level_id] = (likeCount[lk.level_id] || 0) + 1;
+      if (myId !== null && Number(lk.user_id) === myId) {
+        myLiked.add(lk.level_id);
+      }
     }
+    const result = levels.map(l => ({
+      ...l,
+      views: viewMap[l.id] || 0,
+      likes: likeCount[l.id] || 0,
+      user_liked: myLiked.has(l.id)
+    }));
     return result;
   } catch (e) { console.error('获取关卡失败:', e); return []; }
 }
@@ -6336,6 +6362,23 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
 initStorage();
 initMinimap();
 // ==================== 发布页相关函数（全局作用域）====================
+// 视觉长度计算：中文/全角字符=2，英文/半角=1（全局函数，供发布页与编辑器事件共用）
+function getVisualLength(str) {
+  if (!str) return 0;
+  let len = 0;
+  for (let ch of str) {
+    let code = ch.charCodeAt(0);
+    if ((code >= 0x4e00 && code <= 0x9fff) ||
+        (code >= 0x3400 && code <= 0x4dbf) ||
+        (code >= 0x3000 && code <= 0x303f) ||
+        (code >= 0xff00 && code <= 0xffef)) {
+      len += 2;
+    } else {
+      len += 1;
+    }
+  }
+  return len;
+}
 function showPublishPage() {
   const code = encodeLevel();
   document.getElementById('publish-code-preview').textContent = code;
@@ -7172,25 +7215,18 @@ window.toggleLike = async function(levelId, btn) {
       await fetch(`${SUPABASE_URL}/rest/v1/user_likes?user_id=eq.${uid}&level_id=eq.${lid}`, {
         method: 'DELETE', mode: 'cors', credentials: 'omit', headers: { apikey: SUPABASE_KEY }
       });
-      const level = await supabaseGet('levels', { id: `eq.${lid}`, select: 'likes', limit: 1 });
-      const newLikes = Math.max(0, (level[0]?.likes || 0) - 1);
-      await supabasePatch('levels', levelId, { likes: newLikes });
-      btn.classList.remove('liked');
-      iconSpan.innerHTML = '';
-      countSpan.textContent = newLikes;
-      const cached = publicLevelsCache.find(l => l.id === levelId);
-      if (cached) { cached.likes = newLikes; cached.user_liked = false; }
     } else {
       await supabasePost('user_likes', { user_id: uid, level_id: lid });
-      const level = await supabaseGet('levels', { id: `eq.${lid}`, select: 'likes', limit: 1 });
-      const newLikes = (level[0]?.likes || 0) + 1;
-      await supabasePatch('levels', levelId, { likes: newLikes });
-      btn.classList.add('liked');
-      iconSpan.innerHTML = '';
-      countSpan.textContent = newLikes;
-      const cached = publicLevelsCache.find(l => l.id === levelId);
-      if (cached) { cached.likes = newLikes; cached.user_liked = true; }
     }
+    // 从 user_likes 实时统计当前关卡真实点赞数（不走 levels.likes——该表无 UPDATE 策略）
+    const likesNow = await supabaseGet('user_likes', { level_id: `eq.${lid}`, select: 'id' });
+    const newLikes = likesNow ? likesNow.length : 0;
+    if (isLiked) btn.classList.remove('liked');
+    else btn.classList.add('liked');
+    if (iconSpan) iconSpan.innerHTML = '';
+    if (countSpan) countSpan.textContent = newLikes;
+    const cached = publicLevelsCache.find(l => l.id === levelId);
+    if (cached) { cached.likes = newLikes; cached.user_liked = !isLiked; }
   } catch (e) {
     alert(t('操作失败: ') + (e.message || '网络错误'));
   } finally {
@@ -7399,22 +7435,6 @@ document.getElementById('btn-changelog-back').addEventListener('click', () => {
     isEditorTest = false;
     editorTestWon = false;
   });
-  // 视觉长度计算：中文/全角字符=2，英文/半角=1
-  function getVisualLength(str) {
-    let len = 0;
-    for (let ch of str) {
-      let code = ch.charCodeAt(0);
-      if ((code >= 0x4e00 && code <= 0x9fff) ||
-          (code >= 0x3400 && code <= 0x4dbf) ||
-          (code >= 0x3000 && code <= 0x303f) ||
-          (code >= 0xff00 && code <= 0xffef)) {
-        len += 2;
-      } else {
-        len += 1;
-      }
-    }
-    return len;
-  }
   document.getElementById('publish-name-input').addEventListener('input', function() {
     let val = this.value;
     let len = getVisualLength(val);
@@ -7449,7 +7469,10 @@ document.getElementById('btn-changelog-back').addEventListener('click', () => {
       await shareLevelToLobby({ name, description: desc }, code);
       alert(t('关卡已发布到时空中枢！'));
       document.getElementById('publish-page').style.display = 'none';
-      document.getElementById('editor-screen').style.display = 'flex';
+      isEditorTest = false;
+      editorTestWon = false;
+      showScreen('lobby-screen');
+      refreshLobby();
     } catch (e) {
       alert(t('发布失败: ') + (e.message || '网络错误'));
     } finally {
@@ -8449,7 +8472,33 @@ console.log('精彩回放系统加载完成');
 };
 </script>
 </body>
-</html>��统加载完成');
+</html>统加载完成');
+};
+</script>
+</body>
+</html>ctx.globalAlpha = pp.life;
+    rctx.fillStyle = pp.color;
+    rctx.fillRect(pp.x - pp.size/2, pp.y - pp.size/2, pp.size, pp.size);
+  }
+  rctx.globalAlpha = 1;
+  rctx.restore();
+  // ---------- 进度条（只读展示，不可拖动） ----------
+  var pct = ext2_replayTotalMs > 0 ? Math.min(100, elapsed / ext2_replayTotalMs * 100) : 100;
+  document.getElementById('replay-progress-bar').style.width = pct + '%';
+  // ---------- 播放结束：完整播完后自动返回 ----------
+  if (st.done && !ext2_replayFinished) {
+    ext2_replayFinished = true;
+    document.getElementById('replay-end-tip').classList.add('show');
+    ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, '#F4F9A7', 30);
+    ext2_replayEndTimer = setTimeout(ext2_closeReplay, 3000);
+  }
+  requestAnimationFrame(ext2_replayLoop);
+}
+console.log('精彩回放系统加载完成');
+};
+</script>
+</body>
+</html>统加载完成');
 };
 </script>
 </body>
