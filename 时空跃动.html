@@ -2401,7 +2401,7 @@ function applyI18n() {
   }
   // 更新国旗按钮显示
   var btn = document.getElementById('lang-btn');
-  if (btn) btn.textContent = CURRENT_LANG === 'zh' ? '🇨🇳' : '🇬🇧';
+  if (btn) btn.textContent = CURRENT_LANG === 'zh' ? '🇨🇳' : '🇺🇸';
   // 触发自定义事件（让动态 UI 重建翻译）
   document.dispatchEvent(new CustomEvent('i18nchange', { detail: { lang: CURRENT_LANG } }));
 }
@@ -2418,9 +2418,9 @@ function initLangSwitcher() {
   var wrap = document.createElement('div');
   wrap.id = 'lang-switcher';
   wrap.innerHTML =
-    '<button id="lang-btn" type="button" aria-label="Language">' + (CURRENT_LANG === 'zh' ? '🇨🇳' : '🇬🇧') + '</button>' +
+    '<button id="lang-btn" type="button" aria-label="Language">' + (CURRENT_LANG === 'zh' ? '🇨🇳' : '🇺🇸') + '</button>' +
     '<ul id="lang-menu">' +
-      '<li data-lang="en">🇬🇧 English</li>' +
+      '<li data-lang="en">🇺🇸 English</li>' +
       '<li data-lang="zh">🇨🇳 中文</li>' +
     '</ul>';
   // 只挂在开始界面右上角：随 #start-screen 显示/隐藏，其他界面不出现
@@ -2803,6 +2803,7 @@ function parseLevel(levelData) {
     spikes: levelData.spikes || [],
     spikeAutos: levelData.spikeAutos || [],
     crates: levelData.crates || [],
+    crateCells: (levelData.crates || []).map(c => ({ x: c.x + offset, y: c.y + offset })),
     bouncers: levelData.bouncers || [],
     checkpoints: levelData.checkpoints || [],
     showIndicator: levelData.showIndicator !== false,
@@ -3953,12 +3954,12 @@ let crates = []; // {x, y, vx, vy, broken}
 function initCrates() {
   crates = [];
   if (!currentLevel) return;
-  for (let y = 0; y < currentLevel.h; y++) {
-    for (let x = 0; x < currentLevel.w; x++) {
-      if (currentLevel.grid[y][x] === TILE_CRATE) {
-        crates.push({ x: x * GRID_SIZE, y: y * GRID_SIZE, vx: 0, vy: 0, broken: false });
-        currentLevel.grid[y][x] = 0; // 木箱独立化：初始化后从 grid 清除
-      }
+  // 从稳定的 crateCells（关卡原始格坐标，含 offset）重建，避免 grid 被清空后箱子丢失
+  let cells = currentLevel.crateCells || [];
+  for (let c of cells) {
+    crates.push({ x: c.x * GRID_SIZE, y: c.y * GRID_SIZE, vx: 0, vy: 0, broken: false });
+    if (currentLevel.grid[c.y] && currentLevel.grid[c.y][c.x] === TILE_CRATE) {
+      currentLevel.grid[c.y][c.x] = 0; // 木箱独立化：从 grid 清除，碰撞改走 crates 数组
     }
   }
 }
@@ -8472,7 +8473,7 @@ console.log('精彩回放系统加载完成');
 };
 </script>
 </body>
-</html>统加载完成');
+</html>��统加载完成');
 };
 </script>
 </body>
@@ -8498,7 +8499,7 @@ console.log('精彩回放系统加载完成');
 };
 </script>
 </body>
-</html>统加载完成');
+</html>��统加载完成');
 };
 </script>
 </body>
