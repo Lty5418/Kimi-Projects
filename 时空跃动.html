@@ -33,13 +33,13 @@ html, body {
   border-radius: 4px;
 }
 .btn:hover {
-  background: #A0DAF7; color: #121212;
-  border-color: #00A1FF;
-  box-shadow: 0 0 20px rgba(0,161,255,0.3);
+  background: rgba(0,246,255,0.06);
+  border-color: #00F6FF;
+  box-shadow: 0 0 14px rgba(0,246,255,0.15);
 }
 .btn:active {
-  background: #00A1FF;
-  transform: scale(0.97);
+  transform: scale(0.9);
+  filter: brightness(0.82);
 }
 .btn-row {
   display: flex; gap: 16px; margin-top: 10px;
@@ -486,6 +486,24 @@ html, body {
   border-radius: 3px;
 }
 /* 空状态 */
+.loading-spinner {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2px solid rgba(0,246,255,0.25);
+  border-top-color: #00F6FF;
+  border-radius: 50%;
+  animation: spinner-rotate 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes spinner-rotate {
+  to { transform: rotate(360deg); }
+}
+.lc-map-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: #707070; font-size: 11px; letter-spacing: 1px;
+}
 .levels-empty {
   color: #666;
   text-align: center;
@@ -1552,6 +1570,54 @@ html, body {
   transition: background 0.15s;
 }
 #lang-menu li:hover { background: rgba(0,161,255,0.15); color: #FFFFFF; }
+@keyframes screen-slide-in {
+  from { transform: translateX(100vw); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.screen-enter-anim {
+  animation: screen-slide-in 0.45s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+/* ===== 详情页简介折叠 ===== */
+#lobby-detail-screen .detail-desc.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#detail-desc-toggle { letter-spacing: 1px; }
+/* ===== 大厅 tab 平滑切换 ===== */
+.lobby-content.tab-enter {
+  animation: tab-fade-in 0.3s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+}
+@keyframes tab-fade-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* ===== 禁用浏览器原生选中高亮 ===== */
+::selection { background: transparent; }
+::-moz-selection { background: transparent; }
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* ===== 详情页简介展开/收起链接 ===== */
+.detail-desc-link {
+  color: #00F6FF;
+  cursor: pointer;
+  letter-spacing: 1px;
+  font-size: 13px;
+  display: block;
+  margin-top: 2px;
+}
+.detail-desc-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -1755,6 +1821,7 @@ html, body {
       <div class="detail-name" id="detail-name">关卡名称</div>
       <div class="detail-author" id="detail-author">作者: 匿名</div>
       <div class="detail-desc" id="detail-desc">暂无简介</div>
+      <button class="btn btn-small" id="detail-desc-toggle" style="display:none;margin-bottom:16px;">展开简介 ▾</button>
     </div>
     <div class="detail-actions">
       <button class="btn" id="btn-detail-play" style="flex:1;">开始培训</button>
@@ -2097,6 +2164,12 @@ const I18N = {
     '返回时空中枢': 'Back to Hub',
     // 分享/发布/测试
     '分享关卡': 'Share Level',
+    '展开': 'Expand',
+    '收起': 'Collapse',
+    '地图过大': 'Map too large',
+    '已隐藏': 'Hidden',
+    '展开简介 ▾': 'Show more ▾',
+    '收起 ▴': 'Show less ▴',
     '关闭': 'Close',
     '正在发布中...': 'Publishing...',
     '发布前测试': 'Test Before Publishing',
@@ -2125,6 +2198,7 @@ const I18N = {
     '请输入关卡名称': 'Please enter a level name',
     '请输入评论内容': 'Please enter a comment',
     '评论发表成功！': 'Comment posted!',
+    '评论最多 200 字节（约 66 个汉字）': 'Comment limited to 200 bytes (about 66 Chinese chars)',
     '评论发表失败，请重试': 'Comment failed, please retry',
     '请输入关卡编码': 'Please enter a level code',
     '关卡编码无效，请检查输入': 'Invalid level code, please check',
@@ -6184,7 +6258,7 @@ async function getSharedLevels() {
 }
 // ==================== 界面切换 ====================
 function showScreen(id) {
-  ['start-screen', 'auth-screen', 'lobby-screen', 'editor-screen', 'level-select-screen', 'dev-screen'].forEach(sid => {
+  ['start-screen', 'auth-screen', 'lobby-screen', 'editor-screen', 'level-select-screen', 'dev-screen', 'changelog-screen'].forEach(sid => {
     let el = document.getElementById(sid);
     if (el) el.style.display = sid === id ? 'flex' : 'none';
   });
@@ -6438,8 +6512,7 @@ console.log('按钮状态:', {
 window.onload = function() {
   console.log('窗口加载完成，开始绑定按钮事件');
 document.getElementById('btn-start-game').addEventListener('click', () => {
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('level-select-screen').style.display = 'flex';
+  showScreen('level-select-screen');
   resetLevelSelect();
   // 自动选中第1关并滚动到中央
   setTimeout(() => {
@@ -6741,6 +6814,7 @@ function generateCardMinimap(code) {
     maxX += pad; maxY += pad;
     const levelW = maxX - minX + 1;
     const levelH = maxY - minY + 1;
+    if (Math.max(levelW, levelH) > 80) return '__TOO_BIG__';
     const canvas = document.createElement('canvas');
     const maxCanvasSize = 80;
     const tileSize = Math.min(6, Math.floor(maxCanvasSize / Math.max(levelW, levelH)));
@@ -6783,7 +6857,7 @@ const _lobbyMinimapCache = {};
 async function renderPublicLevels(filter = '') {
   const container = document.getElementById('public-levels-list');
   const token = ++_lobbyRenderToken;
-  container.innerHTML = '<div class="levels-empty">⏳ ' + t('加载中...') + '</div>';
+  container.innerHTML = '<div class="levels-empty loading-row"><span class="loading-spinner"></span>' + t('加载中...') + '</div>';
   const levels = await getSharedLevels(); // 已按 created_at.desc：最新在上
   if (token !== _lobbyRenderToken) return;
   publicLevelsCache = levels;
@@ -6841,7 +6915,7 @@ async function renderPublicLevels(filter = '') {
     <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-views="${l.views || 0}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/\"/g, '&quot;')}" data-author="${(l.author || '').replace(/\"/g, '&quot;')}" data-desc="${(l.description || '').replace(/\"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}">
       ${!hasPortal ? '<span class="lc-no-portal">' + t('无传送门') + '</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">' + t('旧版') + '</span>' : ''}
-      <div class="lc-minimap"><img src="${getMini(l) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" alt=""></div>
+      <div class="lc-minimap">${(!showMinimap) ? '<div class="lc-map-placeholder">' + t('已隐藏') + '</div>' : ((getMini(l) === '__TOO_BIG__') ? '<div class="lc-map-placeholder">' + t('地图过大') + '</div>' : '<img src="' + (getMini(l) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') + '" alt="">')}</div>
       <div class="lc-info">
         <div class="lc-name">${truncateChars(l.name || '未命名', 5)}</div>
         <div class="lc-desc">${truncateChars(l.description || l.author || '匿名', 10)}</div>
@@ -6874,6 +6948,9 @@ async function renderPublicLevels(filter = '') {
 }
 async function renderMyLevels(filter = '') {
   const container = document.getElementById('my-levels-list');
+  if (currentUser && currentUser.username) {
+    container.innerHTML = '<div class="levels-empty loading-row"><span class="loading-spinner"></span>' + t('加载中...') + '</div>';
+  }
   let cloudLevels = [];
   if (currentUser && currentUser.username) {
     try {
@@ -6942,7 +7019,7 @@ async function renderMyLevels(filter = '') {
     <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
       ${!hasPortal ? '<span class="lc-no-portal">' + t('无传送门') + '</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">' + t('旧版') + '</span>' : ''}
-      <div class="lc-minimap"><img src="${generateCardMinimap(l.code) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}" alt=""></div>
+      <div class="lc-minimap">${(!showMinimap) ? '<div class="lc-map-placeholder">' + t('已隐藏') + '</div>' : ((generateCardMinimap(l.code) === '__TOO_BIG__') ? '<div class="lc-map-placeholder">' + t('地图过大') + '</div>' : '<img src="' + (generateCardMinimap(l.code) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') + '" alt="">')}</div>
       <div class="lc-info">
         <div class="lc-name">${truncateChars(l.name || '未命名', 5)}</div>
         <div class="lc-desc">${truncateChars(l.description || (l._source === 'cloud' ? '已分享' : '本地'), 10)}</div>
@@ -6952,6 +7029,20 @@ async function renderMyLevels(filter = '') {
   container.querySelectorAll('.level-card-square').forEach(card => {
     card.addEventListener('click', () => openDetailPage(card));
   });
+}
+function truncateByUtf8(str, maxBytes) {
+  if (!str) return '';
+  var out = '', n = 0;
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    var b = c < 0x80 ? 1 : (c < 0x800 ? 2 : 3);
+    if (c >= 0xD800 && c <= 0xDBFF) b = 4;
+    if (n + b > maxBytes) return out + '…';
+    n += b;
+    out += str[i];
+    if (b === 4) { out += str[i + 1]; i++; }
+  }
+  return out;
 }
 function openDetailPage(card) {
   const code = card.dataset.code;
@@ -6969,8 +7060,38 @@ function openDetailPage(card) {
   ext_incrementView(levelId); // 打开即算一次浏览（只走 level_views 表）
   detailLevelLiked = liked;
   document.getElementById('detail-name').textContent = name || t('未命名关卡');
-  document.getElementById('detail-author').textContent = t('作者: ') + (author || t('匿名'));
-  document.getElementById('detail-desc').textContent = desc || t('暂无简介');
+  var authorShown = truncateByUtf8(author || '', 60);
+  document.getElementById('detail-author').textContent = t('作者: ') + (authorShown || t('匿名'));
+  (function() {
+    var descEl = document.getElementById('detail-desc');
+    var tBtn = document.getElementById('detail-desc-toggle');
+    if (tBtn) tBtn.style.display = 'none';
+    if (!descEl) return;
+    var full = desc || '';
+    function renderCollapsed() {
+      descEl.textContent = '';
+      descEl.appendChild(document.createTextNode(full.length > 10 ? full.slice(0, 10) + '…' : full));
+      if (full.length > 10) {
+        var line = document.createElement('div');
+        var link = document.createElement('span');
+        link.className = 'detail-desc-link';
+        link.textContent = t('展开');
+        link.addEventListener('click', renderExpanded);
+        line.appendChild(link);
+        descEl.appendChild(line);
+      }
+    }
+    function renderExpanded() {
+      descEl.textContent = '';
+      descEl.appendChild(document.createTextNode(full));
+      var link = document.createElement('span');
+      link.className = 'detail-desc-link';
+      link.textContent = t('收起');
+      link.addEventListener('click', renderCollapsed);
+      descEl.appendChild(link);
+    }
+    renderCollapsed();
+  })();
   const likeBtn = document.getElementById('btn-detail-like');
   const likeIcon = likeBtn.querySelector('.like-icon');
   const likeCount = likeBtn.querySelector('.like-count');
@@ -7310,7 +7431,13 @@ document.querySelectorAll('.lobby-tab').forEach(tab => {
     document.querySelectorAll('.lobby-content').forEach(c => c.classList.add('hidden'));
     const tabName = tab.dataset.tab;
     const contentEl = document.getElementById('lobby-' + tabName);
-    if (contentEl) contentEl.classList.remove('hidden');
+    if (contentEl) {
+      contentEl.classList.remove('hidden');
+      contentEl.classList.remove('tab-enter');
+      void contentEl.offsetWidth;
+      contentEl.classList.add('tab-enter');
+      setTimeout(function() { contentEl.classList.remove('tab-enter'); }, 340);
+    }
   });
 });
 // 3. 公开关卡搜索
@@ -7414,20 +7541,16 @@ setTimeout(() => {
 }, 1000);
 // ==================== 开发人员界面 ====================
 document.getElementById('dev-info').addEventListener('click', () => {
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('dev-screen').style.display = 'flex';
+  showScreen('dev-screen');
 });
 document.getElementById('btn-dev-back').addEventListener('click', () => {
-  document.getElementById('dev-screen').style.display = 'none';
-  document.getElementById('start-screen').style.display = 'flex';
+  showScreen('start-screen');
 });
 document.getElementById('changelog-info').addEventListener('click', () => {
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('changelog-screen').style.display = 'flex';
+  showScreen('changelog-screen');
 });
 document.getElementById('btn-changelog-back').addEventListener('click', () => {
-  document.getElementById('changelog-screen').style.display = 'none';
-  document.getElementById('start-screen').style.display = 'flex';
+  showScreen('start-screen');
 });
   // ========== 测试确认弹窗事件 ==========
   document.getElementById('btn-test-confirm').addEventListener('click', () => {
@@ -7603,6 +7726,7 @@ function ext_injectDetailPageUI() {
     submitBtn.addEventListener('click', async function() {
       var content = inputEl.value.trim();
       if (!content) { alert(t('请输入评论内容')); return; }
+      if (new TextEncoder().encode(content).length > 200) { alert(t('评论最多 200 字节（约 66 个汉字）')); return; }
       if (!ext_detailLevelIdCache) { alert(t('无法评论此关卡')); return; }
       var authorName = currentUser ? currentUser.username : '匿名';
       var ok = await ext_postComment(ext_detailLevelIdCache, content, authorName);
@@ -7822,6 +7946,7 @@ function ext_setupDetailPageFix(levelId) {
       if (ext_isCommentSubmitting) return; // 正在提交中，直接返回
       var content = inputEl.value.trim();
       if (!content) { alert(t('请输入评论内容')); return; }
+      if (new TextEncoder().encode(content).length > 200) { alert(t('评论最多 200 字节（约 66 个汉字）')); return; }
       if (!ext_detailLevelIdFix) { alert(t('无法评论此关卡')); return; }
       // 锁定
       ext_isCommentSubmitting = true;
@@ -8468,8 +8593,82 @@ function ext2_replayLoop() {
   }
   requestAnimationFrame(ext2_replayLoop);
 }
+  // 详情页滑入动画（openDetailPage 为 onload 局部函数，必须同作用域包装）
+  var _origOpenDetailAnim = openDetailPage;
+  openDetailPage = function(card) {
+    _origOpenDetailAnim(card);
+    var el = document.getElementById('lobby-detail-screen');
+    if (el) {
+      el.classList.remove('screen-enter-anim');
+      void el.offsetWidth;
+      el.classList.add('screen-enter-anim');
+      setTimeout(function() { el.classList.remove('screen-enter-anim'); }, 520);
+    }
+  };
 console.log('精彩回放系统加载完成');
 };
+// ==================== 界面切换动画（扩散转场 + 滑入）与简介折叠 ====================
+(function() {
+  var cloneBusy = false;
+  function enterAnim(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('screen-enter-anim');
+    void el.offsetWidth;
+    el.classList.add('screen-enter-anim');
+    setTimeout(function() { el.classList.remove('screen-enter-anim'); }, 520);
+  }
+  var origShowScreen = showScreen;
+  showScreen = function(id) {
+    var origin = document.activeElement;
+    var isBtn = origin && origin.getBoundingClientRect && (origin.tagName === 'BUTTON' || origin.classList.contains('dev-info') || origin.classList.contains('changelog-info'));
+    if (!isBtn || cloneBusy) { origShowScreen(id); enterAnim(id); return; }
+    cloneBusy = true;
+    // 按钮转场：文字渐隐 + 实心盒同步扩屏，扩满即切换并快速揭幕
+    var r = origin.getBoundingClientRect();
+    var clone = origin.cloneNode(true);
+    clone.style.position = 'fixed';
+    clone.style.left = r.left + 'px';
+    clone.style.top = r.top + 'px';
+    clone.style.width = r.width + 'px';
+    clone.style.height = r.height + 'px';
+    clone.style.margin = '0';
+    clone.style.zIndex = '9999';
+    clone.style.pointerEvents = 'none';
+    clone.style.background = '#121212';
+    clone.style.boxShadow = 'none';
+    clone.style.transition = 'none';
+    clone.style.opacity = '1';
+    clone.style.color = 'rgba(255,255,255,1)';
+    document.body.appendChild(clone);
+    void clone.offsetWidth;
+    clone.style.transition = 'left 0.28s cubic-bezier(0.65, 0, 0.35, 1), top 0.28s cubic-bezier(0.65, 0, 0.35, 1), width 0.28s cubic-bezier(0.65, 0, 0.35, 1), height 0.28s cubic-bezier(0.65, 0, 0.35, 1), color 0.12s ease-out';
+    clone.style.left = '-6px';
+    clone.style.top = '-6px';
+    clone.style.width = (window.innerWidth + 12) + 'px';
+    clone.style.height = (window.innerHeight + 12) + 'px';
+    clone.style.color = 'rgba(255,255,255,0)';
+    setTimeout(function() {
+      origShowScreen(id);
+      enterAnim(id);
+      clone.style.transition = 'opacity 0.18s ease-out';
+      clone.style.opacity = '0';
+      setTimeout(function() {
+        clone.remove();
+        cloneBusy = false;
+      }, 200);
+    }, 285);
+  };
+  var tBtn = document.getElementById('detail-desc-toggle');
+  if (tBtn) {
+    tBtn.addEventListener('click', function() {
+      var el = document.getElementById('detail-desc');
+      if (!el) return;
+      var collapsed = el.classList.toggle('collapsed');
+      this.textContent = collapsed ? t('展开简介 ▾') : t('收起 ▴');
+    });
+  }
+})();
 </script>
 </body>
 </html>��统加载完成');
