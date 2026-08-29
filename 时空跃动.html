@@ -2983,6 +2983,7 @@ function resetPlayer(clearCheckpoint = false) {
   player.won = false;
   player.inPortal = false;
   player.jumpCount = 0;
+  player.sx = 1; player.sy = 1;
   particles = [];
   camera.x = player.x - canvasW / 2 + player.w / 2;
   camera.y = player.y - canvasH / 2 + player.h / 2;
@@ -2994,6 +2995,12 @@ function resetPlayer(clearCheckpoint = false) {
 // ==================== 物理更新 ====================
 function updatePhysics() {
   if (player.dead || player.won) return;
+  // 落地反馈采样：帧首记录上一帧状态（判定落地帧与冲击强度）
+  let prevOnGround = player.onGround;
+  let prevVy = player.vy;
+  // squash/stretch 形变平滑回弹（纯视觉，不影响物理）
+  player.sx = (player.sx || 1) + (1 - (player.sx || 1)) * 0.18;
+  player.sy = (player.sy || 1) + (1 - (player.sy || 1)) * 0.18;
   let moveX = 0;
   if (keys['ArrowLeft'] || keys['a'] || keys['A'] || joystick.dx < -0.3) {
     moveX = -PLAYER_SPEED; player.facing = -1;
@@ -3012,7 +3019,9 @@ function updatePhysics() {
     player.onGround = false;
     jumpPressed = false;
     let color = player.jumpCount === 1 ? '#FFFFFF' : '#F4F9A7';
-    spawnParticles(player.x + player.w/2, player.y + player.h, color, 6);
+    spawnParticles(player.x + player.w/2, player.y + player.h, color, 10);
+    // 起跳拉伸反馈（纯视觉）：以脚底为锚向上弹伸
+    player.sx = 0.72; player.sy = 1.3;
   }
   player.vy += GRAVITY;
   player.vx *= FRICTION;
@@ -3027,6 +3036,17 @@ function updatePhysics() {
   }
   movePlayer(player.vx, 0);
   movePlayer(0, player.vy);
+  // 落地反馈（纯视觉）：压扁 + 尘土 + 相机轻微下沉，冲击越强越明显
+  if (!prevOnGround && player.onGround) {
+    let fallVy = prevVy + GRAVITY;
+    if (fallVy > 3) {
+      let impact = Math.min(fallVy / 14, 1);
+      player.sx = 1 + 0.35 * impact;
+      player.sy = 1 - 0.3 * impact;
+      spawnParticles(player.x + player.w/2, player.y + player.h, COLORS.land, Math.round(4 + 8 * impact));
+      camera.y += 4 + 6 * impact; // 相机瞬时下沉，由垂直跟随平滑回弹
+    }
+  }
   // 检查存档点
   checkCheckpoint();
   // 传送门检测：由 CollisionHandlers[TILE_PORTAL].onCollide 设置 inPortal 标志
@@ -3261,8 +3281,7 @@ const CollisionHandlers = {
         else if (dy > 0) { p.y = tileY - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0; }
         else if (dy < 0) { p.y = tileY + GRID_SIZE; p.vy = 0; }
       } else if (dir === 'right') {
-        if (dx < 0) {
-          // 从右侧碰箭头面 → 往上弹（用户要求：右边碰朝右的弹板应往上弹，不往右弹）
+        if (dx < 0) {on         // 从右侧碰箭头面 → 往上弹（用户要求：右边碰朝右的弹板应往上弹，不往右弹）
           p.x = tileX + GRID_SIZE; p.vx = 0; p.vy = bounceForce; p.onGround = false; p.jumpCount = 0;
           spawnParticles(p.x, p.y + p.h/2, COLORS.bouncer, 8);
         } else if (dx > 0) { p.x = tileX - p.w; p.vx = 0; }
@@ -3490,11 +3509,16 @@ function render() {
     gradient.addColorStop(1, 'rgba(0,246,255,0)');
     ctx.fillStyle = gradient;
     ctx.fillRect(player.x - glowSize + player.w/2, player.y - glowSize + player.h/2, glowSize*2, glowSize*2);
+    // squash/stretch 渲染：以脚底中心为锚缩放（不改变碰撞盒，纯视觉）
+    let psx = player.sx || 1, psy = player.sy || 1;
+    ctx.save();
+    ctx.translate(player.x + player.w/2, player.y + player.h);
+    ctx.scale(psx, psy);
     ctx.fillStyle = COLORS.player;
     ctx.shadowColor = '#00F6FF';
     ctx.shadowBlur = 15;
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    ctx.shadowBlur = 0;
+    ctx.fillRect(-player.w/2, -player.h, player.w, player.h);
+    ctx.restore();
   }
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i];
@@ -4104,17 +4128,6 @@ function updateCrates() {
               blocked = true;
               break;
             } else if (bDir === 'none') {
-              if (crate.vy > 0) {
-                crate.y = col.y - GRID_SIZE;
-                crate.vy = 0;
-                onGround = true;
-              } else {
-                crate.y = col.y + GRID_SIZE;
-                crate.vy = 0;
-              }
-              blocked = true;
-              break;
-            } else {
               if (crate.vy > 0) {
                 crate.y = col.y - GRID_SIZE;
                 crate.vy = 0;
@@ -7537,18 +7550,22 @@ async function ext_getLeaderboard(levelId, limitCount) {
 async function ext_submitRecord(levelId, playerName, clearTimeMs, trajectoryData) {
   if (!levelId || !clearTimeMs) return false;
   try {
-    var topRecords = await ext_getLeaderboard(levelId, 1);
-    var isFaster = !topRecords || topRecords.length === 0 || clearTimeMs < topRecords[0].clear_time_ms;
-    if (!isFaster) return false;
-    var allRecords = await supabaseGet('level_leaderboard', { level_id: 'eq.' + levelId, select: 'id' });
-    if (allRecords && allRecords.length > 0) {
-      for (var i = 0; i < allRecords.length; i++) {
-        await ext_supabaseDelete('level_leaderboard', 'id=eq.' + allRecords[i].id);
-      }
+    // 多人排行榜：每人只保留个人最好成绩，不再清除他人纪录
+    var name = playerName || '匿名';
+    var mine = await supabaseGet('level_leaderboard', {
+      level_id: 'eq.' + levelId, player_name: 'eq.' + name,
+      select: 'id,clear_time_ms', order: 'clear_time_ms.asc', limit: 1
+    });
+    if (mine && mine.length > 0 && clearTimeMs >= mine[0].clear_time_ms) {
+      console.log('未刷新个人最好成绩，不上传');
+      return false;
+    }
+    if (mine && mine.length > 0) {
+      await ext_supabaseDelete('level_leaderboard', 'id=eq.' + mine[0].id);
     }
     await supabasePost('level_leaderboard', {
       level_id: Number(levelId),
-      player_name: playerName || '匿名',
+      player_name: name,
       clear_time_ms: clearTimeMs,
       trajectory_data: trajectoryData ? JSON.stringify(trajectoryData) : null
     });
@@ -7941,6 +7958,7 @@ var ext_replayTrajectory = [];
 var ext_replayStartTime = 0;
 var ext_isRecordingReplay = false;
 var ext_lastPlayerState = null;
+var ext_prevDead = false; // 上一采样帧主角是否处于死亡（用于打瞬移标记）
 // 包装 gameLoop，追加精确轨迹记录 + 幽灵绘制
 var ext_originalGameLoop3 = gameLoop;
 gameLoop = function() {
@@ -7958,7 +7976,11 @@ gameLoop = function() {
       facing: player.facing,
       action: 'idle'
     };
-    if (!ext_lastPlayerState) {
+    if (ext_prevDead) {
+      state.tp = true; // 死亡重生瞬移标记：回放时幽灵直接跳变，不做插值滑移
+      ext_prevDead = false;
+      state.action = 'spawn';
+    } else if (!ext_lastPlayerState) {
       state.action = 'spawn';
     } else if (player.jumpCount > ext_lastPlayerState.jumpCount) {
       state.action = 'jump';
@@ -7979,6 +8001,8 @@ gameLoop = function() {
     if (ext_replayTrajectory.length > 20000) {
       ext_replayTrajectory.shift();
     }
+  } else if (ext_isRecordingReplay && player && player.dead) {
+    ext_prevDead = true;
   }
   // B. 更新回放幽灵位置
   if (ext_isReplayMode && ext_ghostPlayer && ext_replayData) {
@@ -8093,25 +8117,26 @@ exitGame = function() {
 async function ext_submitReplayRecord(levelId, playerName, clearTimeMs, trajectoryPackage) {
   if (!levelId || !clearTimeMs) return false;
   try {
-    var topRecords = await ext_getLeaderboard(levelId, 1);
-    var isFaster = !topRecords || topRecords.length === 0 || clearTimeMs < topRecords[0].clear_time_ms;
-    if (!isFaster) {
-      console.log('不是第一名，精确轨迹不上传');
+    // 多人排行榜：每人只保留个人最好成绩（含精确轨迹），不再清除他人纪录
+    var name = playerName || '匿名';
+    var mine = await supabaseGet('level_leaderboard', {
+      level_id: 'eq.' + levelId, player_name: 'eq.' + name,
+      select: 'id,clear_time_ms', order: 'clear_time_ms.asc', limit: 1
+    });
+    if (mine && mine.length > 0 && clearTimeMs >= mine[0].clear_time_ms) {
+      console.log('未刷新个人最好成绩，精确轨迹不上传');
       return false;
     }
-    var allRecords = await supabaseGet('level_leaderboard', { level_id: 'eq.' + levelId, select: 'id' });
-    if (allRecords && allRecords.length > 0) {
-      for (var i = 0; i < allRecords.length; i++) {
-        await ext_supabaseDelete('level_leaderboard', 'id=eq.' + allRecords[i].id);
-      }
+    if (mine && mine.length > 0) {
+      await ext_supabaseDelete('level_leaderboard', 'id=eq.' + mine[0].id);
     }
     await supabasePost('level_leaderboard', {
       level_id: Number(levelId),
-      player_name: playerName || '匿名',
+      player_name: name,
       clear_time_ms: clearTimeMs,
       trajectory_data: JSON.stringify(trajectoryPackage)
     });
-    console.log('新纪录+精确轨迹上传成功！用时:', clearTimeMs + 'ms, 轨迹点数:', trajectoryPackage.points.length);
+    console.log('个人最好成绩+精确轨迹上传成功！用时:', clearTimeMs + 'ms, 轨迹点数:', trajectoryPackage.points.length);
     return true;
   } catch (e) {
     console.error('上传回放记录失败:', e);
@@ -8231,6 +8256,10 @@ function ext2_sampleTrajectory(elapsed) {
     return { x: points[n - 1].x, y: points[n - 1].y, facing: points[n - 1].facing || 1, action: 'end', done: true };
   }
   var p1 = points[i], p2 = points[i + 1];
+  // 死亡重生瞬移段：不做插值——标记时刻前幽灵隐藏，到达后直接出现在重生点
+  if (p2.tp) {
+    return { x: p1.x, y: p1.y, facing: (p1.facing || 1), action: 'dead', hidden: true, done: false };
+  }
   var dt = p2.t - p1.t;
   var t = dt > 0 ? (elapsed - p1.t) / dt : 0;
   t = Math.max(0, Math.min(1, t));
@@ -8398,52 +8427,22 @@ function ext2_replayLoop() {
     rctx.moveTo(crate.x + GRID_SIZE - 2, crate.y + 2); rctx.lineTo(crate.x + 2, crate.y + GRID_SIZE - 2);
     rctx.stroke();
   }
-  // 完整轨迹预览线（淡青色，展示通关路线）
-  if (ext2_replayPoints.length > 1) {
-    rctx.strokeStyle = 'rgba(0,246,255,0.18)';
-    rctx.lineWidth = 2;
-    rctx.beginPath();
-    rctx.moveTo(ext2_replayPoints[0].x + EXT2_PLAYER_SIZE/2, ext2_replayPoints[0].y + EXT2_PLAYER_SIZE/2);
-    for (var ti = 1; ti < ext2_replayPoints.length; ti += 2) {
-      rctx.lineTo(ext2_replayPoints[ti].x + EXT2_PLAYER_SIZE/2, ext2_replayPoints[ti].y + EXT2_PLAYER_SIZE/2);
-    }
-    rctx.stroke();
-  }
-  // 回放者拖尾
-  ext2_replayTrail.push({ x: px + EXT2_PLAYER_SIZE/2, y: py + EXT2_PLAYER_SIZE/2 });
-  if (ext2_replayTrail.length > 22) ext2_replayTrail.shift();
-  rctx.strokeStyle = 'rgba(0,246,255,0.35)';
-  rctx.lineWidth = 3;
-  rctx.beginPath();
-  for (var trI = 0; trI < ext2_replayTrail.length; trI++) {
-    var tp3 = ext2_replayTrail[trI];
-    if (trI === 0) rctx.moveTo(tp3.x, tp3.y); else rctx.lineTo(tp3.x, tp3.y);
-  }
-  rctx.stroke();
-  // 回放者（发光方块 + 朝向指示）
-  var glowSize = 15 + Math.sin(ext2_replayTime * 4) * 5;
-  var gradient = rctx.createRadialGradient(
-    px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, 0,
-    px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, glowSize
-  );
-  gradient.addColorStop(0, 'rgba(0,246,255,0.6)');
-  gradient.addColorStop(1, 'rgba(0,246,255,0)');
-  rctx.fillStyle = gradient;
-  rctx.fillRect(px - glowSize + EXT2_PLAYER_SIZE/2, py - glowSize + EXT2_PLAYER_SIZE/2, glowSize*2, glowSize*2);
-  rctx.fillStyle = COLORS.player;
-  rctx.shadowColor = '#00F6FF';
-  rctx.shadowBlur = 15;
-  rctx.fillRect(px, py, EXT2_PLAYER_SIZE, EXT2_PLAYER_SIZE);
-  rctx.shadowBlur = 0;
-  // 朝向眼睛
-  rctx.fillStyle = '#121212';
-  var eyeY = py + 8;
-  if ((st.facing || 1) > 0) {
-    rctx.fillRect(px + 13, eyeY, 3, 4);
-    rctx.fillRect(px + 18, eyeY, 3, 4);
-  } else {
-    rctx.fillRect(px + 3, eyeY, 3, 4);
-    rctx.fillRect(px + 8, eyeY, 3, 4);
+  // 回放者（发光方块，与主角造型一致；死亡重生瞬移段隐藏）
+  if (!st.hidden) {
+    var glowSize = 15 + Math.sin(ext2_replayTime * 4) * 5;
+    var gradient = rctx.createRadialGradient(
+      px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, 0,
+      px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, glowSize
+    );
+    gradient.addColorStop(0, 'rgba(0,246,255,0.6)');
+    gradient.addColorStop(1, 'rgba(0,246,255,0)');
+    rctx.fillStyle = gradient;
+    rctx.fillRect(px - glowSize + EXT2_PLAYER_SIZE/2, py - glowSize + EXT2_PLAYER_SIZE/2, glowSize*2, glowSize*2);
+    rctx.fillStyle = COLORS.player;
+    rctx.shadowColor = '#00F6FF';
+    rctx.shadowBlur = 15;
+    rctx.fillRect(px, py, EXT2_PLAYER_SIZE, EXT2_PLAYER_SIZE);
+    rctx.shadowBlur = 0;
   }
   // 粒子
   for (var pi = ext2_replayParticles.length - 1; pi >= 0; pi--) {
@@ -8489,6 +8488,21 @@ console.log('精彩回放系统加载完成');
   // ---------- 播放结束：完整播完后自动返回 ----------
   if (st.done && !ext2_replayFinished) {
     ext2_replayFinished = true;
+    document.getElementById('replay-end-tip').classList.add('show');
+    ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, '#F4F9A7', 30);
+    ext2_replayEndTimer = setTimeout(ext2_closeReplay, 3000);
+  }
+  requestAnimationFrame(ext2_replayLoop);
+}
+console.log('精彩回放系统加载完成');
+};
+</script>
+</body>
+</html>��统加载完成');
+};
+</script>
+</body>
+</html>true;
     document.getElementById('replay-end-tip').classList.add('show');
     ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, '#F4F9A7', 30);
     ext2_replayEndTimer = setTimeout(ext2_closeReplay, 3000);
