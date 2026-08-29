@@ -1618,6 +1618,14 @@ input, textarea {
   margin-top: 2px;
 }
 .detail-desc-link:hover { text-decoration: underline; }
+/* ===== 详情页向右滑出（与滑入对称） ===== */
+.screen-exit-anim {
+  animation: screen-slide-out 0.3s ease-in both;
+}
+@keyframes screen-slide-out {
+  from { transform: translateX(0); }
+  to { transform: translateX(100vw); }
+}
 </style>
 </head>
 <body>
@@ -2162,6 +2170,7 @@ const I18N = {
     '再测一次': 'Test Again',
     '返回编辑器': 'Back to Editor',
     '返回时空中枢': 'Back to Hub',
+    '返回小世界详情页': 'Back to Level Details',
     // 分享/发布/测试
     '分享关卡': 'Share Level',
     '展开': 'Expand',
@@ -3148,7 +3157,7 @@ function updatePhysics() {
           nextBtn.style.display = 'inline-block';
         } else if (isFromLobby) {
           nextBtn.textContent = t('再玩一次');
-          backBtn.textContent = t('返回时空中枢');
+          backBtn.textContent = t('返回小世界详情页');
           nextBtn.style.display = 'inline-block';
         } else if (isCustomLevel || currentLevelIdx >= BUILTIN_LEVELS.length - 1) {
           nextBtn.style.display = 'none';
@@ -5374,9 +5383,8 @@ function setupEditorToolbar() {
     renderEditor();
   });
   document.getElementById('btn-editor-back').addEventListener('click', () => {
-    document.getElementById('editor-screen').style.display = 'none';
-    document.getElementById('start-screen').style.display = 'flex';
     gameState = 'start';
+    showScreen('start-screen');
   });
   document.getElementById('btn-zoom-in').addEventListener('click', () => {
     editorZoom = Math.min(4, editorZoom * 1.25);
@@ -6265,6 +6273,8 @@ function showScreen(id) {
 }
 function startGame() {
   gameState = 'playing';
+  var gameCanvasEl2 = document.getElementById('game-canvas');
+  if (gameCanvasEl2) gameCanvasEl2.style.display = 'block';
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('editor-screen').style.display = 'none';
   document.getElementById('lobby-screen').style.display = 'none';
@@ -6324,21 +6334,37 @@ document.getElementById('tutorial-dialog').addEventListener('click', closeTutori
 function exitGame() {
   gameState = 'start';
   closeTutorialDialog();
-  document.getElementById('game-ui').style.display = 'none';
+  // 操作类 UI 立即隐藏；游戏画面保留，由转场覆盖后在回调中收起
   document.getElementById('joystick-zone').style.display = 'none';
   document.getElementById('jump-btn').style.display = 'none';
   document.getElementById('desktop-hint').style.display = 'none';
   document.getElementById('win-modal').style.display = 'none';
-  if (minimapCanvas) minimapCanvas.style.display = 'none';
+  var cleanupGameView = function() {
+    document.getElementById('game-ui').style.display = 'none';
+    var gameCanvasEl = document.getElementById('game-canvas');
+    if (gameCanvasEl) {
+      gameCanvasEl.style.display = 'none';
+      try {
+        var gctx = gameCanvasEl.getContext('2d');
+        gctx.fillStyle = COLORS.bg;
+        gctx.fillRect(0, 0, gameCanvasEl.width, gameCanvasEl.height);
+      } catch (e) {}
+    }
+    if (minimapCanvas) minimapCanvas.style.display = 'none';
+  };
   if (isEditorTest) {
     isEditorTest = false;
-    document.getElementById('editor-screen').style.display = 'flex';
+    showScreen('editor-screen', cleanupGameView);
   } else if (isFromLobby) {
     isFromLobby = false;
-    showScreen('lobby-screen');
-    // refreshLobby(); // 注释掉：函数在局部作用域，这里调用会报错
+    showScreen('lobby-screen', function() {
+      cleanupGameView();
+      if (window._lastDetailCard && window._lastDetailOpenFn) {
+        try { window._lastDetailOpenFn(window._lastDetailCard); } catch (e) {}
+      }
+    });
   } else {
-    document.getElementById('start-screen').style.display = 'flex';
+    showScreen('start-screen', cleanupGameView);
   }
 }
 // ==================== 开始界面 ====================
@@ -6586,8 +6612,7 @@ document.getElementById('btn-level-start').addEventListener('click', () => {
   startGame();
 });
 document.getElementById('btn-level-back').addEventListener('click', () => {
-  document.getElementById('level-select-screen').style.display = 'none';
-  document.getElementById('start-screen').style.display = 'flex';
+  showScreen('start-screen');
 });
 // 选关界面滚动监听 - 基于距离的连续缩放
 const levelCardsContainer = document.getElementById('level-cards');
@@ -7498,7 +7523,13 @@ document.getElementById('btn-lobby-logout').addEventListener('click', () => {
 });
 // 7. 详情页返回按钮
 document.getElementById('btn-detail-back').addEventListener('click', () => {
-  closeDetailPage();
+  var detailEl = document.getElementById('lobby-detail-screen');
+  if (!detailEl || detailEl.classList.contains('screen-exit-anim')) return;
+  detailEl.classList.add('screen-exit-anim');
+  setTimeout(function() {
+    closeDetailPage();
+    detailEl.classList.remove('screen-exit-anim');
+  }, 300);
 });
 // 8. 详情页开始培训按钮
 document.getElementById('btn-detail-play').addEventListener('click', () => {
@@ -7567,10 +7598,11 @@ document.getElementById('btn-changelog-back').addEventListener('click', () => {
   });
   // ========== 发布页事件 ==========
   document.getElementById('btn-publish-back').addEventListener('click', () => {
-    document.getElementById('publish-page').style.display = 'none';
-    document.getElementById('editor-screen').style.display = 'flex';
     isEditorTest = false;
     editorTestWon = false;
+    showScreen('editor-screen', function() {
+      document.getElementById('publish-page').style.display = 'none';
+    });
   });
   document.getElementById('publish-name-input').addEventListener('input', function() {
     let val = this.value;
@@ -8597,6 +8629,8 @@ function ext2_replayLoop() {
   var _origOpenDetailAnim = openDetailPage;
   openDetailPage = function(card) {
     _origOpenDetailAnim(card);
+    window._lastDetailCard = card;
+    window._lastDetailOpenFn = openDetailPage;
     var el = document.getElementById('lobby-detail-screen');
     if (el) {
       el.classList.remove('screen-enter-anim');
@@ -8619,30 +8653,50 @@ console.log('精彩回放系统加载完成');
     setTimeout(function() { el.classList.remove('screen-enter-anim'); }, 520);
   }
   var origShowScreen = showScreen;
-  showScreen = function(id) {
-    var origin = document.activeElement;
-    var isBtn = origin && origin.getBoundingClientRect && (origin.tagName === 'BUTTON' || origin.classList.contains('dev-info') || origin.classList.contains('changelog-info'));
-    if (!isBtn || cloneBusy) { origShowScreen(id); enterAnim(id); return; }
+  // 记录最后一次点击位置（按钮被提前隐藏时，转场仍从真实点击处展开）
+  var lastTap = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  document.addEventListener('mousedown', function(e) { lastTap.x = e.clientX; lastTap.y = e.clientY; }, true);
+  document.addEventListener('touchstart', function(e) { if (e.touches && e.touches[0]) { lastTap.x = e.touches[0].clientX; lastTap.y = e.touches[0].clientY; } }, true);
+  showScreen = function(id, afterSwitch) {
+    if (cloneBusy) { origShowScreen(id); enterAnim(id); if (afterSwitch) { try { afterSwitch(); } catch (e) {} } return; }
     cloneBusy = true;
-    // 按钮转场：文字渐隐 + 实心盒同步扩屏，扩满即切换并快速揭幕
-    var r = origin.getBoundingClientRect();
-    var clone = origin.cloneNode(true);
-    clone.style.position = 'fixed';
-    clone.style.left = r.left + 'px';
-    clone.style.top = r.top + 'px';
-    clone.style.width = r.width + 'px';
-    clone.style.height = r.height + 'px';
+    // 优先用触发按钮本体；按钮已被隐藏（rect 无效）时退回最后点击位置
+    var origin = document.activeElement;
+    var r = null;
+    if (origin && origin.getBoundingClientRect && origin.tagName === 'BUTTON') {
+      var rect = origin.getBoundingClientRect();
+      if (rect && rect.width > 2 && rect.height > 2) r = rect;
+    }
+    var clone;
+    if (r) {
+      clone = origin.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = r.left + 'px';
+      clone.style.top = r.top + 'px';
+      clone.style.width = r.width + 'px';
+      clone.style.height = r.height + 'px';
+      clone.style.color = 'rgba(255,255,255,1)';
+    } else {
+      clone = document.createElement('div');
+      clone.style.position = 'fixed';
+      clone.style.left = (lastTap.x - 80) + 'px';
+      clone.style.top = (lastTap.y - 24) + 'px';
+      clone.style.width = '160px';
+      clone.style.height = '48px';
+    }
     clone.style.margin = '0';
     clone.style.zIndex = '9999';
     clone.style.pointerEvents = 'none';
     clone.style.background = '#121212';
+    clone.style.border = '2px solid #E1E3E6';
+    clone.style.borderRadius = '4px';
     clone.style.boxShadow = 'none';
     clone.style.transition = 'none';
     clone.style.opacity = '1';
-    clone.style.color = 'rgba(255,255,255,1)';
     document.body.appendChild(clone);
     void clone.offsetWidth;
     clone.style.transition = 'left 0.28s cubic-bezier(0.65, 0, 0.35, 1), top 0.28s cubic-bezier(0.65, 0, 0.35, 1), width 0.28s cubic-bezier(0.65, 0, 0.35, 1), height 0.28s cubic-bezier(0.65, 0, 0.35, 1), color 0.12s ease-out';
+    clone.style.color = 'rgba(255,255,255,1)';
     clone.style.left = '-6px';
     clone.style.top = '-6px';
     clone.style.width = (window.innerWidth + 12) + 'px';
@@ -8651,13 +8705,16 @@ console.log('精彩回放系统加载完成');
     setTimeout(function() {
       origShowScreen(id);
       enterAnim(id);
-      clone.style.transition = 'opacity 0.18s ease-out';
+      if (afterSwitch) { try { afterSwitch(); } catch (e) {} }
+    }, 300);
+    setTimeout(function() {
+      clone.style.transition = 'opacity 0.22s ease-out';
       clone.style.opacity = '0';
       setTimeout(function() {
         clone.remove();
         cloneBusy = false;
-      }, 200);
-    }, 285);
+      }, 240);
+    }, 520);
   };
   var tBtn = document.getElementById('detail-desc-toggle');
   if (tBtn) {
@@ -8697,7 +8754,7 @@ console.log('精彩回放系统加载完成');
 };
 </script>
 </body>
-</html>��统加载完成');
+</html>（'系统加载完成');
 };
 </script>
 </body>
