@@ -923,9 +923,41 @@ html, body {
   transition: none;
 }
 /* ===== 跳跃按钮 ===== */
+#player-hp-wrap {
+  position: absolute;
+  top: 60px; left: 14px;
+  width: 190px; height: 16px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid #3a3a3a;
+  border-radius: 9px;
+  overflow: hidden;
+  z-index: 20;
+}
+#player-hp-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #FF6B76, #E14B4B);
+  transition: width 0.2s ease-out;
+}
+#attack-btn {
+  position: absolute;
+  right: 30px; bottom: 30px;
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,107,118,0.45);
+  background: rgba(225,75,75,0.12);
+  color: #FFFFFF;
+  font-size: 28px; font-weight: 700;
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 50;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
 #jump-btn {
   position: absolute;
-  right: 36px; bottom: 36px;
+  right: 160px; bottom: 36px;
   width: 100px; height: 100px;
   border-radius: 50%;
   border: 2px solid rgba(0,246,255,0.3);
@@ -1284,6 +1316,16 @@ html, body {
   overflow-y: auto;
 }
 /* 桌面端提示 */
+#switch-world-btn {
+  position: absolute;
+  right: 30px; bottom: 156px;
+  width: 72px; height: 56px;
+  background: rgba(139,0,255,0.85); border: 2px solid #8B00FF; border-radius: 12px;
+  color: #fff; font-size: 12px; font-weight: bold; display: none; align-items: center;
+  justify-content: center; cursor: pointer; user-select: none; z-index: 50;
+  box-shadow: 0 0 12px rgba(139,0,255,0.4); backdrop-filter: blur(4px);
+}
+#switch-world-btn:active { transform: scale(0.92); }
 #desktop-hint {
   display: none;
   position: absolute;
@@ -1302,7 +1344,9 @@ html, body {
   .btn { padding: 10px 28px; font-size: 14px; }
   #joystick-zone { width: 120px; height: 120px; left: 20px; bottom: 20px; }
   #joystick-thumb { width: 44px; height: 44px; top: 38px; left: 38px; }
-  #jump-btn { width: 85px; height: 85px; right: 24px; bottom: 24px; font-size: 22px; }
+  #attack-btn { width: 96px; height: 96px; right: 20px; bottom: 20px; font-size: 26px; }
+  #jump-btn { width: 82px; height: 82px; right: 132px; bottom: 24px; font-size: 22px; }
+  #switch-world-btn { right: 20px; bottom: 126px; width: 72px; height: 56px; font-size: 12px; border-radius: 12px; }
   .level-card { padding: 12px; }
   .level-info h4 { font-size: 14px; }
   #lobby-screen { padding: 60px 12px 12px 12px; }
@@ -1318,7 +1362,9 @@ html, body {
   #level-cards { padding-left: calc(50% - 26px) !important; padding-right: calc(50% - 26px) !important; }
   #joystick-zone { width: 100px; height: 100px; left: 16px; bottom: 16px; }
   #joystick-thumb { width: 38px; height: 38px; top: 31px; left: 31px; }
-  #jump-btn { width: 75px; height: 75px; right: 16px; bottom: 16px; font-size: 20px; }
+  #attack-btn { width: 86px; height: 86px; right: 14px; bottom: 14px; font-size: 24px; }
+  #jump-btn { width: 72px; height: 72px; right: 112px; bottom: 16px; font-size: 20px; }
+  #switch-world-btn { right: 14px; bottom: 110px; width: 72px; height: 56px; font-size: 12px; border-radius: 12px; }
   .level-actions .btn { padding: 5px 12px; font-size: 12px; }
   .search-box { flex-wrap: wrap; }
   .search-box input { flex: 1 1 100%; min-width: 0; }
@@ -1326,7 +1372,8 @@ html, body {
 }
 @media (min-width: 1025px) {
   #start-screen .title { font-size: 72px; }
-  #desktop-hint { display: block; }
+  #switch-world-btn { right: 30px; bottom: 156px; width: 72px; height: 56px; font-size: 12px; border-radius: 12px; }
+#desktop-hint { display: block; }
 }
 @media (max-height: 500px) and (orientation: landscape) {
   #start-screen .title { font-size: 28px; letter-spacing: 6px; margin-bottom: 12px; }
@@ -1334,7 +1381,9 @@ html, body {
   .btn { padding: 6px 16px; font-size: 12px; }
   #joystick-zone { width: 80px; height: 80px; left: 14px; bottom: 14px; }
   #joystick-thumb { width: 32px; height: 32px; top: 24px; left: 24px; }
-  #jump-btn { width: 60px; height: 60px; right: 14px; bottom: 14px; font-size: 16px; }
+  #attack-btn { width: 72px; height: 72px; right: 12px; bottom: 12px; font-size: 20px; }
+  #jump-btn { width: 60px; height: 60px; right: 96px; bottom: 14px; font-size: 16px; }
+  #switch-world-btn { right: 12px; bottom: 96px; width: 72px; height: 56px; font-size: 12px; border-radius: 12px; }
   .lvl-card { width: 48px; height: 48px; font-size: 14px; }
   #level-cards { padding-left: calc(50% - 24px) !important; padding-right: calc(50% - 24px) !important; }
 }
@@ -1376,7 +1425,7 @@ html, body {
 }
 /* ===== 选中后出现的工具按钮 ===== */
 .tool-btn.select-action {
-  opacity: 0;
+  opacity: 0.25;
   pointer-events: none;
   background: #2a2a2a;
   border-color: #707070;
@@ -1852,11 +1901,20 @@ input, textarea {
         <div class="tool-btn" data-tool="checkpoint">存档</div>
         <div class="tool-btn" data-tool="portal">传送门</div>
         <div class="tool-btn" data-tool="spawn">出生点</div>
+        <div class="tool-btn" data-tool="espawner">敌刷怪笼</div>
+        <div class="tool-btn" data-tool="eselite">精英刷怪笼</div>
         <div class="tool-btn" data-tool="eraser">橡皮擦</div>
+        <div class="tool-btn" data-tool="trigger">触</div>
+        <div class="tool-btn" data-tool="dual">双</div>
         <div class="tool-btn" data-tool="multiselect">多选</div>
         <div class="tool-btn" data-tool="pan" id="btn-tool-pan">移动</div>
       </div>
       <div class="tool-group-action">
+        <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#8D9390;cursor:pointer;white-space:nowrap;padding:0 4px;">
+          <input type="checkbox" id="opt-dual-world" style="accent-color:#00F6FF;">
+          <span>双宇宙</span>
+        </label>
         <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
         <div class="tool-btn" id="btn-editor-test">测试</div>
         <div class="tool-btn select-action" id="btn-create-moving-platform">移动平台</div>
@@ -1875,7 +1933,8 @@ input, textarea {
       </div>
       <div class="editor-coords" id="editor-coords">X:0 Y:0 | 100%</div>
     </div>
-    <div class="editor-canvas-wrap">
+    <div class="editor-canvas-wrap" style="position:relative;">
+      <div id="btn-switch-world" style="display:none;position:absolute;top:8px;left:8px;z-index:10;padding:6px 12px;background:rgba(139,0,255,0.9);border:1px solid #8B00FF;border-radius:6px;color:#fff;font-size:12px;font-weight:bold;cursor:pointer;user-select:none;box-shadow:0 0 8px rgba(139,0,255,0.4);">切换世界 (A)</div>
       <canvas id="editor-canvas" width="800" height="600"></canvas>
     </div>
     <div class="editor-bottom" id="editor-bottom">
@@ -1916,11 +1975,14 @@ input, textarea {
     <div id="joystick-thumb"></div>
   </div>
   <!-- ========== 跳跃按钮 ========== -->
+  <div id="attack-btn">斩</div>
   <div id="jump-btn">跃</div>
+  <div id="switch-world-btn" style="display:none;">切换世界</div>
   <!-- ========== 桌面提示 ========== -->
   <div id="desktop-hint">WASD / 方向键移动 &middot; 空格 / 上键跳跃</div>
   <!-- ========== 游戏UI ========== -->
   <div id="game-ui">
+    <div id="player-hp-wrap"><div id="player-hp-fill"></div></div>
     <div class="top-bar">
       <div class="ui-btn" id="btn-restart">重新开始</div>
       <div class="ui-btn" id="btn-exit">退出</div>
@@ -2003,6 +2065,18 @@ input, textarea {
     </div>
     <div class="lb-modal-footer">
       <button class="btn btn-small" id="lb-btn-replay" style="border-color:#00F6FF;color:#00F6FF;">精彩回放</button>
+    </div>
+  </div>
+  <!-- ========== 广播命名弹窗 ========== -->
+  <div id="broadcast-dialog" style="display:none;position:absolute;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);">
+    <div style="background:#1a1a1a;border:1px solid #707070;border-radius:12px;padding:28px 32px;min-width:280px;max-width:90%;">
+      <div id="broadcast-dialog-title" style="font-size:18px;font-weight:700;color:#FFFFFF;margin-bottom:16px;text-align:center;">命名广播</div>
+      <input type="text" id="broadcast-name-input" list="broadcast-name-list" placeholder="输入广播名称" style="width:100%;padding:10px 12px;background:#121212;border:1px solid #707070;border-radius:6px;color:#FFFFFF;font-size:14px;margin-bottom:16px;outline:none;">
+      <datalist id="broadcast-name-list"></datalist>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button class="btn btn-small" id="btn-broadcast-confirm">确定</button>
+        <button class="btn btn-small btn-danger" id="btn-broadcast-cancel">取消</button>
+      </div>
     </div>
   </div>
   <!-- ========== 精彩回放界面（全屏播放：不可暂停、不可快进，左上角退出） ========== -->
@@ -2665,11 +2739,45 @@ const TILE_SPIKE_AUTO = 5;
 const TILE_CRATE = 6;
 const TILE_BOUNCER = 7;
 const TILE_CHECKPOINT = 8;
+const TILE_ENEMY_SPAWNER = 9;
+const TILE_ELITE_SPAWNER = 10;
+const TILE_TRAMPOLINE = 11;
+const TILE_SPRING_L = 12;
+const TILE_SPRING_R = 13;
+const TILE_SWITCH_R = 14;
+const TILE_SWITCH_B = 15;
+const TILE_SWITCH_G = 16;
+const TILE_SWITCH_Y = 17;
+const TILE_DOOR_R = 18;
+const TILE_DOOR_B = 19;
+const TILE_DOOR_G = 20;
+const TILE_DOOR_Y = 21;
+const TILE_TIMED_PLATFORM = 22;
+const TILE_ONE_WAY = 23;
+const TILE_ICE = 24;
+const TILE_TRIGGER = 25;
+const TILE_DUAL = 26;
 const COLORS = {
   bg: '#121212', grid: '#1a1a1a', land: '#E1E3E6',
   spike: '#FFD1D4', portal: '#F4F9A7', player: '#FFFFFF',
   playerGlow: '#00F6FF', spawn: '#B3F4A8',
-  spikeAuto: '#FF8A95', crate: '#C4A77D', bouncer: '#A0DAF7', checkpoint: '#B3F4A8'
+  spikeAuto: '#FF8A95', crate: '#C4A77D', bouncer: '#A0DAF7', checkpoint: '#B3F4A8',
+  trampoline: '#00E676', trampolineDark: '#00C853', trampolineTop: '#69F0AE',
+  springL: '#FF6B35', springLDark: '#CC5529',
+  springR: '#4ECDC4', springRDark: '#3A9A92',
+  switchR: '#FF4444', switchRDark: '#CC2222',
+  switchB: '#4488FF', switchBDark: '#2266CC',
+  switchG: '#44DD44', switchGDark: '#22AA22',
+  switchY: '#FFDD44', switchYDark: '#CCBB22',
+  doorR: '#FF6666', doorRDark: '#AA4444',
+  doorB: '#6699FF', doorBDark: '#4466AA',
+  doorG: '#66DD66', doorGDark: '#44AA44',
+  doorY: '#FFDD66', doorYDark: '#AABB44',
+  timedPlatform: '#FF9966', timedPlatformDark: '#CC7744',
+  oneWay: '#99DDFF', oneWayDark: '#6699CC',
+  ice: '#B0E0FF', iceDark: '#80B0DD', iceHighlight: '#D0F0FF',
+  trigger: '#FF6B35', triggerDark: '#CC5529',
+  dual: '#9B59B6', dualDark: '#7B3F96',
 };
 const BUILTIN_LEVELS = [
   {
@@ -2709,11 +2817,48 @@ const BUILTIN_LEVELS = [
 let gameState = 'start';
 let currentLevelIdx = 0;
 let currentLevel = null;
+let currentWorld = 'A';
+let worldAData = null;
+let worldBData = null;
+// ==================== 世界切换方块扩散动画 ====================
+// 以主角所在网格为中心，向外一圈一圈扩散
+// 每个方块先变亮闪烁，然后切换到新世界画面
+let worldSwitchAnim = {
+  active: false,
+  progress: 0,
+  duration: 50,        // 动画总帧数 (~0.83s @ 60fps)
+  fromCanvas: null,     // 旧世界快照（切换瞬间的屏幕画面）
+  fromCtx: null,
+  fromCameraX: 0,      // 快照时的 camera 位置
+  fromCameraY: 0,
+  centerGridX: 0,      // 扩散中心格子坐标（世界坐标）
+  centerGridY: 0
+};
+function initSwitchAnimCanvases() {
+  if (!worldSwitchAnim.fromCanvas) {
+    worldSwitchAnim.fromCanvas = document.createElement('canvas');
+    worldSwitchAnim.fromCtx = worldSwitchAnim.fromCanvas.getContext('2d');
+  }
+  worldSwitchAnim.fromCanvas.width = canvasW;
+  worldSwitchAnim.fromCanvas.height = canvasH;
+}
+function updateWorldSwitchAnim() {
+  if (!worldSwitchAnim.active) return;
+  worldSwitchAnim.progress++;
+  if (worldSwitchAnim.progress >= worldSwitchAnim.duration) {
+    // 动画结束，清理
+    worldSwitchAnim.active = false;
+    worldSwitchAnim.progress = 0;
+    worldSwitchAnim.fromCanvas = null;
+    worldSwitchAnim.fromCtx = null;
+  }
+}
 let isCustomLevel = false;
 let isEditorTest = false;
 let isFromLobby = false;
 let editorTestWon = false;  // 标记编辑器测试是否通关
 let shareAfterTest = false;  // 标记是否分享测试流程
+var checkpoints = [];
 // ==================== 多选与移动平台系统 ====================
 let isMultiSelectMode = false;      // 是否处于多选模式
 let isSelecting = false;            // 是否正在框选（长按滑动中）
@@ -2831,7 +2976,7 @@ class TrajectoryPlatform {
   }
 }
 const canvas = document.getElementById('game-canvas');
-const ctx = canvas.getContext('2d');
+let ctx = canvas.getContext('2d');
 let canvasW, canvasH;
 function resizeCanvas() {
   canvasW = window.innerWidth;
@@ -2841,6 +2986,10 @@ function resizeCanvas() {
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
+let doorStates = { r: false, b: false, g: false, y: false };
+let timedPlatformStates = {};
+let switchCooldown = { r: 0, b: 0, g: 0, y: 0 };
+let isYuedongLevel = false;
 let player = {
   x: 0, y: 0, vx: 0, vy: 0,
   w: 24, h: 24, onGround: false,
@@ -2852,6 +3001,16 @@ const PLAYER_SPEED = 2.8;
 const JUMP_FORCE = -9.5;
 const GRAVITY = 0.35;
 const FRICTION = 0.88;
+const MAX_FALL_SPEED = 15;
+// 当前帧物理参数（全局，供碰撞处理器等顶层代码读取）
+var curPlayerSpeed = PLAYER_SPEED, curJumpForce = JUMP_FORCE,
+    curGravity = GRAVITY, curFriction = FRICTION, curMaxFall = MAX_FALL_SPEED;
+const TRAMPOLINE_FORCE = -14;
+const SPRING_FORCE = 10;
+const TIMED_PLATFORM_DURATION = 50;
+const ICE_ACCEL = 0.08;
+const ICE_MAX_SPEED = 4.5;
+const ICE_DECEL = 0.99;
 let camera = { x: 0, y: 0 };
 let keys = {};
 let joystick = { active: false, dx: 0, dy: 0 };
@@ -2889,8 +3048,10 @@ function parseLevel(levelData) {
     crateCells: (levelData.crates || []).map(c => ({ x: c.x + offset, y: c.y + offset })),
     bouncers: levelData.bouncers || [],
     checkpoints: levelData.checkpoints || [],
+    enemySpawners: levelData.enemySpawners || [],
     showIndicator: levelData.showIndicator !== false,
-    showMinimap: levelData.showMinimap !== false
+    showMinimap: levelData.showMinimap !== false,
+    dualEnabled: levelData.dualEnabled || false
   };
   for (let y = 0; y < level.h; y++) {
     level.grid[y] = [];
@@ -2940,6 +3101,12 @@ function parseLevel(levelData) {
     let py = levelData.portal.y + offset, px = levelData.portal.x + offset;
     if (py >= 0 && py < level.h && px >= 0 && px < level.w) {
       level.grid[py][px] = TILE_PORTAL;
+    }
+  }
+  for (let es of level.enemySpawners) {
+    let gy = es.y + offset, gx = es.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+      level.grid[gy][gx] = es.elite ? TILE_ELITE_SPAWNER : TILE_ENEMY_SPAWNER;
     }
   }
   level.grid[offset][offset] = TILE_SPAWN;
@@ -3014,6 +3181,40 @@ function parseLevel(levelData) {
       }
     }
   }
+  for (let t of (levelData.trampolines || [])) {
+    let gy = t.y + offset, gx = t.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) level.grid[gy][gx] = TILE_TRAMPOLINE;
+  }
+  for (let s of (levelData.springs || [])) {
+    let gy = s.y + offset, gx = s.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) level.grid[gy][gx] = s.dir === 'l' ? TILE_SPRING_L : TILE_SPRING_R;
+  }
+  for (let w of (levelData.switches || [])) {
+    let gy = w.y + offset, gx = w.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+      let t = w.color === 'r' ? TILE_SWITCH_R : w.color === 'b' ? TILE_SWITCH_B : w.color === 'g' ? TILE_SWITCH_G : TILE_SWITCH_Y;
+      level.grid[gy][gx] = t;
+    }
+  }
+  for (let d of (levelData.doors || [])) {
+    let gy = d.y + offset, gx = d.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+      let t = d.color === 'r' ? TILE_DOOR_R : d.color === 'b' ? TILE_DOOR_B : d.color === 'g' ? TILE_DOOR_G : TILE_DOOR_Y;
+      level.grid[gy][gx] = t;
+    }
+  }
+  for (let p of (levelData.timedPlatforms || [])) {
+    let gy = p.y + offset, gx = p.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) level.grid[gy][gx] = TILE_TIMED_PLATFORM;
+  }
+  for (let o of (levelData.oneWayPlatforms || [])) {
+    let gy = o.y + offset, gx = o.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) level.grid[gy][gx] = TILE_ONE_WAY;
+  }
+  for (let i of (levelData.iceTiles || [])) {
+    let gy = i.y + offset, gx = i.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) level.grid[gy][gx] = TILE_ICE;
+  }
   return level;
 }
 function getLowestTileY(level) {
@@ -3040,8 +3241,32 @@ function loadLevel(idx) {
 }
 function loadCustomLevel(levelData) {
   isCustomLevel = true;
-  currentLevel = parseLevel(levelData);
-  resetPlayer(true); // 加载自定义关卡，清空存档点
+  isYuedongLevel = !!(levelData && levelData.isYuedong);
+  if (levelData.dualEnabled && levelData.worldA && levelData.worldB) {
+    let baseData = {
+      name: levelData.name, w: levelData.w, h: levelData.h,
+      spawn: levelData.spawn,
+      showIndicator: levelData.showIndicator,
+      showMinimap: levelData.showMinimap,
+      dualEnabled: true
+    };
+    worldAData = {
+      level: parseLevel({...baseData, ...levelData.worldA}),
+      enemies: [], bullets: [], checkpoints: [],
+      playerX: 0, playerY: 0
+    };
+    worldBData = {
+      level: parseLevel({...baseData, ...levelData.worldB}),
+      enemies: [], bullets: [], checkpoints: [],
+      playerX: 0, playerY: 0
+    };
+    currentLevel = worldAData.level;
+  } else {
+    worldAData = null;
+    worldBData = null;
+    currentLevel = parseLevel(levelData);
+  }
+  resetPlayer(true);
   document.getElementById('level-name-display').textContent = levelData.name ? levelData.name : t('自定义关卡');
 }
 function resetPlayer(clearCheckpoint = false) {
@@ -3067,7 +3292,35 @@ function resetPlayer(clearCheckpoint = false) {
   player.inPortal = false;
   player.jumpCount = 0;
   player.sx = 1; player.sy = 1;
-  particles = [];
+  player.knockT = 0; playerInvul = 30;
+  playerHp = PLAYER_MAX_HP;
+  // 重置悦动版状态
+  doorStates = { r: false, b: false, g: false, y: false };
+  timedPlatformStates = {};
+  switchCooldown = { r: 0, b: 0, g: 0, y: 0 };
+  // 清理敌人、子弹、刀光、粒子，重置连击
+  enemies = []; bullets = []; slashes = []; particles = [];
+  attackCombo = 0; comboWindow = 0; attackDash = 0;
+  // 双宇宙：在当前世界的存档点或出生点重生
+  if (currentLevel && currentLevel.dualEnabled) {
+    let currentData = currentWorld === 'A' ? worldAData : worldBData;
+    if (currentData) {
+      let currentCheckpoints = currentData.checkpoints || [];
+      let lastCp = null;
+      for (let cp of currentCheckpoints) { if (cp.active) lastCp = cp; }
+      if (lastCp) {
+        player.x = lastCp.x * GRID_SIZE;
+        player.y = lastCp.y * GRID_SIZE;
+      } else if (currentLevel.spawn) {
+        player.x = currentLevel.spawn.x * GRID_SIZE;
+        player.y = currentLevel.spawn.y * GRID_SIZE;
+      }
+    } else if (currentLevel.spawn) {
+      player.x = currentLevel.spawn.x * GRID_SIZE;
+      player.y = currentLevel.spawn.y * GRID_SIZE;
+    }
+  }
+  updateHpBar();
   camera.x = player.x - canvasW / 2 + player.w / 2;
   camera.y = player.y - canvasH / 2 + player.h / 2;
   // 重置存档点激活状态
@@ -3078,6 +3331,13 @@ function resetPlayer(clearCheckpoint = false) {
 // ==================== 物理更新 ====================
 function updatePhysics() {
   if (player.dead || player.won) return;
+  // 悦动版/涟漪版物理参数（刷新全局变量，供碰撞处理器读取）
+  let useYuedongPhysics = isYuedongLevel;
+  curGravity = useYuedongPhysics ? 0.60 : GRAVITY;
+  curFriction = useYuedongPhysics ? 0.85 : FRICTION;
+  curPlayerSpeed = useYuedongPhysics ? 3.6 : PLAYER_SPEED;
+  curJumpForce = useYuedongPhysics ? -15.5 : JUMP_FORCE;
+  curMaxFall = useYuedongPhysics ? 18 : MAX_FALL_SPEED;
   // 落地反馈采样：帧首记录上一帧状态（判定落地帧与冲击强度）
   let prevOnGround = player.onGround;
   let prevVy = player.vy;
@@ -3086,18 +3346,20 @@ function updatePhysics() {
   player.sy = (player.sy || 1) + (1 - (player.sy || 1)) * 0.18;
   let moveX = 0;
   if (keys['ArrowLeft'] || keys['a'] || keys['A'] || joystick.dx < -0.3) {
-    moveX = -PLAYER_SPEED; player.facing = -1;
+    moveX = -curPlayerSpeed; player.facing = -1;
   }
   if (keys['ArrowRight'] || keys['d'] || keys['D'] || joystick.dx > 0.3) {
-    moveX = PLAYER_SPEED; player.facing = 1;
+    moveX = curPlayerSpeed; player.facing = 1;
   }
   if (isDesktop && mouseControl.active) {
-    moveX = mouseControl.moveDir * PLAYER_SPEED;
+    moveX = mouseControl.moveDir * curPlayerSpeed;
     player.facing = mouseControl.moveDir;
   }
   player.vx = moveX;
+  if (player.knockT > 0) { player.knockT--; player.vx = player.knockX; }
+  if (playerHitstop > 0) { playerHitstop--; return; }
   if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' '] || jumpPressed) && player.jumpCount < player.maxJumps) {
-    player.vy = JUMP_FORCE;
+    player.vy = curJumpForce;
     player.jumpCount++;
     player.onGround = false;
     jumpPressed = false;
@@ -3106,8 +3368,57 @@ function updatePhysics() {
     // 起跳拉伸反馈（纯视觉）：以脚底为锚向上弹伸
     player.sx = 0.72; player.sy = 1.3;
   }
-  player.vy += GRAVITY;
-  player.vx *= FRICTION;
+
+  player.vy += curGravity;
+  player.vx *= curFriction;
+
+  // 冰面检测与低摩擦滑行
+  let onIce = false;
+  let bx = Math.floor((player.x + player.w / 2) / GRID_SIZE);
+  let by = Math.floor((player.y + player.h) / GRID_SIZE);
+  if (by >= 0 && by < currentLevel.h && bx >= 0 && bx < currentLevel.w) {
+    if (currentLevel.grid[by][bx] === TILE_ICE) onIce = true;
+  }
+  if (onIce && player.onGround) {
+    player.vx *= ICE_DECEL;
+  }
+
+  // 开关冷却
+  for (let color in switchCooldown) { if (switchCooldown[color] > 0) switchCooldown[color]--; }
+
+  // 检测玩家踩开关
+  let cx2 = Math.floor((player.x + player.w / 2) / GRID_SIZE);
+  let cy2 = Math.floor((player.y + player.h / 2) / GRID_SIZE);
+  if (cx2 >= 0 && cx2 < currentLevel.w && cy2 >= 0 && cy2 < currentLevel.h) {
+    let tile = currentLevel.grid[cy2][cx2];
+    if (tile >= TILE_SWITCH_R && tile <= TILE_SWITCH_Y) triggerSwitchAt(switchColor(tile));
+  }
+
+  // 限时板倒计时
+  updateTimedPlatforms();
+
+  // 悦动版爬墙跳
+  if (useYuedongPhysics) {
+    let leftTile = Math.floor(player.x / GRID_SIZE);
+    let rightTile = Math.floor((player.x + player.w) / GRID_SIZE);
+    let py = Math.floor((player.y + player.h / 2) / GRID_SIZE);
+    let wallLeft = false, wallRight = false;
+    if (py >= 0 && py < currentLevel.h) {
+      if (leftTile >= 0 && leftTile < currentLevel.w && currentLevel.grid[py][leftTile] === TILE_LAND) wallLeft = true;
+      if (rightTile >= 0 && rightTile < currentLevel.w && currentLevel.grid[py][rightTile] === TILE_LAND) wallRight = true;
+    }
+    player.wallDir = wallLeft ? -1 : (wallRight ? 1 : 0);
+    if (player.wallDir !== 0 && !player.onGround && keys['jump']) {
+      if (player.jumpCount < 2) {
+        player.vx = -player.wallDir * 9;
+        player.vy = -14;
+        player.jumpCount = 2;
+        player.onGround = false;
+        spawnParticles(player.x + player.w/2, player.y + player.h/2, COLORS.playerGlow, 8);
+      }
+    }
+  }
+
   // 更新木箱物理
   updateCrates();
   if (currentLevel.trajectoryPlatforms) {
@@ -3132,6 +3443,30 @@ function updatePhysics() {
   }
   // 检查存档点
   checkCheckpoint();
+  // 敌人与战斗系统
+  if (!player.dead && !player.won) {
+    if (playerAttackCd > 0) playerAttackCd--;
+    if (playerInvul > 0) playerInvul--;
+    if (cameraShake > 0) cameraShake = Math.max(0, cameraShake - 0.6);
+    // 连击窗口倒计时
+    if (comboWindow > 0) {
+      comboWindow--;
+      if (comboWindow <= 0) { attackCombo = 0; }
+    }
+    updateSpawners();
+    updateEnemies();
+    updateBullets();
+    updateSlashes();
+    // 战斗专注：1秒未攻击后缓慢下降；满阈值时回血
+    if (frame - lastAttackFrame > 60) {
+      battleFocus = Math.max(0, battleFocus - 0.5);
+    }
+    if (battleFocus >= 60 && playerHp < PLAYER_MAX_HP && frame % 20 === 0) {
+      playerHp = Math.min(PLAYER_MAX_HP, playerHp + 1);
+      updateHpBar();
+      spawnParticles(player.x + player.w/2, player.y + player.h/2, '#B3F4A8', 3);
+    }
+  }
   // 传送门检测：由 CollisionHandlers[TILE_PORTAL].onCollide 设置 inPortal 标志
   if (player.inPortal) {
     player.won = true;
@@ -3181,10 +3516,10 @@ function updatePhysics() {
   let targetCamY = player.y - canvasH / 2 + player.h / 2;
   // 摄像机延迟跟随：水平移速越快，跟随越慢（滞后越远）
   let pSpeed = Math.abs(player.vx);
-  let maxSpeed = PLAYER_SPEED * 1.3;
+  let maxSpeed = curPlayerSpeed * 1.3;
   let r = Math.min(pSpeed, maxSpeed) / maxSpeed; // 0(静止) .. 1(全速)
   let gapX = Math.abs(targetCamX - camera.x); // 相机离玩家的水平距离
-  let maxLag = PLAYER_SPEED / 0.04; // 全速时的最大滞后距离(≈70px)
+  let maxLag = curPlayerSpeed / 0.04; // 全速时的最大滞后距离(≈70px)
   let gapFactor = Math.min(gapX / maxLag, 1); // 0(贴身) .. 1(最大滞后)
   // 回弹 ease-out：离得远追得快(系数大)，越近追得越慢(系数小)；移动时(r=1)系数压到最小形成滞后
   let followX = 0.04 + (1 - r) * (0.06 + gapFactor * 0.26);
@@ -3219,6 +3554,11 @@ function getCollisionsAtRect(x, y, w, h, excludeCrate) {
       if (gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) continue;
       let tile = currentLevel.grid[gy][gx];
       if (tile !== 0) {
+        // 双重方块：虚心状态不返回碰撞
+        if (tile === TILE_DUAL) {
+          let group = findDualGroupAt(gx, gy);
+          if (group && group.state !== 'solid') continue;
+        }
         let tileX = gx * GRID_SIZE, tileY = gy * GRID_SIZE;
         if (rectsOverlap(x, y, w, h, tileX, tileY, GRID_SIZE, GRID_SIZE)) {
           collisions.push({ type: 'tile', tile, gx, gy, x: tileX, y: tileY, priority: CollisionPriority[tile] || 99 });
@@ -3306,17 +3646,17 @@ const CollisionHandlers = {
       let crate = crates.find(c => Math.floor(c.x/GRID_SIZE) === Math.floor(tileX/GRID_SIZE) && Math.floor(c.y/GRID_SIZE) === Math.floor(tileY/GRID_SIZE));
       if (dy > 0) { p.y = tileY - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0; }
       else if (dy < 0) { p.y = tileY + GRID_SIZE; p.vy = 0; }
-      else if (dx > 0) { p.x = tileX - p.w; if (crate && !crate.broken) crate.vx = PLAYER_SPEED * 1.2; p.vx = 0; }
-      else if (dx < 0) { p.x = tileX + GRID_SIZE; if (crate && !crate.broken) crate.vx = -PLAYER_SPEED * 1.5; p.vx = 0; }
+      else if (dx > 0) { p.x = tileX - p.w; if (crate && !crate.broken) crate.vx = curPlayerSpeed * 1.2; p.vx = 0; }
+      else if (dx < 0) { p.x = tileX + GRID_SIZE; if (crate && !crate.broken) crate.vx = -curPlayerSpeed * 1.5; p.vx = 0; }
     }
   },
   [TILE_BOUNCER]: {
     onCollide(p, tileX, tileY, dx, dy) {
       let dir = getBouncerDir(Math.floor(tileX/GRID_SIZE), Math.floor(tileY/GRID_SIZE));
-      let bounceForce = JUMP_FORCE * 1.5;
+      let bounceForce = curJumpForce * 1.5;
       // 侧面弹开力度：以水平弹开为主，仅带轻微上弧（避免"侧面碰却往上弹"）
-      let sideForce = PLAYER_SPEED * 3.2;
-      let sideLift = JUMP_FORCE * 0.35;
+      let sideForce = curPlayerSpeed * 3.2;
+      let sideLift = curJumpForce * 0.35;
       // ---- 方块模式（dir === 'none'）：从哪边碰就往哪边弹 ----
       if (dir === 'none') {
         if (dy > 0) {
@@ -3364,7 +3704,8 @@ const CollisionHandlers = {
         else if (dy > 0) { p.y = tileY - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0; }
         else if (dy < 0) { p.y = tileY + GRID_SIZE; p.vy = 0; }
       } else if (dir === 'right') {
-        if (dx < 0) {on         // 从右侧碰箭头面 → 往上弹（用户要求：右边碰朝右的弹板应往上弹，不往右弹）
+        if (dx < 0) {
+          // 从右侧碰箭头面 → 往上弹（用户要求：右边碰朝右的弹板应往上弹，不往右弹）
           p.x = tileX + GRID_SIZE; p.vx = 0; p.vy = bounceForce; p.onGround = false; p.jumpCount = 0;
           spawnParticles(p.x, p.y + p.h/2, COLORS.bouncer, 8);
         } else if (dx > 0) { p.x = tileX - p.w; p.vx = 0; }
@@ -3374,12 +3715,133 @@ const CollisionHandlers = {
     }
   },
   [TILE_CHECKPOINT]: { onCollide() {} },
+  [TILE_TRAMPOLINE]: {
+    onCollide(p, tileX, tileY, dx, dy) {
+      if (dy > 0) { p.y = tileY - p.h; p.vy = TRAMPOLINE_FORCE; p.onGround = false; p.jumpCount = 1; p.sx = 0.6; p.sy = 1.5; spawnParticles(p.x + p.w/2, tileY, COLORS.trampoline, 12); }
+      else if (dy < 0) { p.y = tileY + GRID_SIZE; p.vy = 0; }
+      else if (dx > 0) { p.x = tileX - p.w; p.vx = 0; }
+      else if (dx < 0) { p.x = tileX + GRID_SIZE; p.vx = 0; }
+    }
+  },
+  [TILE_SPRING_L]: {
+    onCollide(p, tileX, tileY, dx, dy) {
+      p.vx = -SPRING_FORCE; p.vy = -4; p.onGround = false; p.jumpCount = 1; p.sx = 1.5; p.sy = 0.6;
+      spawnParticles(p.x + p.w/2, p.y + p.h/2, COLORS.springL, 12);
+      if (dx > 0) p.x = tileX - p.w; else if (dx < 0) p.x = tileX + GRID_SIZE;
+      else if (dy > 0) p.y = tileY - p.h; else if (dy < 0) p.y = tileY + GRID_SIZE;
+    }
+  },
+  [TILE_SPRING_R]: {
+    onCollide(p, tileX, tileY, dx, dy) {
+      p.vx = SPRING_FORCE; p.vy = -4; p.onGround = false; p.jumpCount = 1; p.sx = 1.5; p.sy = 0.6;
+      spawnParticles(p.x + p.w/2, p.y + p.h/2, COLORS.springR, 12);
+      if (dx > 0) p.x = tileX - p.w; else if (dx < 0) p.x = tileX + GRID_SIZE;
+      else if (dy > 0) p.y = tileY - p.h; else if (dy < 0) p.y = tileY + GRID_SIZE;
+    }
+  },
+  [TILE_ICE]: {
+    onCollide(p, tileX, tileY, dx, dy) {
+      if (dy > 0) { p.y = tileY - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0; }
+      else if (dy < 0) { p.y = tileY + GRID_SIZE; p.vy = 0; }
+      else if (dx > 0) { p.x = tileX - p.w; p.vx = 0; }
+      else if (dx < 0) { p.x = tileX + GRID_SIZE; p.vx = 0; }
+    }
+  },
+  [TILE_DOOR_R]: { onCollide(p, tileX, tileY, dx, dy) { if (!isDoorOpen(TILE_DOOR_R)) CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } },
+  [TILE_DOOR_B]: { onCollide(p, tileX, tileY, dx, dy) { if (!isDoorOpen(TILE_DOOR_B)) CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } },
+  [TILE_DOOR_G]: { onCollide(p, tileX, tileY, dx, dy) { if (!isDoorOpen(TILE_DOOR_G)) CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } },
+  [TILE_DOOR_Y]: { onCollide(p, tileX, tileY, dx, dy) { if (!isDoorOpen(TILE_DOOR_Y)) CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } },
+  [TILE_TIMED_PLATFORM]: {
+    onCollide(p, tileX, tileY, dx, dy) {
+      let gx = Math.floor(tileX / GRID_SIZE), gy = Math.floor(tileY / GRID_SIZE);
+      if (isTimedPlatformGone(gx, gy)) return;
+      if (dy > 0) { p.y = tileY - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0; let k = gx + ',' + gy; if (!timedPlatformStates[k]) timedPlatformStates[k] = { timer: TIMED_PLATFORM_DURATION, gone: false }; }
+      else if (dy < 0) { p.y = tileY + GRID_SIZE; p.vy = 0; }
+      else if (dx > 0) { p.x = tileX - p.w; p.vx = 0; }
+      else if (dx < 0) { p.x = tileX + GRID_SIZE; p.vx = 0; }
+    }
+  },
+  [TILE_ONE_WAY]: {
+    onCollide(p, tileX, tileY, dx, dy) {
+      if (dy > 0) {
+        let prevBottom = (p.y - dy) + p.h;
+        if (prevBottom <= tileY + 2) { p.y = tileY - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0; }
+      }
+    }
+  },
+  [TILE_SWITCH_R]: { onCollide() {} },
+  [TILE_SWITCH_B]: { onCollide() {} },
+  [TILE_SWITCH_G]: { onCollide() {} },
+  [TILE_SWITCH_Y]: { onCollide() {} },
   [TILE_PORTAL]: {
     onCollide(p, tileX, tileY, dx, dy) {
       p.inPortal = true;
     }
+  },
+  [TILE_TRIGGER]: {
+    onCollide(p, tileX, tileY, dx, dy) {
+      // 触发方块：玩家进入时发送广播
+      let gx = Math.floor(tileX / GRID_SIZE);
+      let gy = Math.floor(tileY / GRID_SIZE);
+      let group = findTriggerGroupAt(gx, gy);
+      if (group) {
+        sendBroadcast(group.name);
+      }
+    }
+  },
+  [TILE_DUAL]: {
+    onCollide(p, tileX, tileY, dx, dy) {
+      // 双重方块：根据状态决定是否有碰撞
+      let gx = Math.floor(tileX / GRID_SIZE);
+      let gy = Math.floor(tileY / GRID_SIZE);
+      let group = findDualGroupAt(gx, gy);
+      let isSolid = !group || group.state === 'solid';
+      if (isSolid) {
+        // 实心状态：与陆地相同的碰撞处理
+        if (dy > 0) { p.y = tileY - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0; }
+        else if (dy < 0) { p.y = tileY + GRID_SIZE; p.vy = 0; }
+        else if (dx > 0) { p.x = tileX - p.w; p.vx = 0; }
+        else if (dx < 0) { p.x = tileX + GRID_SIZE; p.vx = 0; }
+      }
+      // 虚心状态：不处理碰撞（玩家可以穿过）
+    }
   }
 };
+function switchColor(tile) {
+  if (tile === TILE_SWITCH_R || tile === TILE_DOOR_R) return 'r';
+  if (tile === TILE_SWITCH_B || tile === TILE_DOOR_B) return 'b';
+  if (tile === TILE_SWITCH_G || tile === TILE_DOOR_G) return 'g';
+  if (tile === TILE_SWITCH_Y || tile === TILE_DOOR_Y) return 'y';
+  return null;
+}
+function isDoorOpen(tile) {
+  if (tile < TILE_DOOR_R || tile > TILE_DOOR_Y) return false;
+  return doorStates[switchColor(tile)];
+}
+function triggerSwitchAt(color) {
+  if (switchCooldown[color] > 0) return;
+  switchCooldown[color] = 10;
+  doorStates[color] = !doorStates[color];
+}
+function isTimedPlatformGone(gx, gy) {
+  let k = gx + ',' + gy;
+  let s = timedPlatformStates[k];
+  if (!s) return false;
+  return s.gone;
+}
+function updateTimedPlatforms() {
+  for (let k in timedPlatformStates) {
+    let s = timedPlatformStates[k];
+    if (s.gone) continue;
+    s.timer--;
+    if (s.timer <= 0) s.gone = true;
+  }
+}
+function isYuedongCode(code) {
+  if (!code) return false;
+  let ver = code.split('.')[0];
+  return ['9', '10', '11', '12'].includes(ver);
+}
 function movePlayer(dx, dy) {
   if (!currentLevel) return;
   player.x += dx;
@@ -3428,13 +3890,37 @@ function playerDies() {
 }
 // ==================== 渲染 ====================
 let time = 0;
-function render() {
+// 根据格子坐标查找对应的双重方块组
+function findDualGroupAt(gx, gy) {
+  if (!currentLevel || !currentLevel.dualGroups) return null;
+  for (let g of currentLevel.dualGroups) {
+    for (let c of g.cells) {
+      if (c.x === gx && c.y === gy) return g;
+    }
+  }
+  return null;
+}
+
+// 根据格子坐标查找对应的触发方块组
+function findTriggerGroupAt(gx, gy) {
+  if (!currentLevel || !currentLevel.triggerGroups) return null;
+  for (let g of currentLevel.triggerGroups) {
+    for (let c of g.cells) {
+      if (c.x === gx && c.y === gy) return g;
+    }
+  }
+  return null;
+}
+
+function renderNormal() {
   time += 0.016;
   ctx.fillStyle = COLORS.bg;
   ctx.fillRect(0, 0, canvasW, canvasH);
   if (!currentLevel) return;
   ctx.save();
-  ctx.translate(-Math.floor(camera.x), -Math.floor(camera.y));
+  var shakeX = cameraShake > 0 ? (Math.random() - 0.5) * cameraShake : 0;
+  var shakeY = cameraShake > 0 ? (Math.random() - 0.5) * cameraShake : 0;
+  ctx.translate(-Math.floor(camera.x + shakeX), -Math.floor(camera.y + shakeY));
   let startX = Math.floor(camera.x / GRID_SIZE);
   let endX = Math.ceil((camera.x + canvasW) / GRID_SIZE);
   let startY = Math.floor(camera.y / GRID_SIZE);
@@ -3566,6 +4052,97 @@ function render() {
         ctx.setLineDash([3, 3]);
         ctx.strokeRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
         ctx.setLineDash([]);
+      } else if (tile === TILE_TRIGGER) {
+        // 触发方块：橙色脉冲效果
+        let pulse = Math.sin(time * 4) * 0.2 + 0.8;
+        ctx.fillStyle = `rgba(255,107,53,${pulse * 0.7})`;
+        ctx.fillRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2);
+        ctx.strokeStyle = '#FF6B35';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡', tx + GRID_SIZE / 2, ty + GRID_SIZE / 2);
+      } else if (tile === TILE_DUAL) {
+        // 双重方块：根据状态显示实心或虚心
+        let group = findDualGroupAt(x, y);
+        let isSolid = !group || group.state === 'solid';
+        if (isSolid) {
+          ctx.fillStyle = 'rgba(155,89,182,0.8)';
+          ctx.fillRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2);
+          ctx.strokeStyle = '#9B59B6';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2);
+        } else {
+          // 虚心状态：虚线边框 + 半透明填充
+          ctx.fillStyle = 'rgba(155,89,182,0.15)';
+          ctx.fillRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2);
+          ctx.strokeStyle = '#9B59B6';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.strokeRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2);
+          ctx.setLineDash([]);
+        }
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('↔', tx + GRID_SIZE / 2, ty + GRID_SIZE / 2);
+      } else if (tile === TILE_TRAMPOLINE) {
+        let bounce = Math.sin(time * 5) * 1.5;
+        ctx.fillStyle = COLORS.trampolineDark;
+        ctx.fillRect(tx, ty + GRID_SIZE - 6, GRID_SIZE, 6);
+        ctx.strokeStyle = COLORS.trampoline; ctx.lineWidth = 2; ctx.beginPath();
+        for (let j = 0; j < 3; j++) { let cy = ty + GRID_SIZE - 8 - j * 5 + bounce; ctx.moveTo(tx + 4, cy); ctx.lineTo(tx + GRID_SIZE - 4, cy - 3); }
+        ctx.stroke();
+        ctx.fillStyle = COLORS.trampolineTop; ctx.strokeStyle = COLORS.trampoline; ctx.lineWidth = 1;
+        ctx.fillRect(tx + 2, ty + bounce, GRID_SIZE - 4, 4);
+        ctx.strokeRect(tx + 2, ty + bounce, GRID_SIZE - 4, 4);
+      } else if (tile === TILE_SPRING_L) {
+        let sp = Math.sin(time * 4) * 1.5;
+        ctx.fillStyle = COLORS.springLDark; ctx.fillRect(tx + 1, ty + GRID_SIZE - 5, GRID_SIZE - 2, 4);
+        ctx.strokeStyle = COLORS.springL; ctx.lineWidth = 2; ctx.beginPath();
+        ctx.moveTo(tx + GRID_SIZE - 4, ty + GRID_SIZE / 2); ctx.lineTo(tx + 6 + sp, ty + GRID_SIZE / 2);
+        ctx.moveTo(tx + 10 + sp, ty + GRID_SIZE / 2 - 4); ctx.lineTo(tx + 6 + sp, ty + GRID_SIZE / 2); ctx.lineTo(tx + 10 + sp, ty + GRID_SIZE / 2 + 4);
+        ctx.stroke();
+      } else if (tile === TILE_SPRING_R) {
+        let sp = Math.sin(time * 4) * 1.5;
+        ctx.fillStyle = COLORS.springRDark; ctx.fillRect(tx + 1, ty + GRID_SIZE - 5, GRID_SIZE - 2, 4);
+        ctx.strokeStyle = COLORS.springR; ctx.lineWidth = 2; ctx.beginPath();
+        ctx.moveTo(tx + 4, ty + GRID_SIZE / 2); ctx.lineTo(tx + GRID_SIZE - 6 - sp, ty + GRID_SIZE / 2);
+        ctx.moveTo(tx + GRID_SIZE - 10 - sp, ty + GRID_SIZE / 2 - 4); ctx.lineTo(tx + GRID_SIZE - 6 - sp, ty + GRID_SIZE / 2); ctx.lineTo(tx + GRID_SIZE - 10 - sp, ty + GRID_SIZE / 2 + 4);
+        ctx.stroke();
+      } else if (tile === TILE_ICE) {
+        ctx.fillStyle = COLORS.ice; ctx.fillRect(tx, ty, GRID_SIZE, GRID_SIZE);
+        ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(tx, ty, GRID_SIZE, 3);
+        ctx.strokeStyle = COLORS.iceHighlight; ctx.lineWidth = 1; ctx.beginPath();
+        ctx.moveTo(tx + 4, ty + GRID_SIZE - 4); ctx.lineTo(tx + GRID_SIZE - 4, ty + 4);
+        ctx.moveTo(tx + 8, ty + GRID_SIZE - 4); ctx.lineTo(tx + GRID_SIZE - 4, ty + 8);
+        ctx.stroke();
+      } else if (tile >= TILE_SWITCH_R && tile <= TILE_SWITCH_Y) {
+        let col = tile === TILE_SWITCH_R ? COLORS.switchR : tile === TILE_SWITCH_B ? COLORS.switchB : tile === TILE_SWITCH_G ? COLORS.switchG : COLORS.switchY;
+        let colDark = tile === TILE_SWITCH_R ? COLORS.switchRDark : tile === TILE_SWITCH_B ? COLORS.switchBDark : tile === TILE_SWITCH_G ? COLORS.switchGDark : COLORS.switchYDark;
+        let pulse = Math.sin(time * 4) * 0.15 + 0.85;
+        ctx.globalAlpha = pulse; ctx.fillStyle = colDark; ctx.fillRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+        ctx.fillStyle = col; ctx.beginPath(); ctx.arc(tx + GRID_SIZE / 2, ty + GRID_SIZE / 2, GRID_SIZE / 3, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1; ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.strokeRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+      } else if (tile >= TILE_DOOR_R && tile <= TILE_DOOR_Y) {
+        let open = isDoorOpen(tile);
+        let col = tile === TILE_DOOR_R ? COLORS.doorR : tile === TILE_DOOR_B ? COLORS.doorB : tile === TILE_DOOR_G ? COLORS.doorG : COLORS.doorY;
+        let colDark = tile === TILE_DOOR_R ? COLORS.doorRDark : tile === TILE_DOOR_B ? COLORS.doorBDark : tile === TILE_DOOR_G ? COLORS.doorGDark : COLORS.doorYDark;
+        if (open) { ctx.globalAlpha = 0.25; ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.strokeRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4); ctx.setLineDash([]); ctx.globalAlpha = 1; }
+        else { ctx.fillStyle = colDark; ctx.fillRect(tx, ty, GRID_SIZE, GRID_SIZE); ctx.fillStyle = col; ctx.fillRect(tx + 2, ty + 2, GRID_SIZE - 4, GRID_SIZE - 4); ctx.strokeStyle = colDark; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(tx + GRID_SIZE / 2, ty + 2); ctx.lineTo(tx + GRID_SIZE / 2, ty + GRID_SIZE - 2); ctx.stroke(); }
+      } else if (tile === TILE_TIMED_PLATFORM) {
+        let k = x + ',' + y; let st = timedPlatformStates[k];
+        if (st && st.gone) { ctx.globalAlpha = 0.15; ctx.fillStyle = COLORS.timedPlatformDark; ctx.fillRect(tx, ty, GRID_SIZE, GRID_SIZE); ctx.globalAlpha = 1; }
+        else { let flash = st && st.timer < 15 ? Math.sin(time * 20) * 0.3 + 0.7 : 1; ctx.globalAlpha = flash; ctx.fillStyle = COLORS.timedPlatform; ctx.fillRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2); ctx.strokeStyle = COLORS.timedPlatformDark; ctx.lineWidth = 1.5; ctx.strokeRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2); ctx.globalAlpha = 1; }
+      } else if (tile === TILE_ONE_WAY) {
+        ctx.fillStyle = COLORS.oneWay; ctx.fillRect(tx + 2, ty + 2, GRID_SIZE - 4, 6);
+        ctx.strokeStyle = COLORS.oneWayDark; ctx.lineWidth = 1; ctx.beginPath();
+        ctx.moveTo(tx + 4, ty + 10); ctx.lineTo(tx + GRID_SIZE - 4, ty + 10);
+        ctx.moveTo(tx + 4, ty + 16); ctx.lineTo(tx + GRID_SIZE - 4, ty + 16); ctx.stroke();
       }
     }
   }
@@ -3582,7 +4159,75 @@ function render() {
       }
     }
   }
+  // 敌人（红色方块 + 头顶血条）
+  for (var ei = 0; ei < enemies.length; ei++) {
+    var en = enemies[ei];
+    ctx.fillStyle = en.hitFlash > 0 ? '#FFFFFF' : (en.type === 'elite' ? '#8B0000' : '#E14B4B');
+    ctx.fillRect(en.x, en.y, en.w, en.h);
+    ctx.strokeStyle = en.type === 'elite' ? '#FFD1D4' : '#FF8A95';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(en.x, en.y, en.w, en.h);
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(en.x, en.y - 9, en.w, 5);
+    ctx.fillStyle = '#FF6B76';
+    ctx.fillRect(en.x, en.y - 9, en.w * (en.hp / en.maxHp), 5);
+  }
+  // 敌人子弹
+  for (var bi2 = 0; bi2 < bullets.length; bi2++) {
+    var bl2 = bullets[bi2];
+    ctx.fillStyle = '#FFB84D';
+    ctx.fillRect(bl2.x - 4, bl2.y - 4, 8, 8);
+  }
+  // 玩家挥砍：忠实 SVG 线稿（3 条弯月弧线，描边）
+  for (var si2 = 0; si2 < slashes.length; si2++) {
+    var sl = slashes[si2];
+    var prog = 1 - sl.life / sl.maxLife;
+    var pulse = 0.7 + 0.3 * Math.abs(Math.sin(prog * Math.PI * 2));
+    var alpha = (0.55 + 0.45 * (1 - prog)) * pulse;
+    var S = 0.16 * (1 + prog * 0.06);
+    ctx.save();
+    ctx.translate(sl.x, sl.y);
+    ctx.scale(sl.dir * S, S);
+    ctx.translate(-400, -292);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 3 / S;
+    ctx.strokeStyle = 'rgba(230,250,255,' + alpha.toFixed(3) + ')';
+    ctx.shadowColor = '#9BE9FF';
+    ctx.shadowBlur = 8 * alpha / S;
+    // 根据连击段数选择不同视觉效果（只改颜色/线宽/发光，不改Canvas变换）
+    var paths;
+    if (sl.type === 2) {
+      // 第2段：上挑 - 更亮更蓝，线更粗
+      paths = SLASH_PATHS_2;
+      ctx.lineWidth = 4 / S;
+      ctx.strokeStyle = 'rgba(180,240,255,' + alpha.toFixed(3) + ')';
+      ctx.shadowColor = '#B4F0FF';
+      ctx.shadowBlur = 12 * alpha / S;
+    } else if (sl.type === 3) {
+      // 第3段：重劈 - 白色强光，最粗
+      paths = SLASH_PATHS_3;
+      ctx.lineWidth = 6 / S;
+      ctx.strokeStyle = 'rgba(255,255,255,' + Math.min(1, alpha * 1.3).toFixed(3) + ')';
+      ctx.shadowColor = '#FFFFFF';
+      ctx.shadowBlur = 16 * alpha / S;
+    } else {
+      // 第1段：标准横斩 - 青色
+      paths = SLASH_PATHS_1;
+      ctx.lineWidth = 3 / S;
+      ctx.strokeStyle = 'rgba(230,250,255,' + alpha.toFixed(3) + ')';
+      ctx.shadowColor = '#9BE9FF';
+      ctx.shadowBlur = 8 * alpha / S;
+    }
+    // 安全 fallback：确保 paths 有效
+    if (!paths) paths = SLASH_PATHS_1;
+    for (var pi2 = 0; pi2 < paths.length; pi2++) {
+      ctx.stroke(paths[pi2]);
+    }
+    ctx.restore();
+  }
   if (!player.dead) {
+    if (playerInvul > 0 && Math.floor(time * 15) % 2 === 0) ctx.globalAlpha = 0.35;
     let glowSize = 15 + Math.sin(time * 4) * 5;
     let gradient = ctx.createRadialGradient(
       player.x + player.w/2, player.y + player.h/2, 0,
@@ -3602,6 +4247,7 @@ function render() {
     ctx.shadowBlur = 15;
     ctx.fillRect(-player.w/2, -player.h, player.w, player.h);
     ctx.restore();
+    ctx.globalAlpha = 1;
   }
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i];
@@ -3631,6 +4277,176 @@ function render() {
   if (currentLevel.showIndicator !== false) drawPortalIndicator();
   if (currentLevel.showMinimap !== false) updateMinimap();
 }
+
+// 新的 render 包装器：动画期间先渲染新世界，再在涟漪外部覆盖旧世界快照
+function render() {
+  if (worldSwitchAnim.active) {
+    // 1. 先正常渲染新世界（实时，玩家可以操作）
+    renderNormal();
+    // 2. 在涟漪外部覆盖旧世界快照
+    renderWorldSwitchOverlay();
+    return;
+  }
+  renderNormal();
+}
+
+// 世界切换方块扩散覆盖层：
+// 先渲染新世界（renderNormal），再在此函数中把旧世界快照覆盖到未切换的格子上
+// 扩散前沿的格子会先变亮闪烁，然后切换到新世界
+function renderWorldSwitchOverlay() {
+  if (!worldSwitchAnim.active) return;
+  const anim = worldSwitchAnim;
+  const t = anim.progress / anim.duration;
+  
+  // ease-out 缓动（更强烈的加速感）
+  const ease = 1 - Math.pow(1 - t, 2.5);
+  
+  // 最大扩散半径（以格子为单位的欧几里得距离）
+  const maxRadius = Math.ceil(Math.sqrt(canvasW * canvasW + canvasH * canvasH) / GRID_SIZE) * 0.6 + 2;
+  
+  // 当前已扩散到的半径（连续值）
+  const switchRadius = ease * maxRadius;
+  
+  // 快照与当前 camera 的偏移
+  const camOffsetX = anim.fromCameraX - camera.x;
+  const camOffsetY = anim.fromCameraY - camera.y;
+  
+  // 扩散中心在屏幕上的像素位置（考虑 camera 偏移）
+  const centerScreenX = anim.centerGridX * GRID_SIZE - camera.x;
+  const centerScreenY = anim.centerGridY * GRID_SIZE - camera.y;
+  
+  // 颜色主题：根据切换方向决定
+  const isAToB = currentWorld === 'B'; // 如果当前是B，说明是从A切换过来的
+  const flashColor = isAToB ? '139, 0, 255' : '0, 246, 255'; // 紫/青
+  const glowColor = isAToB ? 'rgba(139, 0, 255,' : 'rgba(0, 246, 255,';
+  
+  // 遍历屏幕上可见的网格
+  const startGX = Math.floor(camera.x / GRID_SIZE) - 1;
+  const endGX = Math.ceil((camera.x + canvasW) / GRID_SIZE) + 1;
+  const startGY = Math.floor(camera.y / GRID_SIZE) - 1;
+  const endGY = Math.ceil((camera.y + canvasH) / GRID_SIZE) + 1;
+  
+  // 收集需要处理的格子
+  const switchedCells = [];      // 已切换：不需要覆盖
+  const flashingCells = [];      // 变亮带：闪烁效果
+  const unswitchedCells = [];    // 未切换：覆盖旧世界
+  
+  for (let gy = startGY; gy <= endGY; gy++) {
+    for (let gx = startGX; gx <= endGX; gx++) {
+      // 欧几里得距离（圆形扩散）
+      const dist = Math.sqrt(
+        (gx - anim.centerGridX) ** 2 + 
+        (gy - anim.centerGridY) ** 2
+      );
+      
+      const screenX = gx * GRID_SIZE - camera.x;
+      const screenY = gy * GRID_SIZE - camera.y;
+      const fromX = screenX + camOffsetX;
+      const fromY = screenY + camOffsetY;
+      
+      if (dist < switchRadius - 0.8) {
+        // 已切换：显示新世界（renderNormal已画，不操作）
+        continue;
+      } else if (dist < switchRadius + 1.2) {
+        // 变亮带：闪烁 + 颜色爆发
+        flashingCells.push({ screenX, screenY, fromX, fromY, dist, gx, gy });
+      } else {
+        // 未切换：覆盖旧世界快照
+        unswitchedCells.push({ screenX, screenY, fromX, fromY });
+      }
+    }
+  }
+  
+  // 1. 先画所有未切换的格子（旧世界快照）
+  for (let cell of unswitchedCells) {
+    if (cell.fromX > -GRID_SIZE && cell.fromX < canvasW + GRID_SIZE && 
+        cell.fromY > -GRID_SIZE && cell.fromY < canvasH + GRID_SIZE) {
+      ctx.drawImage(anim.fromCanvas, 
+        Math.floor(cell.fromX), Math.floor(cell.fromY), GRID_SIZE, GRID_SIZE,
+        Math.floor(cell.screenX), Math.floor(cell.screenY), GRID_SIZE, GRID_SIZE
+      );
+    }
+  }
+  
+  // 2. 画变亮带的格子（闪烁 + 颜色爆发 + 发光边框）
+  const flashBandWidth = 2.0; // 变亮带宽度（格子数）
+  for (let cell of flashingCells) {
+    const dist = cell.dist;
+    const distFromEdge = dist - (switchRadius - flashBandWidth);
+    const bandT = Math.max(0, Math.min(1, distFromEdge / flashBandWidth));
+    
+    // 先画旧世界快照作为底
+    if (cell.fromX > -GRID_SIZE && cell.fromX < canvasW + GRID_SIZE && 
+        cell.fromY > -GRID_SIZE && cell.fromY < canvasH + GRID_SIZE) {
+      ctx.drawImage(anim.fromCanvas, 
+        Math.floor(cell.fromX), Math.floor(cell.fromY), GRID_SIZE, GRID_SIZE,
+        Math.floor(cell.screenX), Math.floor(cell.screenY), GRID_SIZE, GRID_SIZE
+      );
+    }
+    
+    // 闪烁强度：在带内从强到弱
+    const flashIntensity = Math.sin(anim.progress * 0.6 + dist * 1.5) * 0.4 + 0.6;
+    const alpha = flashIntensity * (1 - bandT * 0.5);
+    
+    // 叠加颜色爆发
+    ctx.fillStyle = `rgba(${flashColor}, ${alpha * 0.55})`;
+    ctx.fillRect(Math.floor(cell.screenX), Math.floor(cell.screenY), GRID_SIZE, GRID_SIZE);
+    
+    // 白色核心高亮
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.35})`;
+    ctx.fillRect(
+      Math.floor(cell.screenX) + 2, 
+      Math.floor(cell.screenY) + 2, 
+      GRID_SIZE - 4, GRID_SIZE - 4
+    );
+    
+    // 发光边框
+    ctx.strokeStyle = `rgba(${flashColor}, ${alpha * 0.9})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(
+      Math.floor(cell.screenX) + 1, 
+      Math.floor(cell.screenY) + 1, 
+      GRID_SIZE - 2, GRID_SIZE - 2
+    );
+    
+    // 随机粒子效果（只在变亮带前沿）
+    if (bandT < 0.4 && Math.random() < 0.08) {
+      const px = cell.screenX + GRID_SIZE / 2;
+      const py = cell.screenY + GRID_SIZE / 2;
+      ctx.fillStyle = `rgba(${flashColor}, 0.8)`;
+      const ps = 2 + Math.random() * 3;
+      ctx.fillRect(px - ps/2, py - ps/2, ps, ps);
+    }
+  }
+  
+  // 3. 整体发光圆环（扩散边缘）
+  const ringAlpha = (1 - t) * 0.5;
+  ctx.strokeStyle = `rgba(${flashColor}, ${ringAlpha})`;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(centerScreenX + GRID_SIZE/2, centerScreenY + GRID_SIZE/2, 
+          switchRadius * GRID_SIZE, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // 4. 内圈脉冲光晕
+  const pulseR = switchRadius * GRID_SIZE * 0.85;
+  const pulseAlpha = (Math.sin(anim.progress * 0.5) * 0.15 + 0.1) * (1 - t);
+  ctx.fillStyle = `rgba(${flashColor}, ${pulseAlpha})`;
+  ctx.beginPath();
+  ctx.arc(centerScreenX + GRID_SIZE/2, centerScreenY + GRID_SIZE/2, pulseR, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // 5. 中心爆发闪光（切换瞬间）
+  if (anim.progress < 8) {
+    const burstAlpha = (1 - anim.progress / 8) * 0.6;
+    const burstR = anim.progress * GRID_SIZE * 1.5;
+    ctx.fillStyle = `rgba(255, 255, 255, ${burstAlpha})`;
+    ctx.beginPath();
+    ctx.arc(centerScreenX + GRID_SIZE/2, centerScreenY + GRID_SIZE/2, burstR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 // ==================== 小地图 V4（美观版）====================
 // 改进：
 // 1. 圆角玻璃质感面板
@@ -3935,7 +4751,8 @@ function getAutoDir(gx, gy, tileType) {
   // 检查上下左右是否有墙（陆地、木箱、存档点算作"墙"参考；尖刺和弹板不算）
   function isWall(tile) {
     return tile === TILE_LAND || tile === TILE_CRATE || tile === TILE_CHECKPOINT ||
-           tile === TILE_PORTAL || tile === TILE_SPAWN;
+           tile === TILE_PORTAL || tile === TILE_SPAWN ||
+           tile === TILE_ENEMY_SPAWNER || tile === TILE_ELITE_SPAWNER;
   }
   function isTrajectoryCell(x, y) {
     if (!currentLevel.trajectoryPlatforms) return false;
@@ -3979,9 +4796,10 @@ function getAutoDir(gx, gy, tileType) {
 }
 function getEditorAutoDir(gx, gy, tileType) {
   function isEditorWall(x, y) {
-    let tile = editorCells.get(x + ',' + y);
+    let tile = getEditorCells().get(x + ',' + y);
     if (tile === TILE_LAND || tile === TILE_CRATE ||
-        tile === TILE_CHECKPOINT || tile === TILE_PORTAL || tile === TILE_SPAWN) return true;
+        tile === TILE_CHECKPOINT || tile === TILE_PORTAL || tile === TILE_SPAWN ||
+        tile === TILE_ENEMY_SPAWNER || tile === TILE_ELITE_SPAWNER) return true;
     for (let traj of editorTrajectories) {
       if (traj.cells.has((x - editorSpawn.x) + ',' + (y - editorSpawn.y))) return true;
     }
@@ -4339,18 +5157,52 @@ function drawPortalIndicator() {
   ctx.textBaseline = 'middle';
   ctx.fillText(dist + 'm', indicatorX, indicatorY + 22);
 }
+// ==================== 固定时间步长游戏循环 ====================
+// 强制统一所有设备上的移速、跳跃、下落等物理行为
+const FIXED_FPS = 60;
+const FIXED_DT = 1000 / FIXED_FPS; // ~16.67ms 每帧
+var frame = 0;
+var gameLoopId = null;
+
 function gameLoop() {
   if (gameState === 'playing') {
+    updateWorldSwitchAnim();
     updatePhysics();
     render();
   }
-  requestAnimationFrame(gameLoop);
+  frame++;
 }
-gameLoop();
+
+// 使用固定间隔的 setInterval 替代 requestAnimationFrame
+// 确保无论设备性能如何，物理更新频率始终为 60fps
+// 从而统一所有设备上的移速、跳跃速度、下落速度等
+function startGameLoop() {
+  if (gameLoopId !== null) return;
+  gameLoopId = setInterval(gameLoop, FIXED_DT);
+}
+
+function stopGameLoop() {
+  if (gameLoopId !== null) {
+    clearInterval(gameLoopId);
+    gameLoopId = null;
+  }
+}
+
+// 启动游戏循环
+startGameLoop();
 // ==================== 编辑器 ====================
 const EDITOR_CELL_SIZE = 32;
 let editorCells = new Map();
+let editorCellsB = new Map();
+let editorCurrentWorld = 'A';
+let editorDualEnabled = false;
 let editorTool = 'land';
+// ==================== 广播系统 ====================
+let editorBroadcastNames = []; // 已创建的广播名称列表
+let editorTriggerGroups = [];  // 触发方块组 [{name, cells: Set()}]
+let editorDualGroups = [];     // 双重方块组 [{name, cells: Set(), state: 'solid'}]
+let editorPendingGroupType = null; // 'trigger' 或 'dual'，等待命名
+let editorPendingGroupCells = null; // 等待命名的格子集合
 let editorSpawn = { x: 2, y: 10 };
 let editorPortal = { x: 20, y: 10 };
 let editorViewX = 0, editorViewY = 0;
@@ -4362,10 +5214,94 @@ let drawStart = null;
 let isPanning = false;
 let panStartX = 0, panStartY = 0;
 let panViewStartX = 0, panViewStartY = 0;
+let editorAutoSavePending = false;
+let lastAutoSaveTime = 0;
 const editorCanvas = document.getElementById('editor-canvas');
 const editorCtx = editorCanvas.getContext('2d');
+function getEditorCells() {
+  return editorDualEnabled && editorCurrentWorld === 'B' ? editorCellsB : editorCells;
+}
+function doEditorAutoSave() {
+  try {
+    let data = {
+      timestamp: Date.now(),
+      version: 2,
+      cellsA: Array.from(editorCells).map(([k,v]) => { let [x,y] = k.split(',').map(Number); return [x,y,v]; }),
+      cellsB: Array.from(editorCellsB).map(([k,v]) => { let [x,y] = k.split(',').map(Number); return [x,y,v]; }),
+      spawn: editorSpawn,
+      portal: editorPortal,
+      movingPlatforms: editorMovingPlatforms.map(mp => ({
+        cells: Array.from(mp.cells),
+        path: mp.path,
+        speed: mp.speed,
+        wait: mp.wait,
+        parent: mp.parent
+      })),
+      trajectories: editorTrajectories.map(traj => ({
+        cells: Array.from(traj.cells),
+        path: traj.path
+      })),
+      viewX: editorViewX, viewY: editorViewY, zoom: editorZoom,
+      currentWorld: editorCurrentWorld,
+      dualEnabled: editorDualEnabled,
+      tool: editorTool,
+      broadcastNames: editorBroadcastNames,
+      triggerGroups: editorTriggerGroups.map(g => ({ name: g.name, cells: Array.from(g.cells) })),
+      dualGroups: editorDualGroups.map(g => ({ name: g.name, cells: Array.from(g.cells), state: g.state }))
+    };
+    localStorage.setItem('editor_autosave', JSON.stringify(data));
+  } catch(e) { console.error('自动保存失败:', e); }
+}
+function loadEditorAutoSave() {
+  try {
+    let raw = localStorage.getItem('editor_autosave');
+    if (!raw) return false;
+    let data = JSON.parse(raw);
+    if (data.cellsA) {
+      editorCells = new Map(data.cellsA.map(([x,y,t]) => [x+','+y, t]));
+    }
+    if (data.cellsB) {
+      editorCellsB = new Map(data.cellsB.map(([x,y,t]) => [x+','+y, t]));
+    }
+    if (data.spawn) editorSpawn = data.spawn;
+    if (data.portal) editorPortal = data.portal;
+    if (data.movingPlatforms) {
+      editorMovingPlatforms = data.movingPlatforms.map(mp => ({
+        cells: new Set(mp.cells),
+        path: mp.path,
+        speed: mp.speed,
+        wait: mp.wait,
+        parent: mp.parent
+      }));
+    }
+    if (data.trajectories) {
+      editorTrajectories = data.trajectories.map(traj => ({
+        cells: new Set(traj.cells),
+        path: traj.path
+      }));
+    }
+    if (data.viewX !== undefined) { editorViewX = data.viewX; editorViewY = data.viewY; editorZoom = data.zoom; }
+    if (data.currentWorld) editorCurrentWorld = data.currentWorld;
+    if (data.dualEnabled !== undefined) editorDualEnabled = data.dualEnabled;
+    if (data.tool) editorTool = data.tool;
+    // 同步双宇宙 UI 状态
+    let dualCheckbox = document.getElementById('opt-dual-world');
+    if (dualCheckbox) dualCheckbox.checked = editorDualEnabled;
+    let switchWorldBtn = document.getElementById('btn-switch-world');
+    if (switchWorldBtn) switchWorldBtn.style.display = editorDualEnabled ? 'block' : 'none';
+    // 加载广播系统数据（兼容旧版）
+    if (data.broadcastNames) editorBroadcastNames = data.broadcastNames;
+    if (data.triggerGroups) {
+      editorTriggerGroups = data.triggerGroups.map(g => ({ name: g.name, cells: new Set(g.cells) }));
+    }
+    if (data.dualGroups) {
+      editorDualGroups = data.dualGroups.map(g => ({ name: g.name, cells: new Set(g.cells), state: g.state || 'solid' }));
+    }
+    return true;
+  } catch(e) { console.error('加载自动保存失败:', e); return false; }
+}
 function initEditor() {
-  editorCells.clear();
+  getEditorCells().clear();
   editorSpawn = { x: 2, y: 10 };
   editorPortal = { x: 20, y: 10 };
   editorViewX = 0; editorViewY = 0;
@@ -4381,6 +5317,14 @@ function initEditor() {
   isPlacingMovingPlatform = false;
   isPlacingTrajectory = false;
   editorTestWon = false;
+  // 清空广播系统
+  editorBroadcastNames = [];
+  editorTriggerGroups = [];
+  editorDualGroups = [];
+  editorPendingGroupType = null;
+  editorPendingGroupCells = null;
+  // 尝试加载自动保存
+  loadEditorAutoSave();
   updateSelectActionButtons();
   updateEditorCoords();
   renderEditor();
@@ -4390,6 +5334,12 @@ function updateEditorCoords() {
   if (el) el.textContent = `X:${Math.round(editorViewX)} Y:${Math.round(editorViewY)} | ${Math.round(editorZoom * 100)}%`;
 }
 function renderEditor() {
+  // 自动保存（每3秒最多一次）
+  if (editorAutoSavePending && Date.now() - lastAutoSaveTime > 3000) {
+    doEditorAutoSave();
+    editorAutoSavePending = false;
+    lastAutoSaveTime = Date.now();
+  }
   const ectx = editorCtx;
   const w = editorCanvas.width;
   const h = editorCanvas.height;
@@ -4410,7 +5360,7 @@ function renderEditor() {
   for (let y = startY; y <= endY; y++) {
     ectx.beginPath(); ectx.moveTo(startX * cs, y * cs); ectx.lineTo(endX * cs, y * cs); ectx.stroke();
   }
-  for (let [key, tile] of editorCells) {
+  for (let [key, tile] of getEditorCells()) {
     let [gx, gy] = key.split(',').map(Number);
     let tx = gx * cs, ty = gy * cs;
     if (tx + cs < -w/2 + editorViewX * cs || tx > w/2 + editorViewX * cs ||
@@ -4418,10 +5368,10 @@ function renderEditor() {
     if (tile === TILE_LAND) {
       ectx.fillStyle = '#E1E3E6';
       ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
-      let hasLeft = editorCells.has((gx-1)+','+gy);
-      let hasRight = editorCells.has((gx+1)+','+gy);
-      let hasUp = editorCells.has(gx+','+(gy-1));
-      let hasDown = editorCells.has(gx+','+(gy+1));
+      let hasLeft = getEditorCells().has((gx-1)+','+gy);
+      let hasRight = getEditorCells().has((gx+1)+','+gy);
+      let hasUp = getEditorCells().has(gx+','+(gy-1));
+      let hasDown = getEditorCells().has(gx+','+(gy+1));
       ectx.strokeStyle = 'rgba(18,18,18,0.3)';
       ectx.lineWidth = 1;
       ectx.beginPath();
@@ -4526,6 +5476,28 @@ function renderEditor() {
       ectx.fillRect(tx + 2, ty + 2, cs - 4, cs - 4);
       ectx.strokeStyle = '#F4F9A7';
       ectx.strokeRect(tx + 2, ty + 2, cs - 4, cs - 4);
+    } else if (tile === TILE_ENEMY_SPAWNER) {
+      ectx.fillStyle = '#E14B4B';
+      ectx.fillRect(tx + 4, ty + 4, cs - 8, cs - 8);
+      ectx.strokeStyle = '#FF8A95';
+      ectx.lineWidth = 1;
+      ectx.strokeRect(tx + 4, ty + 4, cs - 8, cs - 8);
+      ectx.fillStyle = '#FFFFFF';
+      ectx.font = 'bold ' + Math.max(8, cs * 0.35) + 'px sans-serif';
+      ectx.textAlign = 'center';
+      ectx.textBaseline = 'middle';
+      ectx.fillText('敌', tx + cs / 2, ty + cs / 2);
+    } else if (tile === TILE_ELITE_SPAWNER) {
+      ectx.fillStyle = '#8B0000';
+      ectx.fillRect(tx + 4, ty + 4, cs - 8, cs - 8);
+      ectx.strokeStyle = '#FFD1D4';
+      ectx.lineWidth = 1;
+      ectx.strokeRect(tx + 4, ty + 4, cs - 8, cs - 8);
+      ectx.fillStyle = '#FFFFFF';
+      ectx.font = 'bold ' + Math.max(8, cs * 0.35) + 'px sans-serif';
+      ectx.textAlign = 'center';
+      ectx.textBaseline = 'middle';
+      ectx.fillText('精', tx + cs / 2, ty + cs / 2);
     } else if (tile === TILE_SPAWN) {
       ectx.fillStyle = 'rgba(179,244,168,0.3)';
       ectx.fillRect(tx + 2, ty + 2, cs - 4, cs - 4);
@@ -4533,10 +5505,84 @@ function renderEditor() {
       ectx.setLineDash([3, 3]);
       ectx.strokeRect(tx + 2, ty + 2, cs - 4, cs - 4);
       ectx.setLineDash([]);
+    } else if (tile === TILE_TRIGGER) {
+      // 触发方块：橙色半透明 + 闪电图标
+      ectx.fillStyle = 'rgba(255,107,53,0.7)';
+      ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
+      ectx.strokeStyle = '#FF6B35';
+      ectx.lineWidth = 1.5;
+      ectx.strokeRect(tx + 1, ty + 1, cs - 2, cs - 2);
+      ectx.fillStyle = '#FFFFFF';
+      ectx.font = 'bold ' + Math.max(8, cs * 0.4) + 'px sans-serif';
+      ectx.textAlign = 'center';
+      ectx.textBaseline = 'middle';
+      ectx.fillText('⚡', tx + cs / 2, ty + cs / 2);
+    } else if (tile === TILE_DUAL) {
+      // 双重方块：紫色半透明 + 双箭头图标
+      ectx.fillStyle = 'rgba(155,89,182,0.7)';
+      ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
+      ectx.strokeStyle = '#9B59B6';
+      ectx.lineWidth = 1.5;
+      ectx.strokeRect(tx + 1, ty + 1, cs - 2, cs - 2);
+      ectx.fillStyle = '#FFFFFF';
+      ectx.font = 'bold ' + Math.max(8, cs * 0.35) + 'px sans-serif';
+      ectx.textAlign = 'center';
+      ectx.textBaseline = 'middle';
+      ectx.fillText('↔', tx + cs / 2, ty + cs / 2);
     }
   }
-  if (editorCurrentLand && editorTool === 'land') {
-    ectx.fillStyle = 'rgba(224,227,230,0.5)';
+  // 双宇宙模式：半透明渲染另一个世界的方块（方便对齐）
+  if (editorDualEnabled) {
+    let otherCells = editorCurrentWorld === 'B' ? editorCells : editorCellsB;
+    ectx.globalAlpha = 0.25;
+    for (let [key, tile] of otherCells) {
+      let [gx, gy] = key.split(',').map(Number);
+      let tx = gx * cs, ty = gy * cs;
+      if (tx + cs < -w/2 + editorViewX * cs || tx > w/2 + editorViewX * cs ||
+          ty + cs < -h/2 + editorViewY * cs || ty > h/2 + editorViewY * cs) continue;
+      if (tile === TILE_LAND) {
+        ectx.fillStyle = '#E1E3E6';
+        ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
+      } else if (tile === TILE_SPIKE) {
+        ectx.fillStyle = '#FFD1D4';
+        ectx.beginPath();
+        ectx.moveTo(tx + cs/2, ty + 2);
+        ectx.lineTo(tx + cs - 2, ty + cs - 2);
+        ectx.lineTo(tx + 2, ty + cs - 2);
+        ectx.closePath(); ectx.fill();
+      } else if (tile === TILE_CRATE) {
+        ectx.fillStyle = '#C4A77D';
+        ectx.fillRect(tx + 2, ty + 2, cs - 4, cs - 4);
+      } else if (tile === TILE_BOUNCER) {
+        ectx.fillStyle = '#A0DAF7';
+        ectx.fillRect(tx + 3, ty + 3, cs - 6, cs - 6);
+      } else if (tile === TILE_CHECKPOINT) {
+        ectx.strokeStyle = 'rgba(179,244,168,0.6)';
+        ectx.lineWidth = 2;
+        ectx.strokeRect(tx + 4, ty + 4, cs - 8, cs - 8);
+      } else if (tile === TILE_PORTAL) {
+        ectx.fillStyle = '#F4F9A7';
+        ectx.fillRect(tx + 2, ty + 2, cs - 4, cs - 4);
+      } else if (tile === TILE_ENEMY_SPAWNER || tile === TILE_ELITE_SPAWNER) {
+        ectx.fillStyle = '#E14B4B';
+        ectx.fillRect(tx + 4, ty + 4, cs - 8, cs - 8);
+      } else if (tile === TILE_SPAWN) {
+        ectx.fillStyle = 'rgba(179,244,168,0.3)';
+        ectx.fillRect(tx + 2, ty + 2, cs - 4, cs - 4);
+      } else if (tile === TILE_TRIGGER) {
+        ectx.fillStyle = 'rgba(255,107,53,0.35)';
+        ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
+      } else if (tile === TILE_DUAL) {
+        ectx.fillStyle = 'rgba(155,89,182,0.35)';
+        ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
+      }
+    }
+    ectx.globalAlpha = 1.0;
+  }
+  if (editorCurrentLand && (editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual')) {
+    if (editorTool === 'land') ectx.fillStyle = 'rgba(224,227,230,0.5)';
+    else if (editorTool === 'trigger') ectx.fillStyle = 'rgba(255,107,53,0.5)';
+    else if (editorTool === 'dual') ectx.fillStyle = 'rgba(155,89,182,0.5)';
     ectx.fillRect(editorCurrentLand.x * cs, editorCurrentLand.y * cs, editorCurrentLand.w * cs, editorCurrentLand.h * cs);
   }
   // 多选选中高亮 - 淡蓝色
@@ -4622,6 +5668,8 @@ function renderEditor() {
       else if (tile === TILE_BOUNCER) color = COLORS.bouncer;
       else if (tile === TILE_CHECKPOINT) color = COLORS.checkpoint;
       else if (tile === TILE_PORTAL) color = COLORS.portal;
+      else if (tile === TILE_TRIGGER) color = COLORS.trigger;
+      else if (tile === TILE_DUAL) color = COLORS.dual;
       ectx.fillStyle = color;
       ectx.fillRect(gx * cs, gy * cs, cs, cs);
       // 预览边框
@@ -4683,30 +5731,46 @@ function setEditorCell(gx, gy, tool) {
   let key = gx + ',' + gy;
   let changed = false;
   if (tool === 'land') {
-    if (!editorCells.has(key) || editorCells.get(key) !== TILE_LAND) changed = true;
-    editorCells.set(key, TILE_LAND);
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_LAND) changed = true;
+    getEditorCells().set(key, TILE_LAND);
   } else if (tool === 'spikeAuto') {
-    if (!editorCells.has(key) || editorCells.get(key) !== TILE_SPIKE_AUTO) changed = true;
-    editorCells.set(key, TILE_SPIKE_AUTO);
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_SPIKE_AUTO) changed = true;
+    getEditorCells().set(key, TILE_SPIKE_AUTO);
   } else if (tool === 'crate') {
-    if (!editorCells.has(key) || editorCells.get(key) !== TILE_CRATE) changed = true;
-    editorCells.set(key, TILE_CRATE);
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_CRATE) changed = true;
+    getEditorCells().set(key, TILE_CRATE);
   } else if (tool === 'bouncer') {
-    if (!editorCells.has(key) || editorCells.get(key) !== TILE_BOUNCER) changed = true;
-    editorCells.set(key, TILE_BOUNCER);
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_BOUNCER) changed = true;
+    getEditorCells().set(key, TILE_BOUNCER);
   } else if (tool === 'checkpoint') {
-    if (!editorCells.has(key) || editorCells.get(key) !== TILE_CHECKPOINT) changed = true;
-    editorCells.set(key, TILE_CHECKPOINT);
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_CHECKPOINT) changed = true;
+    getEditorCells().set(key, TILE_CHECKPOINT);
   } else if (tool === 'portal') {
-    for (let [k, v] of editorCells) { if (v === TILE_PORTAL) editorCells.delete(k); }
-    editorCells.set(key, TILE_PORTAL);
+    for (let [k, v] of getEditorCells()) { if (v === TILE_PORTAL) getEditorCells().delete(k); }
+    getEditorCells().set(key, TILE_PORTAL);
+    if (editorDualEnabled) {
+      let otherCells = editorCurrentWorld === 'B' ? editorCells : editorCellsB;
+      for (let [k, v] of otherCells) { if (v === TILE_PORTAL) otherCells.delete(k); }
+      otherCells.set(key, TILE_PORTAL);
+    }
     editorPortal = { x: gx, y: gy };
     changed = true;
+  } else if (tool === 'espawner') {
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_ENEMY_SPAWNER) changed = true;
+    getEditorCells().set(key, TILE_ENEMY_SPAWNER);
+  } else if (tool === 'eselite') {
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_ELITE_SPAWNER) changed = true;
+    getEditorCells().set(key, TILE_ELITE_SPAWNER);
   } else if (tool === 'spawn') {
     // 计算出生点偏移量
     let oldSpawnX = editorSpawn.x, oldSpawnY = editorSpawn.y;
-    for (let [k, v] of editorCells) { if (v === TILE_SPAWN) editorCells.delete(k); }
-    editorCells.set(key, TILE_SPAWN);
+    for (let [k, v] of getEditorCells()) { if (v === TILE_SPAWN) getEditorCells().delete(k); }
+    getEditorCells().set(key, TILE_SPAWN);
+    if (editorDualEnabled) {
+      let otherCells = editorCurrentWorld === 'B' ? editorCells : editorCellsB;
+      for (let [k, v] of otherCells) { if (v === TILE_SPAWN) otherCells.delete(k); }
+      otherCells.set(key, TILE_SPAWN);
+    }
     editorSpawn = { x: gx, y: gy };
     // 更新所有移动平台的path和cells，使其相对于新的出生点
     let dx = oldSpawnX - editorSpawn.x;
@@ -4730,12 +5794,21 @@ function setEditorCell(gx, gy, tool) {
       traj.cells = newCells;
     }
     changed = true;
+  } else if (tool === 'trigger') {
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_TRIGGER) changed = true;
+    getEditorCells().set(key, TILE_TRIGGER);
+  } else if (tool === 'dual') {
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_DUAL) changed = true;
+    getEditorCells().set(key, TILE_DUAL);
   } else if (tool === 'eraser') {
-    if (editorCells.has(key)) changed = true;
-    editorCells.delete(key);
+    if (getEditorCells().has(key)) changed = true;
+    getEditorCells().delete(key);
   }
   // FIX: 任何修改都重置测试通关状态，强制重新测试
-  if (changed && editorTestWon) editorTestWon = false;
+  if (changed) {
+    if (editorTestWon) editorTestWon = false;
+    editorAutoSavePending = true;
+  }
 }
 function updateSelectedCells() {
   if (!selectStart || !selectEnd) return;
@@ -4745,7 +5818,7 @@ function updateSelectedCells() {
   let y2 = Math.max(selectStart.y, selectEnd.y);
   for (let y = y1; y <= y2; y++) {
     for (let x = x1; x <= x2; x++) {
-      if (editorCells.has(x + ',' + y)) selectedCells.add(x + ',' + y);
+      if (getEditorCells().has(x + ',' + y)) selectedCells.add(x + ',' + y);
     }
   }
 }
@@ -4778,29 +5851,12 @@ function updateSelectActionButtons() {
 // ==================== 移动平台功能 ====================
 function canCreateMovingPlatform() {
   if (selectedCells.size === 0) return false;
-  // 检查选中的格子是否都属于同一个已有的移动平台，或者是全部不属于任何移动平台
-  let parentPlatform = null;
+  // 简化：选中的格子必须全部不属于任何已有移动平台
   for (let key of selectedCells) {
-    let foundIn = null;
     for (let mp of editorMovingPlatforms) {
-      if (mp.cells.has(key)) { foundIn = mp; break; }
-    }
-    if (foundIn) {
-      if (parentPlatform === null) parentPlatform = foundIn;
-      else if (parentPlatform !== foundIn) return false; // 选了多个不同移动平台的格子
+      if (mp.cells.has(key)) return false;
     }
   }
-  // 如果选中的格子部分在一个移动平台中，部分不在，则不能创建
-  let hasInPlatform = false, hasOutPlatform = false;
-  for (let key of selectedCells) {
-    let inAny = false;
-    for (let mp of editorMovingPlatforms) {
-      if (mp.cells.has(key)) { inAny = true; break; }
-    }
-    if (inAny) hasInPlatform = true;
-    else hasOutPlatform = true;
-  }
-  if (hasInPlatform && hasOutPlatform) return false;
   return true;
 }
 function startMovingPlatformCreation() {
@@ -4822,33 +5878,13 @@ function startMovingPlatformCreation() {
 }
 function finishMovingPlatformCreation() {
   if (!movingPlatformStartCell || !movingPlatformEndCell) { isPlacingMovingPlatform = false; return; }
-  // 检查是否是子集（选中的是某个已有移动平台的一部分）
-  let parentPlatform = null;
-  for (let mp of editorMovingPlatforms) {
-    let allInParent = true;
-    for (let key of selectedCells) {
-      if (!mp.cells.has(key)) { allInParent = false; break; }
-    }
-    if (allInParent && selectedCells.size > 0) { parentPlatform = mp; break; }
-  }
   let path = [
     { x: movingPlatformStartCell.x - editorSpawn.x, y: movingPlatformStartCell.y - editorSpawn.y },
     { x: movingPlatformEndCell.x - editorSpawn.x, y: movingPlatformEndCell.y - editorSpawn.y }
   ];
   let cells = new Set();
   for (let key of selectedCells) { let [x, y] = key.split(',').map(Number); cells.add((x - editorSpawn.x) + ',' + (y - editorSpawn.y)); }
-  let parentIdx = null;
-  if (parentPlatform) {
-    // 子集：从父平台中移除这些格子，创建新的子平台
-    for (let key of selectedCells) parentPlatform.cells.delete(key);
-    // 如果父平台空了，删除它
-    if (parentPlatform.cells.size === 0) {
-      editorMovingPlatforms = editorMovingPlatforms.filter(mp => mp !== parentPlatform);
-    } else {
-      parentIdx = editorMovingPlatforms.indexOf(parentPlatform);
-    }
-  }
-  editorMovingPlatforms.push({ cells, path, speed: 1.5, wait: 0, parent: parentIdx });
+  editorMovingPlatforms.push({ cells, path, speed: 1.5, wait: 0 });
   isPlacingMovingPlatform = false;
   movingPlatformStartCell = null;
   movingPlatformEndCell = null;
@@ -4867,7 +5903,7 @@ function deleteSelectedCells() {
   // 清理空的移动平台
   editorMovingPlatforms = editorMovingPlatforms.filter(mp => mp.cells.size > 0);
   // 删除格子
-  for (let key of selectedCells) editorCells.delete(key);
+  for (let key of selectedCells) getEditorCells().delete(key);
   selectedCells.clear(); updateSelectActionButtons(); renderEditor();
 }
 function copySelectedCells() {
@@ -4875,7 +5911,7 @@ function copySelectedCells() {
   if (selectedCells.size === 0) return;
   let minX = Infinity, minY = Infinity;
   for (let key of selectedCells) { let [x, y] = key.split(',').map(Number); minX = Math.min(minX, x); minY = Math.min(minY, y); }
-  for (let key of selectedCells) { let [x, y] = key.split(',').map(Number); clipboardCells.set((x - minX) + ',' + (y - minY), editorCells.get(key)); }
+  for (let key of selectedCells) { let [x, y] = key.split(',').map(Number); clipboardCells.set((x - minX) + ',' + (y - minY), getEditorCells().get(key)); }
   // 按钮闪烁反馈
   const copyBtn = document.getElementById('btn-editor-copy');
   if (copyBtn) {
@@ -4914,7 +5950,7 @@ function updatePastePreview() {
 function confirmPaste() {
   if (!isPastePreviewing) return;
   for (let [key, tile] of pastePreviewCells) {
-    editorCells.set(key, tile);
+    getEditorCells().set(key, tile);
   }
   isPastePreviewing = false;
   pastePreviewCells.clear();
@@ -4930,7 +5966,7 @@ function cancelPaste() {
 }
 function pasteCells(targetX, targetY) {
   if (clipboardCells.size === 0) return;
-  for (let [key, tile] of clipboardCells) { let [dx, dy] = key.split(',').map(Number); editorCells.set((targetX + dx) + ',' + (targetY + dy), tile); }
+  for (let [key, tile] of clipboardCells) { let [dx, dy] = key.split(',').map(Number); getEditorCells().set((targetX + dx) + ',' + (targetY + dy), tile); }
   renderEditor();
 }
 // Editor mouse events
@@ -4951,7 +5987,7 @@ editorCanvas.addEventListener('mousedown', e => {
     const cell = getEditorCell(e.clientX, e.clientY);
     const key = cell.x + ',' + cell.y;
     // 如果点击的是已有方块
-    if (editorCells.has(key)) {
+    if (getEditorCells().has(key)) {
       // 开始长按计时
       selectLongPressStart = { x: e.clientX, y: e.clientY, cell: cell };
       selectLongPressTimer = setTimeout(() => {
@@ -4984,8 +6020,11 @@ editorCanvas.addEventListener('mousedown', e => {
   isDrawing = true;
   const cell = getEditorCell(e.clientX, e.clientY);
   drawStart = cell;
-  if (editorTool === 'land') editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1 };
-  else setEditorCell(cell.x, cell.y, editorTool);
+  if (editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual') {
+    editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1, type: editorTool };
+  } else {
+    setEditorCell(cell.x, cell.y, editorTool);
+  }
   renderEditor();
 });
 editorCanvas.addEventListener('mousemove', e => {
@@ -5031,12 +6070,12 @@ editorCanvas.addEventListener('mousemove', e => {
   }
   if (!isDrawing) return;
   const cell = getEditorCell(e.clientX, e.clientY);
-  if (editorTool === 'land' && drawStart) {
+  if ((editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual') && drawStart) {
     let x1 = Math.min(drawStart.x, cell.x);
     let y1 = Math.min(drawStart.y, cell.y);
     let x2 = Math.max(drawStart.x, cell.x);
     let y2 = Math.max(drawStart.y, cell.y);
-    editorCurrentLand = { x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1 };
+    editorCurrentLand = { x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1, type: editorTool };
   } else {
     setEditorCell(cell.x, cell.y, editorTool);
   }
@@ -5051,7 +6090,7 @@ editorCanvas.addEventListener('mouseup', e => {
     selectLongPressTimer = null;
     const cell = getEditorCell(e.clientX, e.clientY);
     const key = cell.x + ',' + cell.y;
-    if (editorCells.has(key)) {
+    if (getEditorCells().has(key)) {
       // 切换选中状态
       if (selectedCells.has(key)) {
         selectedCells.delete(key);
@@ -5066,11 +6105,21 @@ editorCanvas.addEventListener('mouseup', e => {
   }
   if (!isDrawing) return;
   isDrawing = false;
-  if (editorTool === 'land' && editorCurrentLand) {
+  if ((editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual') && editorCurrentLand) {
+    let tileType = editorTool === 'land' ? TILE_LAND : (editorTool === 'trigger' ? TILE_TRIGGER : TILE_DUAL);
+    let newCells = new Set();
     for (let dy = 0; dy < editorCurrentLand.h; dy++) {
       for (let dx = 0; dx < editorCurrentLand.w; dx++) {
-        editorCells.set((editorCurrentLand.x + dx) + ',' + (editorCurrentLand.y + dy), TILE_LAND);
+        let key = (editorCurrentLand.x + dx) + ',' + (editorCurrentLand.y + dy);
+        getEditorCells().set(key, tileType);
+        newCells.add(key);
       }
+    }
+    // 触发方块和双重方块创建后，弹出命名窗口
+    if (editorTool === 'trigger' || editorTool === 'dual') {
+      editorPendingGroupType = editorTool;
+      editorPendingGroupCells = newCells;
+      showBroadcastNameDialog(editorTool);
     }
     editorCurrentLand = null;
   }
@@ -5127,12 +6176,19 @@ editorCanvas.addEventListener('touchstart', e => {
     if (touchMode === 'draw') {
       // 撤销本次单指放置：清除 drawStart 对应的格子
       if (drawStart && editorTool !== 'land') {
-        editorCells.delete(drawStart.x + ',' + drawStart.y);
+        getEditorCells().delete(drawStart.x + ',' + drawStart.y);
       }
       isDrawing = false;
       drawStart = null;
       editorCurrentLand = null;
       renderEditor();
+    }
+    // FIX: 取消移动平台端点的延迟放置
+    if (singleTouchTimer && isPlacingMovingPlatform) {
+      clearTimeout(singleTouchTimer);
+      singleTouchTimer = null;
+      touchMode = 'none';
+      movingPlatformEndCell = null;
     }
     touchMode = 'pinch';
     const t1 = e.touches[0], t2 = e.touches[1];
@@ -5150,10 +6206,14 @@ editorCanvas.addEventListener('touchstart', e => {
     // 保存到全局，供 touchend 快速点击时使用
     editorPendingCell = cell;
     editorTouchStartPos = { x: touch.clientX, y: touch.clientY, cell: cell };
-    // 正在放置移动平台端点时，优先处理
+    // 正在放置移动平台端点时，延迟处理（避免双指捏合误判）
     if (isPlacingMovingPlatform) {
-      movingPlatformEndCell = cell;
-      finishMovingPlatformCreation();
+      singleTouchTimer = setTimeout(() => {
+        singleTouchTimer = null;
+        touchMode = 'movingPlatform';
+        movingPlatformEndCell = cell;
+        finishMovingPlatformCreation();
+      }, 80);
       return;
     }
     // 粘贴预览模式：点击确认
@@ -5181,8 +6241,8 @@ editorCanvas.addEventListener('touchstart', e => {
         touchMode = 'draw';
         isDrawing = true;
         drawStart = cell;
-        if (editorTool === 'land') {
-          editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1 };
+        if (editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual') {
+          editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1, type: editorTool };
         } else {
           setEditorCell(cell.x, cell.y, editorTool);
         }
@@ -5248,12 +6308,12 @@ editorCanvas.addEventListener('touchmove', e => {
   if (e.touches.length === 1 && touchMode === 'draw' && isDrawing) {
     const touch = e.touches[0];
     const cell = getEditorCell(touch.clientX, touch.clientY);
-    if (editorTool === 'land' && drawStart) {
+    if ((editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual') && drawStart) {
       let x1 = Math.min(drawStart.x, cell.x);
       let y1 = Math.min(drawStart.y, cell.y);
       let x2 = Math.max(drawStart.x, cell.x);
       let y2 = Math.max(drawStart.y, cell.y);
-      editorCurrentLand = { x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1 };
+      editorCurrentLand = { x: x1, y: y1, w: x2 - x1 + 1, h: y2 - y1 + 1, type: editorTool };
     } else {
       setEditorCell(cell.x, cell.y, editorTool);
     }
@@ -5278,8 +6338,16 @@ editorCanvas.addEventListener('touchend', e => {
         return;
       }
       if (editorPendingCell) {
-        if (editorTool === 'land') {
-          editorCells.set(editorPendingCell.x + ',' + editorPendingCell.y, TILE_LAND);
+        if (editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual') {
+          let tileType = editorTool === 'land' ? TILE_LAND : (editorTool === 'trigger' ? TILE_TRIGGER : TILE_DUAL);
+          getEditorCells().set(editorPendingCell.x + ',' + editorPendingCell.y, tileType);
+          if (editorTool === 'trigger' || editorTool === 'dual') {
+            let singleCell = new Set();
+            singleCell.add(editorPendingCell.x + ',' + editorPendingCell.y);
+            editorPendingGroupType = editorTool;
+            editorPendingGroupCells = singleCell;
+            showBroadcastNameDialog(editorTool);
+          }
         } else {
           setEditorCell(editorPendingCell.x, editorPendingCell.y, editorTool);
         }
@@ -5293,7 +6361,7 @@ editorCanvas.addEventListener('touchend', e => {
       singleTouchTimer = null;
       if (editorPendingCell) {
         const key = editorPendingCell.x + ',' + editorPendingCell.y;
-        if (editorCells.has(key)) {
+        if (getEditorCells().has(key)) {
           if (selectedCells.has(key)) selectedCells.delete(key);
           else selectedCells.add(key);
           updateSelectActionButtons();
@@ -5315,14 +6383,33 @@ editorCanvas.addEventListener('touchend', e => {
       touchMode = 'none';
       return;
     }
+    // 如果处于移动平台放置模式，清理状态
+    if (touchMode === 'movingPlatform') {
+      isPlacingMovingPlatform = false;
+      movingPlatformStartCell = null;
+      movingPlatformEndCell = null;
+      document.getElementById('btn-create-moving-platform').classList.remove('active');
+      editorPendingCell = null;
+      touchMode = 'none';
+      return;
+    }
     // 如果处于绘制模式，结束绘制
     if (touchMode === 'draw' && isDrawing) {
       isDrawing = false;
-      if (editorTool === 'land' && editorCurrentLand) {
+      if ((editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual') && editorCurrentLand) {
+        let tileType = editorTool === 'land' ? TILE_LAND : (editorTool === 'trigger' ? TILE_TRIGGER : TILE_DUAL);
+        let newCells = new Set();
         for (let dy = 0; dy < editorCurrentLand.h; dy++) {
           for (let dx = 0; dx < editorCurrentLand.w; dx++) {
-            editorCells.set((editorCurrentLand.x + dx) + ',' + (editorCurrentLand.y + dy), TILE_LAND);
+            let key = (editorCurrentLand.x + dx) + ',' + (editorCurrentLand.y + dy);
+            getEditorCells().set(key, tileType);
+            newCells.add(key);
           }
+        }
+        if (editorTool === 'trigger' || editorTool === 'dual') {
+          editorPendingGroupType = editorTool;
+          editorPendingGroupCells = newCells;
+          showBroadcastNameDialog(editorTool);
         }
         editorCurrentLand = null;
       }
@@ -5364,7 +6451,8 @@ function setupEditorToolbar() {
     });
   });
   document.getElementById('btn-editor-clear').addEventListener('click', () => {
-    editorCells.clear();
+    if (!confirm(t('确定要清空当前编辑的所有内容吗？此操作不可撤销。'))) return;
+    getEditorCells().clear();
     editorSpawn = { x: 2, y: 10 };
     editorPortal = { x: 20, y: 10 };
     editorTrajectories = [];
@@ -5381,6 +6469,8 @@ function setupEditorToolbar() {
     updateSelectActionButtons();
     editorTestWon = false;
     renderEditor();
+    // 清除自动保存
+    try { localStorage.removeItem('editor_autosave'); } catch(e) {}
   });
   document.getElementById('btn-editor-back').addEventListener('click', () => {
     gameState = 'start';
@@ -5394,12 +6484,44 @@ function setupEditorToolbar() {
     editorZoom = Math.max(0.25, editorZoom / 1.25);
     updateEditorCoords(); renderEditor();
   });
+  // 双宇宙开关事件
+  document.getElementById('opt-dual-world').addEventListener('change', (e) => {
+    editorDualEnabled = e.target.checked;
+    let btn = document.getElementById('btn-switch-world');
+    if (editorDualEnabled) {
+      btn.style.display = 'block';
+      // 如果B世界为空，复制A世界的出生点和传送门
+      if (editorCellsB.size === 0) {
+        for (let [k, v] of editorCells) {
+          if (v === TILE_SPAWN || v === TILE_PORTAL) editorCellsB.set(k, v);
+        }
+      }
+    } else {
+      btn.style.display = 'none';
+    }
+    renderEditor();
+  });
+  // 切换世界按钮事件
+  document.getElementById('btn-switch-world').addEventListener('click', () => {
+    editorCurrentWorld = editorCurrentWorld === 'A' ? 'B' : 'A';
+    let btn = document.getElementById('btn-switch-world');
+    btn.textContent = editorCurrentWorld === 'A' ? '切换世界 (A)' : '切换世界 (B)';
+    btn.style.background = editorCurrentWorld === 'A' ? 'rgba(139,0,255,0.9)' : 'rgba(255,0,128,0.9)';
+    btn.style.borderColor = editorCurrentWorld === 'A' ? '#8B00FF' : '#FF0080';
+    renderEditor();
+  });
+
   document.getElementById('btn-editor-test').addEventListener('click', () => {
-    isEditorTest = true;
-    editorTestWon = false;
-    const levelData = buildLevelFromEditor();
-    loadCustomLevel(levelData);
-    startGame();
+    try {
+      isEditorTest = true;
+      editorTestWon = false;
+      const levelData = buildLevelFromEditor();
+      loadCustomLevel(levelData);
+      startGame();
+    } catch (err) {
+      alert('测试按钮错误: ' + (err.message || err) + '\n堆栈: ' + (err.stack || '无'));
+      console.error('测试按钮错误:', err);
+    }
   });
   document.getElementById('btn-editor-save').addEventListener('click', () => {
     const code = encodeLevel();
@@ -5460,6 +6582,78 @@ function setupEditorToolbar() {
     alert(ok ? t('编码已复制到剪贴板') : t('复制失败，请手动复制'));
   });
 }
+// ==================== 广播名称系统 ====================
+function showBroadcastNameDialog(type) {
+  const dialog = document.getElementById('broadcast-dialog');
+  const title = document.getElementById('broadcast-dialog-title');
+  const input = document.getElementById('broadcast-name-input');
+  const datalist = document.getElementById('broadcast-name-list');
+
+  title.textContent = type === 'trigger' ? '命名触发方块的广播' : '命名双重方块的广播';
+  input.value = '';
+
+  // 更新下拉列表
+  datalist.innerHTML = '';
+  for (let name of editorBroadcastNames) {
+    let opt = document.createElement('option');
+    opt.value = name;
+    datalist.appendChild(opt);
+  }
+
+  dialog.style.display = 'flex';
+  setTimeout(() => input.focus(), 50);
+}
+
+function confirmBroadcastName() {
+  const dialog = document.getElementById('broadcast-dialog');
+  const input = document.getElementById('broadcast-name-input');
+  let name = input.value.trim();
+
+  if (!name) {
+    alert('请输入广播名称');
+    return;
+  }
+
+  // 添加到全局广播名称列表（如果不存在）
+  if (!editorBroadcastNames.includes(name)) {
+    editorBroadcastNames.push(name);
+  }
+
+  // 创建组
+  if (editorPendingGroupType === 'trigger') {
+    editorTriggerGroups.push({ name: name, cells: editorPendingGroupCells });
+  } else if (editorPendingGroupType === 'dual') {
+    editorDualGroups.push({ name: name, cells: editorPendingGroupCells, state: 'solid' });
+  }
+
+  editorPendingGroupType = null;
+  editorPendingGroupCells = null;
+  dialog.style.display = 'none';
+  renderEditor();
+}
+
+function cancelBroadcastName() {
+  const dialog = document.getElementById('broadcast-dialog');
+  // 取消时删除刚才创建的方块
+  if (editorPendingGroupCells) {
+    for (let key of editorPendingGroupCells) {
+      getEditorCells().delete(key);
+    }
+  }
+  editorPendingGroupType = null;
+  editorPendingGroupCells = null;
+  dialog.style.display = 'none';
+  renderEditor();
+}
+
+// 弹窗事件绑定
+document.getElementById('btn-broadcast-confirm').addEventListener('click', confirmBroadcastName);
+document.getElementById('btn-broadcast-cancel').addEventListener('click', cancelBroadcastName);
+document.getElementById('broadcast-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmBroadcastName();
+  if (e.key === 'Escape') cancelBroadcastName();
+});
+
 setupEditorToolbar();
 document.addEventListener('keydown', e => {
   if (gameState !== 'editor') return;
@@ -5525,6 +6719,7 @@ document.getElementById('btn-bottom-fold').addEventListener('click', () => {
 document.addEventListener('keydown', e => {
   if (isMobile) return;
   keys[e.key] = true;
+  if (e.key === 'j' || e.key === 'J') playerAttack();
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
 });
 document.addEventListener('keyup', e => {
@@ -5535,104 +6730,231 @@ document.addEventListener('keyup', e => {
 const joystickZone = document.getElementById('joystick-zone');
 const joystickThumb = document.getElementById('joystick-thumb');
 let joystickTouchId = null;
-function initJoystick() {
-  const zone = joystickZone;
-  const thumb = joystickThumb;
-  // maxDist 根据摇杆尺寸动态计算（约为摇杆半径减去 thumb 半径）
-  const getMaxDist = () => {
-    const rect = zone.getBoundingClientRect();
-    const thumbSize = parseInt(getComputedStyle(thumb).width) || 56;
-    return Math.max(30, rect.width / 2 - thumbSize / 2 - 4);
-  };
-  const deadZone = 0.03;
-  let centerX = 0, centerY = 0;
-  function onStart(clientX, clientY, id) {
-    if (joystickTouchId !== null) return;
-    if (clientX > window.innerWidth / 2) return;
-    const rect = zone.getBoundingClientRect();
-    centerX = rect.left + rect.width / 2;
-    centerY = rect.top + rect.height / 2;
-    joystickTouchId = id;
-    update(clientX, clientY);
-  }
-  function onMove(clientX, clientY) {
-    if (joystickTouchId === null) return;
-    if (clientX > window.innerWidth / 2) return;
-    update(clientX, clientY);
-  }
-  function onEnd() {
-    if (joystickTouchId === null) return;
-    joystickTouchId = null;
-    joystick.active = false;
-    joystick.dx = 0; joystick.dy = 0;
-    thumb.style.transform = 'translate(0px, 0px)';
-    thumb.style.transition = 'transform 0.1s ease-out';
-    setTimeout(() => { thumb.style.transition = 'none'; }, 100);
-  }
-  function update(cx, cy) {
-    const maxDist = getMaxDist();
-    let dx = cx - centerX;
-    let dy = cy - centerY;
-    let dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
-    thumb.style.transform = `translate(${dx}px, ${dy}px)`;
-    let nx = dx / maxDist, ny = dy / maxDist;
-    let len = Math.sqrt(nx * nx + ny * ny);
-    if (len < deadZone) { joystick.dx = 0; joystick.dy = 0; joystick.active = false; }
-    else {
-      let scale = (len - deadZone) / (1 - deadZone);
-      joystick.dx = (nx / len) * scale;
-      joystick.dy = (ny / len) * scale;
-      joystick.active = true;
-    }
-  }
-  zone.addEventListener('touchstart', e => {
-    for (let t of e.touches) {
-      if (t.clientX <= window.innerWidth / 2) { onStart(t.clientX, t.clientY, t.identifier); break; }
-    }
-  }, { passive: true });
-  zone.addEventListener('touchmove', e => {
-    let found = false;
-    for (let t of e.touches) {
-      if (t.identifier === joystickTouchId) { onMove(t.clientX, t.clientY); found = true; break; }
-    }
-    if (!found && joystickTouchId !== null) onEnd();
-  }, { passive: true });
-  zone.addEventListener('touchend', e => {
-    for (let t of e.changedTouches) { if (t.identifier === joystickTouchId) { onEnd(); break; } }
-  });
-  zone.addEventListener('touchcancel', e => {
-    for (let t of e.changedTouches) { if (t.identifier === joystickTouchId) { onEnd(); break; } }
-  });
-  let mouseDown = false;
-  zone.addEventListener('mousedown', e => { e.preventDefault(); mouseDown = true; onStart(e.clientX, e.clientY, -1); });
-  document.addEventListener('mousemove', e => { if (!mouseDown) return; onMove(e.clientX, e.clientY); });
-  document.addEventListener('mouseup', e => { if (!mouseDown) return; mouseDown = false; onEnd(); });
-}
-initJoystick();
-// Jump button
 const jumpBtn = document.getElementById('jump-btn');
-function initJumpBtn() {
-  function onJumpStart(e) {
-    e.preventDefault();
-    let touch = e.changedTouches ? e.changedTouches[0] : e;
-    if (touch.clientX < window.innerWidth / 2) return;
-    jumpPressed = true;
-    jumpBtn.style.background = 'rgba(0,246,255,0.2)';
+var attackBtn = document.getElementById('attack-btn');
+
+// ==================== 全局多点触控管理器 V2 ====================
+// 核心策略：在 game-container 上统一处理所有游戏触摸事件
+// 屏幕分区（游戏状态下）：
+//   左半屏 (x < w/2): 摇杆区 — 任意位置触摸即激活虚拟摇杆
+//   右半屏上半 (x >= w/2, y < h*0.55): 攻击区 — 按下即攻击
+//   右半屏下半 (x >= w/2, y >= h*0.55): 跳跃区 — 按住持续跳跃
+// 每个手指独立跟踪 identifier，支持同时多指操作
+
+const multiTouch = {
+  // Map<touchId, { role, startX, startY, currentX, currentY, centerX, centerY }>
+  touches: new Map(),
+
+  // 根据起始位置判断这个手指控制什么
+  // 优先检测是否在具体按钮上，再按屏幕分区判断
+  getRole(x, y) {
+    // 1. 检测是否在切换世界按钮上（移动端右下角 switch-world-btn）
+    const swBtnMobile = document.getElementById('switch-world-btn');
+    if (swBtnMobile && swBtnMobile.style.display !== 'none') {
+      const rect = swBtnMobile.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return 'switchWorld';
+      }
+    }
+    // 2. 检测是否在切换世界按钮上（桌面端左上角 btn-switch-world）
+    const swBtnDesktop = document.getElementById('btn-switch-world');
+    if (swBtnDesktop && swBtnDesktop.style.display !== 'none') {
+      const rect = swBtnDesktop.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return 'switchWorld';
+      }
+    }
+    // 3. 检测是否在攻击按钮上
+    if (attackBtn) {
+      const rect = attackBtn.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return 'attack';
+      }
+    }
+    // 4. 检测是否在跳跃按钮上
+    if (jumpBtn) {
+      const rect = jumpBtn.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return 'jump';
+      }
+    }
+    // 5. 左半屏 = 摇杆区（任意位置触摸即激活摇杆）
+    if (x < window.innerWidth / 2) return 'joystick';
+    // 6. 默认忽略（右半屏空白区域）
+    return null;
+  },
+
+  // 检查指定角色是否仍有活跃触摸
+  hasRole(role) {
+    for (let t of this.touches.values()) {
+      if (t.role === role) return true;
+    }
+    return false;
   }
-  function onJumpEnd(e) {
-    e.preventDefault();
-    jumpPressed = false;
-    jumpBtn.style.background = 'rgba(0,246,255,0.08)';
+};
+
+function initMultiTouch() {
+  const container = document.getElementById('game-container');
+  if (!container) return;
+
+  // 让摇杆、按钮元素不拦截触摸事件（视觉元素仅作反馈）
+  if (joystickZone) joystickZone.style.pointerEvents = 'none';
+  if (jumpBtn) jumpBtn.style.pointerEvents = 'none';
+  if (attackBtn) attackBtn.style.pointerEvents = 'none';
+
+  container.addEventListener('touchstart', onMultiTouchStart, { passive: false });
+  container.addEventListener('touchmove', onMultiTouchMove, { passive: false });
+  container.addEventListener('touchend', onMultiTouchEnd);
+  container.addEventListener('touchcancel', onMultiTouchEnd);
+
+  // 给切换世界按钮添加独立触摸处理（阻止传播到 game-container，避免 e.preventDefault 阻止 click）
+  const swBtnMobile = document.getElementById('switch-world-btn');
+  if (swBtnMobile) {
+    swBtnMobile.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+    }, { passive: true });
+    swBtnMobile.addEventListener('touchend', (e) => {
+      e.stopPropagation();
+      switchWorld();
+    }, { passive: true });
   }
-  jumpBtn.addEventListener('touchstart', onJumpStart, { passive: false });
-  jumpBtn.addEventListener('touchend', onJumpEnd);
-  jumpBtn.addEventListener('touchcancel', onJumpEnd);
-  jumpBtn.addEventListener('mousedown', onJumpStart);
-  jumpBtn.addEventListener('mouseup', onJumpEnd);
-  jumpBtn.addEventListener('mouseleave', onJumpEnd);
+  const swBtnDesktop = document.getElementById('btn-switch-world');
+  if (swBtnDesktop) {
+    swBtnDesktop.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+    }, { passive: true });
+    swBtnDesktop.addEventListener('touchend', (e) => {
+      e.stopPropagation();
+      switchWorld();
+    }, { passive: true });
+  }
+  // 给重新开始/退出按钮添加独立触摸处理（阻止传播到 game-container）
+  const restartBtn = document.getElementById('btn-restart');
+  if (restartBtn) {
+    restartBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+    restartBtn.addEventListener('touchend', (e) => { e.stopPropagation(); resetPlayer(false); }, { passive: true });
+  }
+  const exitBtn = document.getElementById('btn-exit');
+  if (exitBtn) {
+    exitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+    exitBtn.addEventListener('touchend', (e) => { e.stopPropagation(); exitGame(); }, { passive: true });
+  }
 }
-initJumpBtn();
+
+function onMultiTouchStart(e) {
+  if (gameState !== 'playing') return;
+  e.preventDefault();
+
+  for (let t of e.changedTouches) {
+    // 避免重复跟踪同一触摸点
+    if (multiTouch.touches.has(t.identifier)) continue;
+
+    const role = multiTouch.getRole(t.clientX, t.clientY);
+    if (!role) continue; // 未知区域，忽略
+
+    // 切换世界按钮由独立事件处理（见 initMultiTouch），这里跳过
+    if (role === 'switchWorld') continue;
+
+    const data = {
+      role,
+      startX: t.clientX,
+      startY: t.clientY,
+      currentX: t.clientX,
+      currentY: t.clientY
+    };
+
+    if (role === 'joystick') {
+      // 以摇杆 zone 的当前中心为基准计算偏移
+      const rect = joystickZone.getBoundingClientRect();
+      data.centerX = rect.left + rect.width / 2;
+      data.centerY = rect.top + rect.height / 2;
+      updateJoystickVisual(t.clientX, t.clientY, data.centerX, data.centerY);
+    } else if (role === 'attack') {
+      playerAttack();
+      if (attackBtn) attackBtn.style.background = 'rgba(225,75,75,0.3)';
+    } else if (role === 'jump') {
+      jumpPressed = true;
+      if (jumpBtn) jumpBtn.style.background = 'rgba(0,246,255,0.2)';
+    }
+
+    multiTouch.touches.set(t.identifier, data);
+  }
+}
+
+function onMultiTouchMove(e) {
+  if (gameState !== 'playing') return;
+  e.preventDefault();
+
+  for (let t of e.changedTouches) {
+    const data = multiTouch.touches.get(t.identifier);
+    if (!data) continue;
+
+    data.currentX = t.clientX;
+    data.currentY = t.clientY;
+
+    if (data.role === 'joystick') {
+      updateJoystickVisual(t.clientX, t.clientY, data.centerX, data.centerY);
+    }
+    // 攻击和跳跃不需要 move 处理（攻击是触发式，跳跃是状态式）
+  }
+}
+
+function onMultiTouchEnd(e) {
+  for (let t of e.changedTouches) {
+    const data = multiTouch.touches.get(t.identifier);
+    if (!data) continue;
+
+    if (data.role === 'joystick') {
+      joystick.active = false;
+      joystick.dx = 0;
+      joystick.dy = 0;
+      if (joystickThumb) {
+        joystickThumb.style.transform = 'translate(0px, 0px)';
+        joystickThumb.style.transition = 'transform 0.1s ease-out';
+        setTimeout(() => { if (joystickThumb) joystickThumb.style.transition = 'none'; }, 100);
+      }
+    } else if (data.role === 'attack') {
+      if (attackBtn) attackBtn.style.background = 'rgba(225,75,75,0.12)';
+    } else if (data.role === 'jump') {
+      jumpPressed = false;
+      if (jumpBtn) jumpBtn.style.background = 'rgba(0,246,255,0.08)';
+    }
+
+    multiTouch.touches.delete(t.identifier);
+  }
+}
+
+// 更新摇杆视觉和逻辑状态
+function updateJoystickVisual(clientX, clientY, centerX, centerY) {
+  const maxDist = 40; // 摇杆最大位移像素
+  let dx = clientX - centerX;
+  let dy = clientY - centerY;
+  let dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist > maxDist) {
+    dx = (dx / dist) * maxDist;
+    dy = (dy / dist) * maxDist;
+  }
+  if (joystickThumb) {
+    joystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
+  }
+
+  let nx = dx / maxDist, ny = dy / maxDist;
+  let len = Math.sqrt(nx * nx + ny * ny);
+  const deadZone = 0.03;
+  if (len < deadZone) {
+    joystick.dx = 0;
+    joystick.dy = 0;
+    joystick.active = false;
+  } else {
+    let scale = (len - deadZone) / (1 - deadZone);
+    joystick.dx = (nx / len) * scale;
+    joystick.dy = (ny / len) * scale;
+    joystick.active = true;
+  }
+}
+
+initMultiTouch();
+
 // ==================== 电脑端鼠标控制 ====================
 let mouseControl = { active: false, moveDir: 0 };
 function initMouseControl() {
@@ -5728,18 +7050,22 @@ function readUint16(bytes, offset) {
 const TILE_TYPE_TO_CODE = {
   [TILE_LAND]: 0, [TILE_SPIKE]: 1, [TILE_SPIKE_AUTO]: 2,
   [TILE_CRATE]: 3, [TILE_BOUNCER]: 4, [TILE_CHECKPOINT]: 5,
-  [TILE_PORTAL]: 6, [TILE_SPAWN]: 7
+  [TILE_PORTAL]: 6, [TILE_SPAWN]: 7,
+  [TILE_ENEMY_SPAWNER]: 8, [TILE_ELITE_SPAWNER]: 9,
+  [TILE_TRIGGER]: 10, [TILE_DUAL]: 11
 };
 const CODE_TO_TILE_TYPE = {
   0: TILE_LAND, 1: TILE_SPIKE, 2: TILE_SPIKE_AUTO,
   3: TILE_CRATE, 4: TILE_BOUNCER, 5: TILE_CHECKPOINT,
-  6: TILE_PORTAL, 7: TILE_SPAWN
+  6: TILE_PORTAL, 7: TILE_SPAWN,
+  8: TILE_ENEMY_SPAWNER, 9: TILE_ELITE_SPAWNER,
+  10: TILE_TRIGGER, 11: TILE_DUAL
 };
 function encodeLevelV8(customName) {
   let ox = editorSpawn.x, oy = editorSpawn.y;
   let hasPortal = editorHasPortal();
   let tiles = [];
-  for (let [key, tile] of editorCells) {
+  for (let [key, tile] of getEditorCells()) {
     if (tile === TILE_SPAWN) continue;
     let [x, y] = key.split(',').map(Number);
     let rx = x - ox, ry = y - oy;
@@ -5815,6 +7141,49 @@ function encodeLevelV8(customName) {
     bytes[offset++] = Math.min(255, Math.round((traj.speed || 1.5) * 10));
     bytes[offset++] = Math.min(255, traj.wait || 0);
   }
+  // 编码触发方块组
+  let triggerGroupsToEncode = [];
+  for (let g of editorTriggerGroups) {
+    let groupCells = [];
+    for (let key of g.cells) {
+      let [x, y] = key.split(',').map(Number);
+      groupCells.push({x: x - ox, y: y - oy});
+    }
+    if (groupCells.length > 0) triggerGroupsToEncode.push({name: g.name, cells: groupCells});
+  }
+  offset = writeUint16(bytes, offset, triggerGroupsToEncode.length);
+  for (let g of triggerGroupsToEncode) {
+    let nameBytes = new TextEncoder().encode(g.name);
+    bytes[offset++] = nameBytes.length;
+    for (let i = 0; i < nameBytes.length; i++) bytes[offset++] = nameBytes[i];
+    offset = writeUint16(bytes, offset, g.cells.length);
+    for (let c of g.cells) {
+      offset = writeInt16(bytes, offset, c.x);
+      offset = writeInt16(bytes, offset, c.y);
+    }
+  }
+  // 编码双重方块组
+  let dualGroupsToEncode = [];
+  for (let g of editorDualGroups) {
+    let groupCells = [];
+    for (let key of g.cells) {
+      let [x, y] = key.split(',').map(Number);
+      groupCells.push({x: x - ox, y: y - oy});
+    }
+    if (groupCells.length > 0) dualGroupsToEncode.push({name: g.name, cells: groupCells, state: g.state});
+  }
+  offset = writeUint16(bytes, offset, dualGroupsToEncode.length);
+  for (let g of dualGroupsToEncode) {
+    let nameBytes = new TextEncoder().encode(g.name);
+    bytes[offset++] = nameBytes.length;
+    for (let i = 0; i < nameBytes.length; i++) bytes[offset++] = nameBytes[i];
+    bytes[offset++] = g.state === 'solid' ? 1 : 0;
+    offset = writeUint16(bytes, offset, g.cells.length);
+    for (let c of g.cells) {
+      offset = writeInt16(bytes, offset, c.x);
+      offset = writeInt16(bytes, offset, c.y);
+    }
+  }
   return '8.' + uint8ToBase64url(bytes);
 }
 function decodeLevelV8(code) {
@@ -5839,6 +7208,7 @@ function decodeLevelV8(code) {
     let tileCount = readUint16(bytes, offset); offset += 2;
     let lands = [], spikes = [], spikeAutos = [];
     let crates = [], bouncers = [], checkpoints = [];
+    let enemySpawners = [];
     let landSet = new Set();
     for (let i = 0; i < tileCount; i++) {
       let typeCode = bytes[offset++];
@@ -5851,6 +7221,8 @@ function decodeLevelV8(code) {
       else if (tileType === TILE_CRATE) crates.push({x, y});
       else if (tileType === TILE_BOUNCER) bouncers.push({x, y});
       else if (tileType === TILE_CHECKPOINT) checkpoints.push({x, y});
+      else if (tileType === TILE_ENEMY_SPAWNER) enemySpawners.push({x, y, elite: false});
+      else if (tileType === TILE_ELITE_SPAWNER) enemySpawners.push({x, y, elite: true});
     }
     let movingPlatforms = [];
     // 先读取新版移动平台
@@ -5906,6 +7278,45 @@ function decodeLevelV8(code) {
         trajectories.push({ cells, path, speed, wait });
       }
     }
+    // 解码触发方块组（兼容旧版：可能没有此字段）
+    let triggerGroups = [];
+    if (offset + 2 <= bytes.length) {
+      let tgCount = readUint16(bytes, offset); offset += 2;
+      for (let i = 0; i < tgCount && offset < bytes.length; i++) {
+        let nameLen = bytes[offset++];
+        let nameBytes = bytes.slice(offset, offset + nameLen);
+        let name = new TextDecoder().decode(nameBytes);
+        offset += nameLen;
+        let cellCount = readUint16(bytes, offset); offset += 2;
+        let cells = [];
+        for (let j = 0; j < cellCount && offset + 4 <= bytes.length; j++) {
+          let cx = readInt16(bytes, offset); offset += 2;
+          let cy = readInt16(bytes, offset); offset += 2;
+          cells.push({x: cx, y: cy});
+        }
+        triggerGroups.push({name, cells});
+      }
+    }
+    // 解码双重方块组（兼容旧版：可能没有此字段）
+    let dualGroups = [];
+    if (offset + 2 <= bytes.length) {
+      let dgCount = readUint16(bytes, offset); offset += 2;
+      for (let i = 0; i < dgCount && offset < bytes.length; i++) {
+        let nameLen = bytes[offset++];
+        let nameBytes = bytes.slice(offset, offset + nameLen);
+        let name = new TextDecoder().decode(nameBytes);
+        offset += nameLen;
+        let state = bytes[offset++] === 1 ? 'solid' : 'hollow';
+        let cellCount = readUint16(bytes, offset); offset += 2;
+        let cells = [];
+        for (let j = 0; j < cellCount && offset + 4 <= bytes.length; j++) {
+          let cx = readInt16(bytes, offset); offset += 2;
+          let cy = readInt16(bytes, offset); offset += 2;
+          cells.push({x: cx, y: cy});
+        }
+        dualGroups.push({name, cells, state});
+      }
+    }
     let landRects = [];
     if (landSet.size > 0) {
       let landGrid = new Map();
@@ -5935,7 +7346,8 @@ function decodeLevelV8(code) {
       spawn: {x: 0, y: 0},
       portal: hasPortal ? {x: prx, y: pry} : null,
       lands: landRects, spikes, spikeAutos, crates, bouncers, checkpoints, trajectories,
-      movingPlatforms, showIndicator, showMinimap
+      movingPlatforms, enemySpawners, showIndicator, showMinimap,
+      triggerGroups, dualGroups
     };
   } catch (e) {
     console.error('V8解码错误:', e.message);
@@ -6025,50 +7437,200 @@ function decodeLevelOld(code) {
   }
 }
 function encodeLevel(customName) {
+  if (editorDualEnabled) return encodeLevelV9(customName);
   return encodeLevelV8(customName);
 }
-function decodeLevel(code) {
-  if (!code || typeof code !== 'string') return null;
-  if (code.startsWith('8.')) return decodeLevelV8(code);
-  // FIX: 支持 V7 编码（与 V8 格式相同，仅版本号不同）
-  if (code.startsWith('7.')) return decodeLevelV8(code);
-  let parts = code.split('.');
-  let ver = parts[0];
-  if (ver === '4' || ver === '5' || ver === '6' || ver === '6.1') return decodeLevelOld(code);
-  // 未知格式静默返回null，避免弹窗轰炸
-  console.error('未知编码格式，ver=' + ver + '，无法解码');
-  return null;
-}
-// FIX: 检查 editor 中是否实际放置了传送门方块
-function editorHasPortal() {
-  for (let [key, tile] of editorCells) {
-    if (tile === TILE_PORTAL) return true;
+
+// ==================== V9 编码解码系统（双世界）====================
+// 格式: 9z + base64url(RLE压缩数据)
+// raw 格式: 9.nameEncoded.flags.worldA.worldB
+// world 格式: portal!lands!spikes!spikeAutos!crates!bouncers!checkpoints!movingPlatforms!enemySpawners
+// 各部分用 ! 分隔，N 表示 null/空
+
+function simpleCompress(str) {
+  // RLE 压缩：将连续重复字符压缩为 "字符+次数"
+  let result = '';
+  let count = 1;
+  for (let i = 1; i <= str.length; i++) {
+    if (i < str.length && str[i] === str[i - 1] && count < 99) {
+      count++;
+    } else {
+      if (count > 3) {
+        result += str[i - 1] + '*' + count;
+      } else {
+        result += str[i - 1].repeat(count);
+      }
+      count = 1;
+    }
   }
-  return false;
+  return result;
 }
-function buildLevelFromEditor() {
+
+function simpleDecompress(str) {
+  // RLE 解压
+  let result = '';
+  let i = 0;
+  while (i < str.length) {
+    let char = str[i];
+    if (i + 2 < str.length && str[i + 1] === '*') {
+      let countStr = '';
+      let j = i + 2;
+      while (j < str.length && str[j] >= '0' && str[j] <= '9') {
+        countStr += str[j];
+        j++;
+      }
+      let count = parseInt(countStr) || 1;
+      result += char.repeat(count);
+      i = j;
+    } else {
+      result += char;
+      i++;
+    }
+  }
+  return result;
+}
+
+function encodeLands(lands) {
+  // 格式: x,y,w,h;x,y,w,h;...
+  if (!lands || lands.length === 0) return 'N';
+  return lands.map(r => `${r.x},${r.y},${r.w},${r.h}`).join(';');
+}
+
+function decodeLands(str) {
+  if (str === 'N' || !str) return [];
+  return str.split(';').filter(s => s).map(s => {
+    let [x, y, w, h] = s.split(',').map(Number);
+    return {x, y, w, h};
+  });
+}
+
+function encodeSpikes(spikes) {
+  // 格式: x,y;x,y;...
+  if (!spikes || spikes.length === 0) return 'N';
+  return spikes.map(s => `${s.x},${s.y}`).join(';');
+}
+
+function decodeSpikes(str) {
+  if (str === 'N' || !str) return [];
+  return str.split(';').filter(s => s).map(s => {
+    let [x, y] = s.split(',').map(Number);
+    return {x, y};
+  });
+}
+
+function encodeMovingPlatforms(mps) {
+  // 格式: cellCount!cells!pathCount!path!speed!wait!parent;...
+  if (!mps || mps.length === 0) return 'N';
+  return mps.map(mp => {
+    let cells = Array.from(mp.cells || []).join('!');
+    let path = (mp.path || []).map(p => `${p.x},${p.y}`).join('!');
+    let speed = Math.round((mp.speed || 1.5) * 10);
+    let wait = mp.wait || 0;
+    let parent = mp.parent !== null && mp.parent !== undefined ? mp.parent : -1;
+    return `${cells}@${path}@${speed}@${wait}@${parent}`;
+  }).join(';');
+}
+
+function decodeMovingPlatforms(str) {
+  if (str === 'N' || !str) return [];
+  return str.split(';').filter(s => s).map(s => {
+    let parts = s.split('@');
+    let cells = parts[0] ? parts[0].split('!').filter(c => c) : [];
+    let path = parts[1] ? parts[1].split('!').filter(p => p).map(p => {
+      let [x, y] = p.split(',').map(Number);
+      return {x, y};
+    }) : [];
+    let speed = parts[2] ? parseInt(parts[2]) / 10 : 1.5;
+    let wait = parts[3] ? parseInt(parts[3]) : 0;
+    let parent = parts[4] ? parseInt(parts[4]) : -1;
+    if (parent < 0) parent = null;
+    return {cells, path, speed, wait, parent};
+  });
+}
+
+function encodeWorld(worldData) {
+  if (!worldData) return 'N';
+  let portal = worldData.portal ? `${worldData.portal.x},${worldData.portal.y}` : 'N';
+  let lands = encodeLands(worldData.lands);
+  let spikes = encodeSpikes(worldData.spikes);
+  let spikeAutos = encodeSpikes(worldData.spikeAutos);
+  let crates = encodeSpikes(worldData.crates);
+  let bouncers = encodeSpikes(worldData.bouncers);
+  let checkpoints = encodeSpikes(worldData.checkpoints);
+  let movingPlatforms = encodeMovingPlatforms(worldData.movingPlatforms);
+  let enemySpawners = encodeSpikes(worldData.enemySpawners);
+  // 编码触发方块组和双重方块组
+  let triggerGroups = 'N';
+  if (worldData.triggerGroups && worldData.triggerGroups.length > 0) {
+    triggerGroups = worldData.triggerGroups.map(g => {
+      let cells = g.cells.map(c => `${c.x},${c.y}`).join(';');
+      return encodeURIComponent(g.name) + ':' + cells;
+    }).join('|');
+  }
+  let dualGroups = 'N';
+  if (worldData.dualGroups && worldData.dualGroups.length > 0) {
+    dualGroups = worldData.dualGroups.map(g => {
+      let cells = g.cells.map(c => `${c.x},${c.y}`).join(';');
+      return encodeURIComponent(g.name) + ':' + (g.state === 'solid' ? '1' : '0') + ':' + cells;
+    }).join('|');
+  }
+  return [portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups].join('!');
+}
+
+function encodeLevelV9(customName) {
+  console.log('encodeLevelV9 called, dualEnabled=', editorDualEnabled, 'cellsA=', editorCells.size, 'cellsB=', editorCellsB.size);
+  let name = encodeURIComponent(customName || '未命名');
+  let flags = '1' + (document.getElementById('opt-show-minimap')?.checked !== false ? '1' : '0') + '1';
+  let worldA = encodeWorld(buildWorldDataFromEditor(editorCells));
+  let worldB = encodeWorld(buildWorldDataFromEditor(editorCellsB));
+  let raw = `9.${name}.${flags}.${worldA}.${worldB}`;
+  let compressed = simpleCompress(raw);
+  return '9z' + uint8ToBase64url(new TextEncoder().encode(compressed));
+}
+
+function buildWorldDataFromEditor(cellMap) {
   let ox = editorSpawn.x, oy = editorSpawn.y;
   let lands = [], spikes = [], spikeAutos = [];
   let crates = [], bouncers = [], checkpoints = [];
-  for (let [key, tile] of editorCells) {
+  let enemySpawners = [];
+  let portal = null;
+  let grid = new Map();
+
+  for (let [key, tile] of cellMap) {
     let [x, y] = key.split(',').map(Number);
     let rx = x - ox, ry = y - oy;
     if (tile === TILE_LAND) {
-      // 陆地稍后合并
+      grid.set(rx + ',' + ry, tile);
     } else if (tile === TILE_SPIKE) spikes.push({x: rx, y: ry});
     else if (tile === TILE_SPIKE_AUTO) spikeAutos.push({x: rx, y: ry});
     else if (tile === TILE_CRATE) crates.push({x: rx, y: ry});
     else if (tile === TILE_BOUNCER) bouncers.push({x: rx, y: ry});
     else if (tile === TILE_CHECKPOINT) checkpoints.push({x: rx, y: ry});
+    else if (tile === TILE_ENEMY_SPAWNER) enemySpawners.push({x: rx, y: ry, elite: false});
+    else if (tile === TILE_ELITE_SPAWNER) enemySpawners.push({x: rx, y: ry, elite: true});
+    else if (tile === TILE_PORTAL) portal = {x: rx, y: ry};
   }
-  let grid = new Map();
-  for (let [key, tile] of editorCells) {
-    if (tile === TILE_LAND) {
+  // 收集触发方块组和双重方块组（从全局 editorTriggerGroups / editorDualGroups 筛选属于当前 cellMap 的）
+  let triggerGroups = [];
+  for (let g of editorTriggerGroups) {
+    let groupCells = [];
+    for (let key of g.cells) {
       let [x, y] = key.split(',').map(Number);
-      let rx = x - ox, ry = y - oy;
-      grid.set(rx + ',' + ry, tile);
+      if (cellMap.has(key)) groupCells.push({x: x - ox, y: y - oy});
     }
+    if (groupCells.length > 0) triggerGroups.push({name: g.name, cells: groupCells});
   }
+  let dualGroups = [];
+  for (let g of editorDualGroups) {
+    let groupCells = [];
+    for (let key of g.cells) {
+      let [x, y] = key.split(',').map(Number);
+      if (cellMap.has(key)) groupCells.push({x: x - ox, y: y - oy});
+    }
+    if (groupCells.length > 0) dualGroups.push({name: g.name, cells: groupCells, state: g.state});
+  }
+
+  // 合并陆地
   let keys = Array.from(grid.keys()).map(k => k.split(',').map(Number));
   if (keys.length > 0) {
     let minY = Math.min(...keys.map(k => k[1]));
@@ -6097,12 +7659,270 @@ function buildLevelFromEditor() {
       }
     }
   }
-  let hasPortal = editorHasPortal();
-  let prx = hasPortal ? (editorPortal.x - ox) : null;
-  let pry = hasPortal ? (editorPortal.y - oy) : null;
+
+  // 移动平台（从 editorMovingPlatforms 筛选属于当前 cellMap 的）
+  let movingPlatforms = [];
+  // 简化：V9 编码暂时不包含移动平台（需要更复杂的关联逻辑）
+  // TODO: 如果需要完整支持，需要建立 editorMovingPlatforms 与 cellMap 的关联
+
+  return { portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups };
+}
+
+function decodeLevelV9(code) {
+  try {
+    if (!code.startsWith('9z')) return null;
+    let compressed = new TextDecoder().decode(base64urlToUint8(code.substring(2)));
+    let raw = simpleDecompress(compressed);
+    let parts = raw.split('.');
+    if (parts[0] !== '9') return null;
+
+    function decodeWorld(worldStr) {
+      if (worldStr === 'N') return null;
+      let wp = worldStr.split('!');
+      let portal = wp[0] === 'N' ? null : { x: Number(wp[0].split(',')[0]), y: Number(wp[0].split(',')[1]) };
+      let lands = decodeLands(wp[1] || '');
+      let spikes = decodeSpikes(wp[2] || '');
+      let spikeAutos = decodeSpikes(wp[3] || '');
+      let crates = decodeSpikes(wp[4] || '');
+      let bouncers = decodeSpikes(wp[5] || '');
+      let checkpoints = decodeSpikes(wp[6] || '');
+      let movingPlatforms = decodeMovingPlatforms(wp[7] || '');
+      let enemySpawners = decodeSpikes(wp[8] || '').map(s => ({ ...s, elite: false }));
+      // 解码触发方块组（兼容旧版）
+      let triggerGroups = [];
+      if (wp[9] && wp[9] !== 'N') {
+        for (let gStr of wp[9].split('|')) {
+          let parts = gStr.split(':');
+          if (parts.length >= 2) {
+            let name = decodeURIComponent(parts[0]);
+            let cells = parts[1].split(';').filter(c => c).map(c => {
+              let [x, y] = c.split(',').map(Number);
+              return {x, y};
+            });
+            triggerGroups.push({name, cells});
+          }
+        }
+      }
+      // 解码双重方块组（兼容旧版）
+      let dualGroups = [];
+      if (wp[10] && wp[10] !== 'N') {
+        for (let gStr of wp[10].split('|')) {
+          let parts = gStr.split(':');
+          if (parts.length >= 3) {
+            let name = decodeURIComponent(parts[0]);
+            let state = parts[1] === '1' ? 'solid' : 'hollow';
+            let cells = parts[2].split(';').filter(c => c).map(c => {
+              let [x, y] = c.split(',').map(Number);
+              return {x, y};
+            });
+            dualGroups.push({name, cells, state});
+          }
+        }
+      }
+      return { portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups };
+    }
+
+    let name = decodeURIComponent(parts[1] || '未命名');
+    let flags = parts[2] || '110';
+    let worldA = decodeWorld(parts[3] || 'N');
+    let worldB = decodeWorld(parts[4] || 'N');
+
+    if (!worldA) return null;
+
+    return {
+      name, w: 100, h: 100, spawn: { x: 0, y: 0 },
+      portal: worldA.portal,
+      lands: worldA.lands, spikes: worldA.spikes, spikeAutos: worldA.spikeAutos,
+      crates: worldA.crates, bouncers: worldA.bouncers, checkpoints: worldA.checkpoints,
+      movingPlatforms: worldA.movingPlatforms, enemySpawners: worldA.enemySpawners,
+      showIndicator: flags[0] === '1', showMinimap: flags[1] === '1',
+      dualEnabled: flags[2] === '1',
+      worldA, worldB
+    };
+  } catch (e) { console.error('V9解码失败:', e); return null; }
+}
+
+function decodeLevel(code) {
+  if (!code || typeof code !== 'string') return null;
+  // 悦动版 v9/v10/v11/v12 编码（财神爷版）
+  let firstDot = code.indexOf('.');
+  let ver = firstDot >= 0 ? code.substring(0, firstDot) : code;
+  if (['9', '10', '11', '12'].includes(ver)) {
+    return decodeYuedongLevel(code);
+  }
+  if (code.startsWith('cs')) {
+    // 财神爷编码：去掉 cs 前缀，版本号替换为 12 以启用完整元素类型支持
+    let stripped = code.substring(2);
+    let fd = stripped.indexOf('.');
+    if (fd > 0) stripped = '12' + stripped.substring(fd);
+    return decodeYuedongLevel(stripped);
+  }
+  if (code.startsWith('9z')) return decodeLevelV9(code);
+  if (code.startsWith('8.')) return decodeLevelV8(code);
+  // FIX: 支持 V7 编码（与 V8 格式相同，仅版本号不同）
+  if (code.startsWith('7.')) return decodeLevelV8(code);
+  let parts = code.split('.');
+  ver = parts[0];
+  if (ver === '4' || ver === '5' || ver === '6' || ver === '6.1') return decodeLevelOld(code);
+  // 未知格式静默返回null，避免弹窗轰炸
+  console.error('未知编码格式，ver=' + ver + '，无法解码');
+  return null;
+}
+function decodeYuedongLevel(code) {
+  let parts = code.split('.');
+  let ver = parts[0];
+  let hasPortal = parts[1] !== '' && parts[2] !== '';
+  let prx = hasPortal ? parseInt(parts[1]) : 0;
+  let pry = hasPortal ? parseInt(parts[2]) : 0;
+  let nameEndIdx = 4;
+  for (let i = 4; i < parts.length; i++) {
+    let p = parts[i];
+    if (p.startsWith('a(') || p.startsWith('s(') || p.startsWith('c(') || p.startsWith('t(') || p.startsWith('b(') || p.startsWith('w(') || p.startsWith('d(') || p.startsWith('p(') || p.startsWith('o(') || p.startsWith('i(') || p.startsWith('z(') || p.startsWith('k(') || p.startsWith('m(') || p.startsWith('e(') || p === '') { nameEndIdx = i; break; }
+  }
+  let name = parts.slice(3, 4).join('.') || '财神爷版关卡';
+  let desc = parts[4] || '';
+  if (nameEndIdx > 4) desc = parts.slice(4, nameEndIdx).join('.') || '';
+  let remaining = parts.slice(nameEndIdx).join('.');
+  let types = ver === '12' ? ['a','s','c','t','b','w','d','p','o','i','z','k','m','e'] : ['a','s','c','t','b','w','d','p','o','i','z'];
+  let indices = [];
+  for (let t of types) { let idx = remaining.indexOf(t + '('); if (idx >= 0) indices.push({ type: t, idx }); }
+  indices.sort((a, b) => a.idx - b.idx);
+  let segments = [];
+  for (let i = 0; i < indices.length; i++) {
+    let start = indices[i].idx;
+    let end = (i < indices.length - 1) ? indices[i + 1].idx : remaining.length;
+    segments.push({ type: indices[i].type, str: remaining.substring(start, end) });
+  }
+  let lands = [], spikes = [], checkpoints = [], trampolines = [], springs = [];
+  let switches = [], doors = [], timedPlatforms = [], oneWayPlatforms = [], iceTiles = [];
+  let timeLimit = 0, crates = [], spawners = [], monsterEggs = [];
+  for (let seg of segments) {
+    if (seg.type === 'a') {
+      let m = seg.str.match(/a\((-?\d+),(-?\d+)\)/g);
+      if (m) { let ls = new Set(); for (let mm of m) { let c2 = mm.match(/a\((-?\d+),(-?\d+)\)/); if (c2) ls.add(c2[1]+','+c2[2]); }
+      let lg = new Map(); for (let k of ls) lg.set(k, 1); let proc = new Set();
+      for (let k of ls) { if (proc.has(k)) continue; let [x, y] = k.split(',').map(Number); let w = 1; while (lg.has((x+w)+','+y)) w++; let h = 1; let ce = true;
+      while (ce) { for (let dx = 0; dx < w; dx++) { if (!lg.has((x+dx)+','+(y+h))) { ce = false; break; } } if (ce) h++; }
+      for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) proc.add((x+dx)+','+(y+dy));
+      lands.push({x, y, w, h}); } }
+    } else if (seg.type === 's') { let m = seg.str.match(/s\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/s\((-?\d+),(-?\d+)\)/); if (c2) spikes.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
+    else if (seg.type === 'c') { let m = seg.str.match(/c\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/c\((-?\d+),(-?\d+)\)/); if (c2) checkpoints.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
+    else if (seg.type === 't') { let m = seg.str.match(/t\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/t\((-?\d+),(-?\d+)\)/); if (c2) trampolines.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
+    else if (seg.type === 'b') { let m = seg.str.match(/b\((-?\d+),(-?\d+),dir,([lr])\)/g); if (m) for (let mm of m) { let c2 = mm.match(/b\((-?\d+),(-?\d+),dir,([lr])\)/); if (c2) springs.push({x: parseInt(c2[1]), y: parseInt(c2[2]), dir: c2[3]}); } }
+    else if (seg.type === 'w') { let m = seg.str.match(/w\((-?\d+),(-?\d+),([rbgy])\)/g); if (m) for (let mm of m) { let c2 = mm.match(/w\((-?\d+),(-?\d+),([rbgy])\)/); if (c2) switches.push({x: parseInt(c2[1]), y: parseInt(c2[2]), color: c2[3]}); } }
+    else if (seg.type === 'd') { let m = seg.str.match(/d\((-?\d+),(-?\d+),([rbgy])\)/g); if (m) for (let mm of m) { let c2 = mm.match(/d\((-?\d+),(-?\d+),([rbgy])\)/); if (c2) doors.push({x: parseInt(c2[1]), y: parseInt(c2[2]), color: c2[3]}); } }
+    else if (seg.type === 'p') { let m = seg.str.match(/p\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/p\((-?\d+),(-?\d+)\)/); if (c2) timedPlatforms.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
+    else if (seg.type === 'o') { let m = seg.str.match(/o\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/o\((-?\d+),(-?\d+)\)/); if (c2) oneWayPlatforms.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
+    else if (seg.type === 'i') { let m = seg.str.match(/i\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/i\((-?\d+),(-?\d+)\)/); if (c2) iceTiles.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
+    else if (seg.type === 'z') { let m = seg.str.match(/z\((\d+)\)/); if (m) timeLimit = parseInt(m[1]); }
+    else if (seg.type === 'k') { let m = seg.str.match(/k\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/k\((-?\d+),(-?\d+)\)/); if (c2) crates.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
+    else if (seg.type === 'm') { let m = seg.str.match(/m\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/m\((-?\d+),(-?\d+)\)/); if (c2) spawners.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
+    else if (seg.type === 'e') { let m = seg.str.match(/e\((-?\d+),(-?\d+),(red|blue|purple|green|pink)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/e\((-?\d+),(-?\d+),(red|blue|purple|green|pink)\)/); if (c2) monsterEggs.push({x: parseInt(c2[1]), y: parseInt(c2[2]), type: c2[3]}); } }
+  }
+  return {
+    name, desc, w: 100, h: 100, spawn: {x: 0, y: 0},
+    portal: hasPortal ? {x: prx, y: pry} : null,
+    lands, spikes, checkpoints, trampolines, springs,
+    switches, doors, timedPlatforms, oneWayPlatforms, iceTiles,
+    timeLimit, crates, spawners, monsterEggs,
+    isYuedong: true
+  };
+}
+// FIX: 检查 editor 中是否实际放置了传送门方块
+function editorHasPortal() {
+  for (let [key, tile] of getEditorCells()) {
+    if (tile === TILE_PORTAL) return true;
+  }
+  return false;
+}
+function buildLevelFromEditor(cells) {
+  function _buildWorldData(cellMap) {
+    let ox = editorSpawn.x, oy = editorSpawn.y;
+    let lands = [], spikes = [], spikeAutos = [];
+    let crates = [], bouncers = [], checkpoints = [];
+    let enemySpawners = [];
+    for (let [key, tile] of cellMap) {
+      let [x, y] = key.split(',').map(Number);
+      let rx = x - ox, ry = y - oy;
+      if (tile === TILE_LAND) {
+        // 陆地稍后合并
+      } else if (tile === TILE_SPIKE) spikes.push({x: rx, y: ry});
+      else if (tile === TILE_SPIKE_AUTO) spikeAutos.push({x: rx, y: ry});
+      else if (tile === TILE_CRATE) crates.push({x: rx, y: ry});
+      else if (tile === TILE_BOUNCER) bouncers.push({x: rx, y: ry});
+      else if (tile === TILE_CHECKPOINT) checkpoints.push({x: rx, y: ry});
+      else if (tile === TILE_ENEMY_SPAWNER) enemySpawners.push({x: rx, y: ry, elite: false});
+      else if (tile === TILE_ELITE_SPAWNER) enemySpawners.push({x: rx, y: ry, elite: true});
+    }
+    let grid = new Map();
+    for (let [key, tile] of cellMap) {
+      if (tile === TILE_LAND) {
+        let [x, y] = key.split(',').map(Number);
+        let rx = x - ox, ry = y - oy;
+        grid.set(rx + ',' + ry, tile);
+      }
+    }
+    let keys = Array.from(grid.keys()).map(k => k.split(',').map(Number));
+    if (keys.length > 0) {
+      let minY = Math.min(...keys.map(k => k[1]));
+      let maxY = Math.max(...keys.map(k => k[1]));
+      for (let y = minY; y <= maxY; y++) {
+        let rowKeys = keys.filter(k => k[1] === y).map(k => k[0]).sort((a,b) => a-b);
+        if (rowKeys.length === 0) continue;
+        let startX = rowKeys[0], w = 1;
+        for (let i = 1; i < rowKeys.length; i++) {
+          if (rowKeys[i] === startX + w) w++;
+          else { lands.push({x: startX, y, w, h: 1}); startX = rowKeys[i]; w = 1; }
+        }
+        lands.push({x: startX, y, w, h: 1});
+      }
+      let merged = true;
+      while (merged) {
+        merged = false;
+        for (let i = 0; i < lands.length; i++) {
+          for (let j = i + 1; j < lands.length; j++) {
+            let a = lands[i], b = lands[j];
+            if (a.x === b.x && a.w === b.w && a.y + a.h === b.y) {
+              a.h += b.h; lands.splice(j, 1); merged = true; break;
+            }
+          }
+          if (merged) break;
+        }
+      }
+    }
+    let hasPortal = false, prx = null, pry = null;
+    for (let [key, tile] of cellMap) {
+      if (tile === TILE_PORTAL) {
+        hasPortal = true;
+        let [x, y] = key.split(',').map(Number);
+        prx = x - ox; pry = y - oy;
+        break;
+      }
+    }
+    // 收集触发方块组和双重方块组
+    let triggerGroups = [];
+    let dualGroups = [];
+    for (let group of editorTriggerGroups) {
+      let groupCells = [];
+      for (let key of group.cells) {
+        let [x, y] = key.split(',').map(Number);
+        groupCells.push({x: x - ox, y: y - oy});
+      }
+      if (groupCells.length > 0) triggerGroups.push({name: group.name, cells: groupCells});
+    }
+    for (let group of editorDualGroups) {
+      let groupCells = [];
+      for (let key of group.cells) {
+        let [x, y] = key.split(',').map(Number);
+        groupCells.push({x: x - ox, y: y - oy});
+      }
+      if (groupCells.length > 0) dualGroups.push({name: group.name, cells: groupCells, state: group.state});
+    }
+    return { lands, spikes, spikeAutos, crates, bouncers, checkpoints, enemySpawners, portal: hasPortal ? {x: prx, y: pry} : null, triggerGroups, dualGroups };
+  }
+
   const showInd = document.getElementById('opt-show-indicator') && document.getElementById('opt-show-indicator').checked;
   const showMap = document.getElementById('opt-show-minimap') && document.getElementById('opt-show-minimap').checked;
-  // 固定名字，发布页再修改
   const levelName = '自定义关卡';
   let trajectories = [];
   for (let traj of editorTrajectories) {
@@ -6112,13 +7932,37 @@ function buildLevelFromEditor() {
   for (let mp of editorMovingPlatforms) {
     movingPlatforms.push({ cells: Array.from(mp.cells), path: mp.path, speed: mp.speed || 1.5, wait: mp.wait || 0, parent: mp.parent });
   }
-  return { 
-    name: levelName, w: 100, h: 100, 
-    spawn: {x: 0, y: 0}, 
-    portal: hasPortal ? {x: prx, y: pry} : null, 
-    lands, spikes, spikeAutos, crates, bouncers, checkpoints, trajectories, movingPlatforms,
-    showIndicator: showInd !== false, showMinimap: showMap !== false
-  };
+
+  if (editorDualEnabled) {
+    let worldA = _buildWorldData(editorCells);
+    let worldB = _buildWorldData(editorCellsB);
+    return {
+      name: levelName, w: 100, h: 100,
+      spawn: {x: 0, y: 0},
+      portal: worldA.portal,
+      lands: worldA.lands, spikes: worldA.spikes, spikeAutos: worldA.spikeAutos,
+      crates: worldA.crates, bouncers: worldA.bouncers, checkpoints: worldA.checkpoints,
+      enemySpawners: worldA.enemySpawners,
+      trajectories, movingPlatforms,
+      showIndicator: showInd !== false, showMinimap: showMap !== false,
+      dualEnabled: true,
+      worldA, worldB
+    };
+  } else {
+    let useCells = cells || editorCells;
+    let worldData = _buildWorldData(useCells);
+    return {
+      name: levelName, w: 100, h: 100,
+      spawn: {x: 0, y: 0},
+      portal: worldData.portal,
+      lands: worldData.lands, spikes: worldData.spikes, spikeAutos: worldData.spikeAutos,
+      crates: worldData.crates, bouncers: worldData.bouncers, checkpoints: worldData.checkpoints,
+      enemySpawners: worldData.enemySpawners,
+      trajectories, movingPlatforms,
+      showIndicator: showInd !== false, showMinimap: showMap !== false,
+      dualEnabled: false
+    };
+  }
 }
 // FIX v7: 改进传送门检测逻辑
 function levelHasPortal(levelData) {
@@ -6275,6 +8119,14 @@ function startGame() {
   gameState = 'playing';
   var gameCanvasEl2 = document.getElementById('game-canvas');
   if (gameCanvasEl2) gameCanvasEl2.style.display = 'block';
+  enemies = []; bullets = []; slashes = []; checkpoints = [];
+  playerHp = PLAYER_MAX_HP; playerInvul = 0; playerAttackCd = 0; cameraShake = 0;
+  attackCombo = 0; comboWindow = 0; attackDash = 0;
+  battleFocus = 0; lastAttackFrame = 0;
+  currentWorld = 'A';
+  player.knockT = 0;
+  collectSpawners();
+  updateHpBar();
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('editor-screen').style.display = 'none';
   document.getElementById('lobby-screen').style.display = 'none';
@@ -6293,11 +8145,20 @@ function startGame() {
   if (isMobile) {
     document.getElementById('joystick-zone').style.display = 'block';
     document.getElementById('jump-btn').style.display = 'flex';
+    document.getElementById('attack-btn').style.display = 'flex';
     document.getElementById('desktop-hint').style.display = 'none';
   } else {
     document.getElementById('joystick-zone').style.display = 'none';
     document.getElementById('jump-btn').style.display = 'none';
+    document.getElementById('attack-btn').style.display = 'none';
     document.getElementById('desktop-hint').style.display = 'block';
+  }
+  // 切换世界按钮：双宇宙关卡才显示
+  let swBtn = document.getElementById('switch-world-btn');
+  if (currentLevel && currentLevel.dualEnabled) {
+    swBtn.style.display = 'flex';
+  } else {
+    swBtn.style.display = 'none';
   }
   // FIX: loadLevel/loadCustomLevel 已经调用过 resetPlayer(true)，
   // 这里再调用一次会导致 initCrates 二次扫描空 grid，crates 被清空
@@ -6331,6 +8192,101 @@ function closeTutorialDialog() {
   if (overlay) overlay.classList.remove('active');
 }
 document.getElementById('tutorial-dialog').addEventListener('click', closeTutorialDialog);
+// 双世界切换：判断玩家当前像素位置是否落在目标世界实心格内
+function isPlayerEmbedded(level) {
+  if (!level || !level.grid) return false;
+  const cx = Math.floor((player.x + player.w / 2) / GRID_SIZE);
+  const cy = Math.floor((player.y + player.h / 2) / GRID_SIZE);
+  if (cy < 0 || cy >= level.h || cx < 0 || cx >= level.w) return false;
+  return isSolidTile(level.grid[cy][cx]);
+}
+// 若嵌在实心格，平滑挪到最近空位（环扫取距离玩家中心最近的空位），避免瞬移到远处格子中心
+function nudgePlayerToOpenCell(level) {
+  if (!level || !level.grid) return;
+  if (!isPlayerEmbedded(level)) return; // 未嵌墙则不挪动，保持当前像素位置
+  const cx = Math.floor((player.x + player.w / 2) / GRID_SIZE);
+  const cy = Math.floor((player.y + player.h / 2) / GRID_SIZE);
+  const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2;
+  let best = null, bestDist = Infinity;
+  for (let r = 1; r <= 8; r++) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+        const x = cx + dx, y = cy + dy;
+        if (x < 0 || x >= level.w || y < 0 || y >= level.h) continue;
+        if (!isSolidTile(level.grid[y][x])) {
+          const dist = (x * GRID_SIZE + GRID_SIZE / 2 - pcx) ** 2 + (y * GRID_SIZE + GRID_SIZE / 2 - pcy) ** 2;
+          if (dist < bestDist) { bestDist = dist; best = { x, y }; }
+        }
+      }
+    }
+    if (best) break; // 最小环内已找到最近空位，无需更大范围
+  }
+  if (best) {
+    player.x = best.x * GRID_SIZE + (GRID_SIZE - player.w) / 2;
+    player.y = best.y * GRID_SIZE + (GRID_SIZE - player.h) / 2;
+  } else if (level.spawn) {
+    player.x = level.spawn.x * GRID_SIZE + 4; player.y = level.spawn.y * GRID_SIZE + 4;
+  }
+}
+function switchWorld() {
+  try {
+    if (!currentLevel || !currentLevel.dualEnabled) return;
+    if (!worldAData || !worldBData) return;
+    if (worldSwitchAnim.active) return; // 动画进行中，忽略重复点击
+    
+    // 保存当前世界状态
+    let currentData = currentWorld === 'A' ? worldAData : worldBData;
+    currentData.playerX = player.x;
+    currentData.playerY = player.y;
+    currentData.enemies = JSON.parse(JSON.stringify(enemies));
+    currentData.bullets = JSON.parse(JSON.stringify(bullets));
+    currentData.checkpoints = JSON.parse(JSON.stringify(checkpoints));
+    
+    // 确定目标世界
+    let targetWorld = currentWorld === 'A' ? 'B' : 'A';
+    let targetData = targetWorld === 'A' ? worldAData : worldBData;
+    
+    // 初始化动画 canvas
+    initSwitchAnimCanvases();
+    
+    // 1. 渲染当前世界（旧世界）到 fromCanvas
+    let realCtx = ctx;
+    ctx = worldSwitchAnim.fromCtx;
+    renderNormal();
+    ctx = realCtx;
+    
+    // 记录快照时的 camera 和玩家中心格子坐标
+    worldSwitchAnim.fromCameraX = camera.x;
+    worldSwitchAnim.fromCameraY = camera.y;
+    worldSwitchAnim.centerGridX = Math.floor((player.x + player.w / 2) / GRID_SIZE);
+    worldSwitchAnim.centerGridY = Math.floor((player.y + player.h / 2) / GRID_SIZE);
+    
+    // 2. 立即执行实际世界切换（物理层面立刻生效，玩家立刻到另一个世界）
+    currentWorld = targetWorld;
+    currentLevel = targetData.level;
+    invalidateMinimap();
+    collectSpawners();
+    enemies = targetData.enemies ? JSON.parse(JSON.stringify(targetData.enemies)) : [];
+    bullets = targetData.bullets ? JSON.parse(JSON.stringify(targetData.bullets)) : [];
+    checkpoints = targetData.checkpoints ? JSON.parse(JSON.stringify(targetData.checkpoints)) : [];
+    slashes = []; particles = [];
+    if (isPlayerEmbedded(currentLevel)) nudgePlayerToOpenCell(currentLevel);
+    player.vx = 0; player.vy = 0;
+    player.knockT = 0;
+    initCrates();
+    cameraShake = Math.max(cameraShake, 4);
+    spawnParticles(player.x + player.w/2, player.y + player.h/2, '#8B00FF', 12);
+    
+    // 3. 启动方块扩散动画
+    worldSwitchAnim.active = true;
+    worldSwitchAnim.progress = 0;
+    
+  } catch (err) {
+    console.error('切换世界错误:', err);
+    alert('切换世界错误: ' + (err.message || err));
+  }
+}
 function exitGame() {
   gameState = 'start';
   closeTutorialDialog();
@@ -6338,9 +8294,14 @@ function exitGame() {
   document.getElementById('joystick-zone').style.display = 'none';
   document.getElementById('jump-btn').style.display = 'none';
   document.getElementById('desktop-hint').style.display = 'none';
+  document.getElementById('switch-world-btn').style.display = 'none';
   document.getElementById('win-modal').style.display = 'none';
   var cleanupGameView = function() {
+    enemies = []; bullets = []; slashes = []; cameraShake = 0;
+    attackCombo = 0; comboWindow = 0; attackDash = 0;
+    battleFocus = 0; lastAttackFrame = 0;
     document.getElementById('game-ui').style.display = 'none';
+    document.getElementById('attack-btn').style.display = 'none';
     var gameCanvasEl = document.getElementById('game-canvas');
     if (gameCanvasEl) {
       gameCanvasEl.style.display = 'none';
@@ -6375,7 +8336,7 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
   if (!code) { alert(t('请输入关卡编码')); return; }
   const level = decodeLevel(code);
   if (!level) { alert(t('关卡编码无效，请检查输入')); return; }
-  editorCells.clear();
+  getEditorCells().clear();
   editorTestWon = false;
   // 关卡名统一到发布页填写，导入时不设置
   const ox = level.spawn ? level.spawn.x : 0;
@@ -6386,42 +8347,48 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
       for (let dx = 0; dx < l.w; dx++) {
         const gx = l.x + dx + ox;
         const gy = l.y + dy + oy;
-        editorCells.set(gx + ',' + gy, TILE_LAND);
+        getEditorCells().set(gx + ',' + gy, TILE_LAND);
       }
     }
   }
   for (let s of level.spikes || []) {
     const gx = s.x + ox;
     const gy = s.y + oy;
-    editorCells.set(gx + ',' + gy, TILE_SPIKE);
+    getEditorCells().set(gx + ',' + gy, TILE_SPIKE);
   }
   for (let s of level.spikeAutos || []) {
     const gx = s.x + ox;
     const gy = s.y + oy;
-    editorCells.set(gx + ',' + gy, TILE_SPIKE_AUTO);
+    getEditorCells().set(gx + ',' + gy, TILE_SPIKE_AUTO);
   }
   for (let c of level.crates || []) {
     const gx = c.x + ox;
     const gy = c.y + oy;
-    editorCells.set(gx + ',' + gy, TILE_CRATE);
+    getEditorCells().set(gx + ',' + gy, TILE_CRATE);
   }
   for (let b of level.bouncers || []) {
     const gx = b.x + ox;
     const gy = b.y + oy;
-    editorCells.set(gx + ',' + gy, TILE_BOUNCER);
+    getEditorCells().set(gx + ',' + gy, TILE_BOUNCER);
   }
   for (let c of level.checkpoints || []) {
     const gx = c.x + ox;
     const gy = c.y + oy;
-    editorCells.set(gx + ',' + gy, TILE_CHECKPOINT);
+    getEditorCells().set(gx + ',' + gy, TILE_CHECKPOINT);
   }
   if (level.portal) {
     const px = level.portal.x + ox;
     const py = level.portal.y + oy;
-    editorCells.set(px + ',' + py, TILE_PORTAL);
+    getEditorCells().set(px + ',' + py, TILE_PORTAL);
     editorPortal = { x: px, y: py };
   }
-  editorCells.set(ox + ',' + oy, TILE_SPAWN);
+  // 导入刷怪笼
+  for (let es of level.enemySpawners || []) {
+    const gx = es.x + ox;
+    const gy = es.y + oy;
+    getEditorCells().set(gx + ',' + gy, es.elite ? TILE_ELITE_SPAWNER : TILE_ENEMY_SPAWNER);
+  }
+  getEditorCells().set(ox + ',' + oy, TILE_SPAWN);
   // 导入移动平台
   editorMovingPlatforms = [];
   if (level.movingPlatforms) {
@@ -6456,7 +8423,7 @@ document.getElementById('btn-import-code').addEventListener('click', () => {
   // 调整视角到导入的关卡中心
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   let hasTiles = false;
-  for (let [key, tile] of editorCells) {
+  for (let [key, tile] of getEditorCells()) {
     let [x, y] = key.split(',').map(Number);
     if (tile !== 0) {
       minX = Math.min(minX, x); maxX = Math.max(maxX, x);
@@ -6708,6 +8675,7 @@ document.getElementById('btn-lobby').addEventListener('click', () => {
 // ==================== 游戏内按钮 ====================
 document.getElementById('btn-restart').addEventListener('click', () => { resetPlayer(false); });
 document.getElementById('btn-exit').addEventListener('click', () => { exitGame(); });
+document.getElementById('switch-world-btn').addEventListener('click', () => { switchWorld(); });
 document.getElementById('btn-next-level').addEventListener('click', () => {
   document.getElementById('win-modal').style.display = 'none';
   if (isEditorTest) {
@@ -6777,60 +8745,20 @@ function generateCardMinimap(code) {
   try {
     const level = decodeLevel(code);
     if (!level) return null;
-    const allTiles = [];
+    // 双世界：A 实心为底，B 半透明叠加；单世界则为单层
+    let mapLayers = [];
+    if (level.dualEnabled && level.worldA && level.worldB) {
+      mapLayers.push({ d: level.worldA, alpha: 1.0 });
+      mapLayers.push({ d: level.worldB, alpha: 0.4 });
+    } else {
+      mapLayers.push({ d: level, alpha: 1.0 });
+    }
+    const layerTiles = mapLayers.map(L => collectMapTiles(L.d));
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     let hasContent = false;
-    for (let l of level.lands || []) {
-      for (let dy = 0; dy < l.h; dy++) {
-        for (let dx = 0; dx < l.w; dx++) {
-          const x = l.x + dx, y = l.y + dy;
-          allTiles.push({x, y, type: 'land'});
-          minX = Math.min(minX, x); minY = Math.min(minY, y);
-          maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
-          hasContent = true;
-        }
-      }
-    }
-    for (let s of level.spikes || []) {
-      allTiles.push({x: s.x, y: s.y, type: 'spike'});
-      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
-      maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
-      hasContent = true;
-    }
-    for (let s of level.spikeAutos || []) {
-      allTiles.push({x: s.x, y: s.y, type: 'spikeAuto'});
-      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
-      maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
-      hasContent = true;
-    }
-    for (let c of level.crates || []) {
-      allTiles.push({x: c.x, y: c.y, type: 'crate'});
-      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
-      maxX = Math.max(maxX, c.x); maxY = Math.max(maxY, c.y);
-      hasContent = true;
-    }
-    for (let b of level.bouncers || []) {
-      allTiles.push({x: b.x, y: b.y, type: 'bouncer'});
-      minX = Math.min(minX, b.x); minY = Math.min(minY, b.y);
-      maxX = Math.max(maxX, b.x); maxY = Math.max(maxY, b.y);
-      hasContent = true;
-    }
-    for (let c of level.checkpoints || []) {
-      allTiles.push({x: c.x, y: c.y, type: 'checkpoint'});
-      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
-      maxX = Math.max(maxX, c.x); maxY = Math.max(maxY, c.y);
-      hasContent = true;
-    }
-    if (level.portal) {
-      allTiles.push({x: level.portal.x, y: level.portal.y, type: 'portal'});
-      minX = Math.min(minX, level.portal.x); minY = Math.min(minY, level.portal.y);
-      maxX = Math.max(maxX, level.portal.x); maxY = Math.max(maxY, level.portal.y);
-      hasContent = true;
-    }
-    if (level.spawn) {
-      allTiles.push({x: level.spawn.x, y: level.spawn.y, type: 'spawn'});
-      minX = Math.min(minX, level.spawn.x); minY = Math.min(minY, level.spawn.y);
-      maxX = Math.max(maxX, level.spawn.x); maxY = Math.max(maxY, level.spawn.y);
+    for (const tiles of layerTiles) for (const t of tiles) {
+      minX = Math.min(minX, t.x); minY = Math.min(minY, t.y);
+      maxX = Math.max(maxX, t.x); maxY = Math.max(maxY, t.y);
       hasContent = true;
     }
     if (!hasContent) return null;
@@ -6848,21 +8776,25 @@ function generateCardMinimap(code) {
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    for (let t of allTiles) {
-      const dx = (t.x - minX) * tileSize;
-      const dy = (t.y - minY) * tileSize;
-      const s = tileSize;
-      const p = Math.max(0.5, s * 0.08);
-      switch(t.type) {
-        case 'land': ctx.fillStyle = '#E1E3E6'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
-        case 'spike': ctx.fillStyle = '#FFD1D4'; ctx.beginPath(); ctx.moveTo(dx + s/2, dy + p); ctx.lineTo(dx + s - p, dy + s - p); ctx.lineTo(dx + p, dy + s - p); ctx.closePath(); ctx.fill(); break;
-        case 'spikeAuto': ctx.fillStyle = '#FF8A95'; ctx.beginPath(); ctx.moveTo(dx + s/2, dy + p); ctx.lineTo(dx + s - p, dy + s - p); ctx.lineTo(dx + p, dy + s - p); ctx.closePath(); ctx.fill(); break;
-        case 'crate': ctx.fillStyle = '#C4A77D'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
-        case 'bouncer': ctx.fillStyle = '#A0DAF7'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
-        case 'checkpoint': ctx.strokeStyle = '#B3F4A8'; ctx.lineWidth = 1; ctx.strokeRect(dx + s*0.2, dy + s*0.2, s*0.6, s*0.6); ctx.fillStyle = '#B3F4A8'; ctx.beginPath(); ctx.arc(dx + s/2, dy + s/2, s*0.12, 0, Math.PI*2); ctx.fill(); break;
-        case 'portal': ctx.fillStyle = '#F4F9A7'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
-        case 'spawn': ctx.strokeStyle = '#B3F4A8'; ctx.lineWidth = 0.5; ctx.setLineDash([2, 2]); ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2); ctx.setLineDash([]); break;
+    for (let li = 0; li < mapLayers.length; li++) {
+      ctx.globalAlpha = mapLayers[li].alpha;
+      for (let t of layerTiles[li]) {
+        const dx = (t.x - minX) * tileSize;
+        const dy = (t.y - minY) * tileSize;
+        const s = tileSize;
+        const p = Math.max(0.5, s * 0.08);
+        switch(t.type) {
+          case 'land': ctx.fillStyle = '#E1E3E6'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
+          case 'spike': ctx.fillStyle = '#FFD1D4'; ctx.beginPath(); ctx.moveTo(dx + s/2, dy + p); ctx.lineTo(dx + s - p, dy + s - p); ctx.lineTo(dx + p, dy + s - p); ctx.closePath(); ctx.fill(); break;
+          case 'spikeAuto': ctx.fillStyle = '#FF8A95'; ctx.beginPath(); ctx.moveTo(dx + s/2, dy + p); ctx.lineTo(dx + s - p, dy + s - p); ctx.lineTo(dx + p, dy + s - p); ctx.closePath(); ctx.fill(); break;
+          case 'crate': ctx.fillStyle = '#C4A77D'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
+          case 'bouncer': ctx.fillStyle = '#A0DAF7'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
+          case 'checkpoint': ctx.strokeStyle = '#B3F4A8'; ctx.lineWidth = 1; ctx.strokeRect(dx + s*0.2, dy + s*0.2, s*0.6, s*0.6); ctx.fillStyle = '#B3F4A8'; ctx.beginPath(); ctx.arc(dx + s/2, dy + s/2, s*0.12, 0, Math.PI*2); ctx.fill(); break;
+          case 'portal': ctx.fillStyle = '#F4F9A7'; ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2); break;
+          case 'spawn': ctx.strokeStyle = '#B3F4A8'; ctx.lineWidth = 0.5; ctx.setLineDash([2, 2]); ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2); ctx.setLineDash([]); break;
+        }
       }
+      ctx.globalAlpha = 1;
     }
     const url = canvas.toDataURL('image/png');
     if (code) _minimapCache[code] = url;
@@ -6934,12 +8866,14 @@ async function renderPublicLevels(filter = '') {
       }
     } catch(e) { hasPortal = false; }
     const isLiked = l.user_liked || false;
-    const isOldVersion = l.code && l.code.split('.')[0] !== '7';
+    const isYuedong = l.code && (l.code.startsWith('cs') || ['9','10','11','12'].includes(l.code.split('.')[0]));
+    const isOldVersion = l.code && !isYuedong && l.code.split('.')[0] !== '7';
     const safeCode = (l.code || '').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `
     <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-views="${l.views || 0}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/\"/g, '&quot;')}" data-author="${(l.author || '').replace(/\"/g, '&quot;')}" data-desc="${(l.description || '').replace(/\"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}">
       ${!hasPortal ? '<span class="lc-no-portal">' + t('无传送门') + '</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">' + t('旧版') + '</span>' : ''}
+      ${isYuedong ? '<span class="lc-badge" style="background:#FFDD44;color:#000;">财神爷版</span>' : ''}
       <div class="lc-minimap">${(!showMinimap) ? '<div class="lc-map-placeholder">' + t('已隐藏') + '</div>' : ((getMini(l) === '__TOO_BIG__') ? '<div class="lc-map-placeholder">' + t('地图过大') + '</div>' : '<img src="' + (getMini(l) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') + '" alt="">')}</div>
       <div class="lc-info">
         <div class="lc-name">${truncateChars(l.name || '未命名', 5)}</div>
@@ -7038,12 +8972,14 @@ async function renderMyLevels(filter = '') {
         showIndicator = decoded.showIndicator !== false;
       }
     } catch(e) { hasPortal = false; }
-    const isOldVersion = l.code && l.code.split('.')[0] !== '7';
+    const isYuedong2 = l.code && (l.code.startsWith('cs') || ['9','10','11','12'].includes(l.code.split('.')[0]));
+    const isOldVersion = l.code && !isYuedong2 && l.code.split('.')[0] !== '7';
     const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `
     <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
       ${!hasPortal ? '<span class="lc-no-portal">' + t('无传送门') + '</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">' + t('旧版') + '</span>' : ''}
+      ${isYuedong2 ? '<span class="lc-badge" style="background:#FFDD44;color:#000;">财神爷版</span>' : ''}
       <div class="lc-minimap">${(!showMinimap) ? '<div class="lc-map-placeholder">' + t('已隐藏') + '</div>' : ((generateCardMinimap(l.code) === '__TOO_BIG__') ? '<div class="lc-map-placeholder">' + t('地图过大') + '</div>' : '<img src="' + (generateCardMinimap(l.code) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') + '" alt="">')}</div>
       <div class="lc-info">
         <div class="lc-name">${truncateChars(l.name || '未命名', 5)}</div>
@@ -7156,6 +9092,24 @@ function closeDetailPage() {
   // 关闭排行榜弹窗
   ext_closeLeaderboardModal();
 }
+// 收集一个世界（单层关卡的 level，或双世界的 worldA/worldB）的所有瓦片
+function collectMapTiles(d) {
+  const all = [];
+  const push = (x, y, type) => all.push({ x, y, type });
+  for (let l of d.lands || []) {
+    for (let dy = 0; dy < l.h; dy++) {
+      for (let dx = 0; dx < l.w; dx++) push(l.x + dx, l.y + dy, 'land');
+    }
+  }
+  for (let s of d.spikes || []) push(s.x, s.y, 'spike');
+  for (let s of d.spikeAutos || []) push(s.x, s.y, 'spikeAuto');
+  for (let c of d.crates || []) push(c.x, c.y, 'crate');
+  for (let b of d.bouncers || []) push(b.x, b.y, 'bouncer');
+  for (let c of d.checkpoints || []) push(c.x, c.y, 'checkpoint');
+  if (d.portal) push(d.portal.x, d.portal.y, 'portal');
+  if (d.spawn) push(d.spawn.x, d.spawn.y, 'spawn');
+  return all;
+}
 function renderDetailMap(code, container) {
   try {
     const level = decodeLevel(code);
@@ -7167,58 +9121,18 @@ function renderDetailMap(code, container) {
     const ctx = canvas.getContext('2d');
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     let hasContent = false;
-    const allTiles = [];
-    for (let l of level.lands || []) {
-      for (let dy = 0; dy < l.h; dy++) {
-        for (let dx = 0; dx < l.w; dx++) {
-          const x = l.x + dx, y = l.y + dy;
-          allTiles.push({x, y, type: 'land'});
-          minX = Math.min(minX, x); minY = Math.min(minY, y);
-          maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
-          hasContent = true;
-        }
-      }
+    // 双世界：A 实心为底，B 半透明叠加；单世界则为单层
+    let mapLayers = [];
+    if (level.dualEnabled && level.worldA && level.worldB) {
+      mapLayers.push({ d: level.worldA, alpha: 1.0 });
+      mapLayers.push({ d: level.worldB, alpha: 0.4 });
+    } else {
+      mapLayers.push({ d: level, alpha: 1.0 });
     }
-    for (let s of level.spikes || []) {
-      allTiles.push({x: s.x, y: s.y, type: 'spike'});
-      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
-      maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
-      hasContent = true;
-    }
-    for (let s of level.spikeAutos || []) {
-      allTiles.push({x: s.x, y: s.y, type: 'spikeAuto'});
-      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
-      maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
-      hasContent = true;
-    }
-    for (let c of level.crates || []) {
-      allTiles.push({x: c.x, y: c.y, type: 'crate'});
-      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
-      maxX = Math.max(maxX, c.x); maxY = Math.max(maxY, c.y);
-      hasContent = true;
-    }
-    for (let b of level.bouncers || []) {
-      allTiles.push({x: b.x, y: b.y, type: 'bouncer'});
-      minX = Math.min(minX, b.x); minY = Math.min(minY, b.y);
-      maxX = Math.max(maxX, b.x); maxY = Math.max(maxY, b.y);
-      hasContent = true;
-    }
-    for (let c of level.checkpoints || []) {
-      allTiles.push({x: c.x, y: c.y, type: 'checkpoint'});
-      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
-      maxX = Math.max(maxX, c.x); maxY = Math.max(maxY, c.y);
-      hasContent = true;
-    }
-    if (level.portal) {
-      allTiles.push({x: level.portal.x, y: level.portal.y, type: 'portal'});
-      minX = Math.min(minX, level.portal.x); minY = Math.min(minY, level.portal.y);
-      maxX = Math.max(maxX, level.portal.x); maxY = Math.max(maxY, level.portal.y);
-      hasContent = true;
-    }
-    if (level.spawn) {
-      allTiles.push({x: level.spawn.x, y: level.spawn.y, type: 'spawn'});
-      minX = Math.min(minX, level.spawn.x); minY = Math.min(minY, level.spawn.y);
-      maxX = Math.max(maxX, level.spawn.x); maxY = Math.max(maxY, level.spawn.y);
+    const layerTiles = mapLayers.map(L => collectMapTiles(L.d));
+    for (const tiles of layerTiles) for (const t of tiles) {
+      minX = Math.min(minX, t.x); minY = Math.min(minY, t.y);
+      maxX = Math.max(maxX, t.x); maxY = Math.max(maxY, t.y);
       hasContent = true;
     }
     if (!hasContent) {
@@ -7250,72 +9164,78 @@ function renderDetailMap(code, container) {
       ctx.lineTo(canvas.width, y * tileSize);
       ctx.stroke();
     }
-    for (let t of allTiles) {
-      const dx = (t.x - minX) * tileSize;
-      const dy = (t.y - minY) * tileSize;
-      const s = tileSize;
-      const p = Math.max(1, s * 0.1);
-      switch(t.type) {
-        case 'land':
-          ctx.fillStyle = '#E1E3E6';
-          ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
-          break;
-        case 'spike':
-          ctx.fillStyle = '#FFD1D4';
-          ctx.beginPath();
-          ctx.moveTo(dx + s/2, dy + p);
-          ctx.lineTo(dx + s - p, dy + s - p);
-          ctx.lineTo(dx + p, dy + s - p);
-          ctx.closePath();
-          ctx.fill();
-          break;
-        case 'spikeAuto':
-          ctx.fillStyle = '#FF8A95';
-          ctx.beginPath();
-          ctx.moveTo(dx + s/2, dy + p);
-          ctx.lineTo(dx + s - p, dy + s - p);
-          ctx.lineTo(dx + p, dy + s - p);
-          ctx.closePath();
-          ctx.fill();
-          break;
-        case 'crate':
-          ctx.fillStyle = '#C4A77D';
-          ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
-          ctx.strokeStyle = '#8B7355';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
-          break;
-        case 'bouncer':
-          ctx.fillStyle = '#A0DAF7';
-          ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
-          ctx.strokeStyle = '#00F6FF';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
-          break;
-        case 'checkpoint':
-          ctx.strokeStyle = '#B3F4A8';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(dx + s*0.2, dy + s*0.2, s*0.6, s*0.6);
-          ctx.fillStyle = '#B3F4A8';
-          ctx.beginPath();
-          ctx.arc(dx + s/2, dy + s/2, s*0.15, 0, Math.PI*2);
-          ctx.fill();
-          break;
-        case 'portal':
-          ctx.fillStyle = '#F4F9A7';
-          ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
-          ctx.strokeStyle = '#F4F9A7';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
-          break;
-        case 'spawn':
-          ctx.strokeStyle = '#B3F4A8';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([3, 3]);
-          ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
-          ctx.setLineDash([]);
-          break;
+    for (let li = 0; li < mapLayers.length; li++) {
+      const alpha = mapLayers[li].alpha;
+      const tiles = layerTiles[li];
+      ctx.globalAlpha = alpha;
+      for (let t of tiles) {
+        const dx = (t.x - minX) * tileSize;
+        const dy = (t.y - minY) * tileSize;
+        const s = tileSize;
+        const p = Math.max(1, s * 0.1);
+        switch(t.type) {
+          case 'land':
+            ctx.fillStyle = '#E1E3E6';
+            ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
+            break;
+          case 'spike':
+            ctx.fillStyle = '#FFD1D4';
+            ctx.beginPath();
+            ctx.moveTo(dx + s/2, dy + p);
+            ctx.lineTo(dx + s - p, dy + s - p);
+            ctx.lineTo(dx + p, dy + s - p);
+            ctx.closePath();
+            ctx.fill();
+            break;
+          case 'spikeAuto':
+            ctx.fillStyle = '#FF8A95';
+            ctx.beginPath();
+            ctx.moveTo(dx + s/2, dy + p);
+            ctx.lineTo(dx + s - p, dy + s - p);
+            ctx.lineTo(dx + p, dy + s - p);
+            ctx.closePath();
+            ctx.fill();
+            break;
+          case 'crate':
+            ctx.fillStyle = '#C4A77D';
+            ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
+            ctx.strokeStyle = '#8B7355';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
+            break;
+          case 'bouncer':
+            ctx.fillStyle = '#A0DAF7';
+            ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
+            ctx.strokeStyle = '#00F6FF';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
+            break;
+          case 'checkpoint':
+            ctx.strokeStyle = '#B3F4A8';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(dx + s*0.2, dy + s*0.2, s*0.6, s*0.6);
+            ctx.fillStyle = '#B3F4A8';
+            ctx.beginPath();
+            ctx.arc(dx + s/2, dy + s/2, s*0.15, 0, Math.PI*2);
+            ctx.fill();
+            break;
+          case 'portal':
+            ctx.fillStyle = '#F4F9A7';
+            ctx.fillRect(dx + p, dy + p, s - p*2, s - p*2);
+            ctx.strokeStyle = '#F4F9A7';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
+            break;
+          case 'spawn':
+            ctx.strokeStyle = '#B3F4A8';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.strokeRect(dx + p, dy + p, s - p*2, s - p*2);
+            ctx.setLineDash([]);
+            break;
+        }
       }
+      ctx.globalAlpha = 1;
     }
     container.innerHTML = '';
     container.appendChild(canvas);
@@ -8726,51 +10646,327 @@ console.log('精彩回放系统加载完成');
     });
   }
 })();
-</script>
-</body>
-</html>��统加载完成');
-};
-</script>
-</body>
-</html>ctx.globalAlpha = pp.life;
-    rctx.fillStyle = pp.color;
-    rctx.fillRect(pp.x - pp.size/2, pp.y - pp.size/2, pp.size, pp.size);
-  }
-  rctx.globalAlpha = 1;
-  rctx.restore();
-  // ---------- 进度条（只读展示，不可拖动） ----------
-  var pct = ext2_replayTotalMs > 0 ? Math.min(100, elapsed / ext2_replayTotalMs * 100) : 100;
-  document.getElementById('replay-progress-bar').style.width = pct + '%';
-  // ---------- 播放结束：完整播完后自动返回 ----------
-  if (st.done && !ext2_replayFinished) {
-    ext2_replayFinished = true;
-    document.getElementById('replay-end-tip').classList.add('show');
-    ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, '#F4F9A7', 30);
-    ext2_replayEndTimer = setTimeout(ext2_closeReplay, 3000);
-  }
-  requestAnimationFrame(ext2_replayLoop);
+// ==================== 敌人与战斗系统 ====================
+var enemies = [], bullets = [], slashes = [];
+var checkpoints = [];
+var SLASH_PATHS_1 = [
+  new Path2D('M 352.4300 234.1200 C 352.4300 235.3787, 352.4802 239.8352, 352.4300 241.6720 C 352.3798 243.5088, 352.3183 243.3603, 352.1290 245.1410 C 351.9397 246.9217, 351.7877 248.7995, 351.2940 252.3560 C 350.8003 255.9125, 350.4910 261.0710, 349.1670 266.4800 C 347.8430 271.8890, 344.9062 280.1917, 343.3500 284.8100 C 341.7938 289.4283, 340.9323 291.5275, 339.8300 294.1900 C 338.7277 296.8525, 337.3952 299.0977, 336.7360 300.7850 C 336.0768 302.4723, 336.3232 302.9910, 335.8750 304.3140 C 335.4268 305.6370, 334.8375 307.2452, 334.0470 308.7230 C 333.2565 310.2008, 332.2112 311.0810, 331.1320 313.1810 C 330.0528 315.2810, 329.0312 318.9295, 327.5720 321.3230 C 326.1128 323.7165, 323.7413 326.0240, 322.3770 327.5420 C 321.0127 329.0600, 320.7953 328.6465, 319.3860 330.4310 C 317.9767 332.2155, 315.3438 335.6532, 313.9210 338.2490 C 312.4982 340.8448, 311.6838 344.3532, 310.8490 346.0060 C 310.0142 347.6588, 309.6370 347.5105, 308.9120 348.1660 C 308.1870 348.8215, 307.5120 348.9555, 306.4990 349.9390 C 305.4860 350.9225, 304.3837 352.5753, 302.8340 354.0670 C 301.2843 355.5587, 299.4550 356.8393, 297.2010 358.8890 C 294.9470 360.9387, 290.8483 364.6903, 289.3100 366.3650 C 287.7717 368.0397, 288.4955 368.0678, 287.9710 368.9370 C 287.4465 369.8062, 286.8483 370.7800, 286.1630 371.5800 C 285.4777 372.3800, 284.5138 373.1975, 283.8590 373.7370 C 283.2042 374.2765, 284.0020 373.8320, 282.2340 374.8170 C 280.4660 375.8020, 276.1223 378.0457, 273.2510 379.6470 C 270.3797 381.2483, 266.3802 383.6287, 265.0060 384.4250'),
+  new Path2D('M 266.1780 384.6200 C 267.4757 384.4827, 266.6622 385.3032, 273.9640 383.7960 C 281.2658 382.2888, 301.9010 377.6183, 309.9890 375.5770 C 318.0770 373.5357, 318.3652 373.0083, 322.4920 371.5480 C 326.6188 370.0877, 330.6443 368.4613, 334.7500 366.8150 C 338.8557 365.1687, 343.0908 363.2167, 347.1260 361.6700 C 351.1612 360.1233, 354.8250 359.0652, 358.9610 357.5350 C 363.0970 356.0048, 367.4320 354.5298, 371.9420 352.4890 C 376.4520 350.4482, 381.7185 347.7882, 386.0210 345.2900 C 390.3235 342.7918, 393.4400 339.9882, 397.7570 337.5000 C 402.0740 335.0118, 407.6643 332.4400, 411.9230 330.3610 C 416.1817 328.2820, 419.3762 327.1757, 423.3090 325.0260 C 427.2418 322.8763, 431.6525 319.9895, 435.5200 317.4630 C 439.3875 314.9365, 442.7482 312.2943, 446.5140 309.8670 C 450.2798 307.4397, 454.2192 305.5275, 458.1150 302.8990 C 462.0108 300.2705, 466.3397 296.9415, 469.8890 294.0960 C 473.4383 291.2505, 475.8940 289.1978, 479.4110 285.8260 C 482.9280 282.4542, 486.4823 279.6992, 490.9910 273.8650 C 495.4997 268.0308, 502.4185 256.4438, 506.4630 250.8210 C 510.5075 245.1982, 512.7212 243.3010, 515.2580 240.1280 C 517.7948 236.9550, 519.3678 234.6300, 521.6840 231.7830 C 524.0002 228.9360, 526.3728 226.0048, 529.1550 223.0460 C 531.9372 220.0872, 535.2217 217.4095, 538.3770 214.0300 C 541.5323 210.6505, 545.1668 206.7815, 548.0870 202.7690 C 551.0072 198.7565, 554.5962 192.0907, 555.8980 189.9550'),
+  new Path2D('M 547.2040 181.2690 C 546.2857 181.2690, 544.7672 181.9355, 541.6940 181.2690 C 538.6208 180.6025, 532.2207 178.5362, 528.7650 177.2700 C 525.3093 176.0038, 523.5998 174.9540, 520.9600 173.6720 C 518.3202 172.3900, 515.4650 170.9390, 512.9260 169.5780 C 510.3870 168.2170, 508.3618 166.6387, 505.7260 165.5060 C 503.0902 164.3733, 499.9998 163.6150, 497.1110 162.7820 C 494.2222 161.9490, 491.1487 161.5772, 488.3930 160.5080 C 485.6373 159.4388, 487.6205 157.9948, 480.5770 156.3670 C 473.5335 154.7392, 454.2783 151.8853, 446.1320 150.7410 C 437.9857 149.5967, 438.0400 149.8720, 431.6990 149.5010 C 425.3580 149.1300, 415.2593 148.9382, 408.0860 148.5150 C 400.9127 148.0918, 394.3462 147.2533, 388.6590 146.9620 C 382.9718 146.6707, 380.9600 146.7152, 373.9630 146.7670 C 366.9660 146.8188, 353.9403 146.8398, 346.6770 147.2730 C 339.4137 147.7062, 335.5135 148.6213, 330.3830 149.3660 C 325.2525 150.1107, 320.8783 151.1738, 315.8940 151.7410 C 310.9097 152.3082, 305.0773 152.3813, 300.4770 152.7690 C 295.8767 153.1567, 293.0333 153.0457, 288.2920 154.0670 C 283.5507 155.0883, 280.2878 156.6788, 272.0290 158.8970 C 263.7702 161.1152, 250.9698 163.8075, 238.7390 167.3760 C 226.5082 170.9445, 209.8380 176.2032, 198.6440 180.3080 C 187.4500 184.4128, 176.0865 190.0555, 171.5750 192.0050'),
+  new Path2D('M 165.2750 201.2770 C 166.2295 200.4978, 169.4598 197.6938, 171.0020 196.6020 C 172.5442 195.5102, 170.0458 196.2077, 174.5280 194.7260 C 179.0102 193.2443, 193.1123 188.9545, 197.8950 187.7120 C 202.6777 186.4695, 201.4375 187.4907, 203.2240 187.2710 C 205.0105 187.0513, 206.4852 186.5567, 208.6140 186.3940 C 210.7428 186.2313, 213.6370 186.4430, 215.9970 186.2950 C 218.3570 186.1470, 220.5913 186.3098, 222.7740 185.5060 C 224.9567 184.7022, 227.0407 182.4723, 229.0930 181.4720 C 231.1453 180.4717, 232.8023 179.8885, 235.0880 179.5040 C 237.3737 179.1195, 239.4730 179.5460, 242.8070 179.1650 C 246.1410 178.7840, 250.8675 178.0820, 255.0920 177.2180 C 259.3165 176.3540, 265.2180 174.7528, 268.1540 173.9810 C 271.0900 173.2092, 269.6218 173.2933, 272.7080 172.5870 C 275.7942 171.8807, 283.5448 170.2477, 286.6710 169.7430 C 289.7972 169.2383, 289.8998 169.7280, 291.4650 169.5590 C 293.0302 169.3900, 294.8515 169.0058, 296.0620 168.7290 C 297.2725 168.4522, 297.5293 168.1105, 298.7280 167.8980 C 299.9267 167.6855, 299.6033 167.9502, 303.2540 167.4540 C 306.9047 166.9578, 317.2792 165.3677, 320.6320 164.9210 C 323.9848 164.4743, 321.4860 164.7985, 323.3710 164.7740 C 325.2560 164.7495, 329.6998 164.6607, 331.9420 164.7740 C 334.1842 164.8873, 335.0788 165.2750, 336.8240 165.4540 C 338.5692 165.6330, 340.2032 165.7662, 342.4130 165.8480 C 344.6228 165.9298, 345.8378 165.6533, 350.0830 165.9450 C 354.3282 166.2367, 364.3632 167.2385, 367.8840 167.5980 C 371.4048 167.9575, 370.1235 167.8658, 371.2080 168.1020 C 372.2925 168.3382, 373.1587 168.7240, 374.3910 169.0150 C 375.6233 169.3060, 376.9402 169.4327, 378.6020 169.8480 C 380.2638 170.2633, 381.6360 170.9135, 384.3620 171.5070 C 387.0880 172.1005, 391.7605 172.7510, 394.9580 173.4090 C 398.1555 174.0670, 401.3492 174.8848, 403.5470 175.4550 C 405.7448 176.0252, 406.8155 176.5280, 408.1450 176.8300 C 409.4745 177.1320, 410.3898 177.1858, 411.5240 177.2670 C 412.6582 177.3482, 413.4163 177.0552, 414.9500 177.3170 C 416.4837 177.5788, 417.8812 177.7497, 420.7260 178.8380 C 423.5708 179.9263, 427.8793 182.2383, 432.0190 183.8470 C 436.1587 185.4557, 441.9275 186.9660, 445.5640 188.4900 C 449.2005 190.0140, 452.2745 192.0962, 453.8380 192.9910 C 455.4015 193.8858, 454.7605 193.7143, 454.9450 193.8590'),
+  new Path2D('M 457.5330 195.3720 C 457.3652 195.7478, 456.8667 197.0343, 456.5260 197.6270 C 456.1853 198.2197, 456.0288 198.3852, 455.4890 198.9280 C 454.9492 199.4708, 454.0478 199.9603, 453.2870 200.8840 C 452.5262 201.8077, 451.5550 203.6037, 450.9240 204.4700 C 450.2930 205.3363, 450.1100 205.5480, 449.5010 206.0820 C 448.8920 206.6160, 449.0003 206.6283, 447.2700 207.6740 C 445.5397 208.7197, 441.4768 210.8802, 439.1190 212.3560 C 436.7612 213.8318, 434.6905 215.5255, 433.1230 216.5290 C 431.5555 217.5325, 431.2188 217.5773, 429.7140 218.3770 C 428.2092 219.1767, 426.1897 220.4028, 424.0940 221.3270 C 421.9983 222.2512, 419.1575 223.1793, 417.1400 223.9220 C 415.1225 224.6647, 413.3237 225.3522, 411.9890 225.7830 C 410.6543 226.2138, 412.6012 226.3783, 409.1320 226.5070 C 405.6628 226.6357, 394.6312 226.5117, 391.1740 226.5550 C 387.7168 226.5983, 389.9875 226.0915, 388.3890 226.7670 C 386.7905 227.4425, 383.6888 229.5547, 381.5830 230.6080 C 379.4772 231.6613, 377.3658 232.5993, 375.7540 233.0870 C 374.1422 233.5747, 375.1400 233.4595, 371.9120 233.5340 C 368.6840 233.6085, 360.4145 233.2412, 356.3860 233.5340 C 352.3575 233.8268, 349.1818 234.9982, 347.7410 235.2910')
+];
+var SLASH_PATHS_2 = [
+  new Path2D('M 163.5660 141.9360 C 166.6560 142.6628, 174.0970 144.7448, 182.1060 146.2970 C 190.1150 147.8492, 204.1442 150.3275, 211.6200 151.2490 C 219.0958 152.1705, 219.0765 149.7683, 226.9610 151.8260 C 234.8455 153.8837, 251.1217 160.4595, 258.9270 163.5950 C 266.7323 166.7305, 268.8283 168.0433, 273.7930 170.6390 C 278.7577 173.2347, 284.0637 176.3213, 288.7150 179.1690 C 293.3663 182.0167, 292.6235 181.5222, 301.7010 187.7250 C 310.7785 193.9278, 332.6727 208.9075, 343.1800 216.3860 C 353.6873 223.8645, 358.2510 227.5135, 364.7450 232.5960 C 371.2390 237.6785, 377.4557 243.3240, 382.1440 246.8810 C 386.8323 250.4380, 389.8190 251.4263, 392.8750 253.9380 C 395.9310 256.4497, 398.0765 259.2397, 400.4800 261.9510 C 402.8835 264.6623, 404.9288 267.5492, 407.2960 270.2060 C 409.6632 272.8628, 412.4048 275.1878, 414.6830 277.8920 C 416.9612 280.5962, 419.0948 283.6258, 420.9650 286.4310 C 422.8352 289.2362, 424.2290 292.0258, 425.9040 294.7230 C 427.5790 297.4202, 428.5132 298.2727, 431.0150 302.6140 C 433.5168 306.9553, 438.5692 316.6655, 440.9150 320.7710 C 443.2608 324.8765, 443.9178 325.1302, 445.0900 327.2470 C 446.2622 329.3638, 447.1913 330.3312, 447.9480 333.4720 C 448.7047 336.6128, 449.0388 343.3107, 449.6300 346.0920 C 450.2212 348.8733, 450.6255 347.9270, 451.4950 350.1600 C 452.3645 352.3930, 454.2883 357.2212, 454.8470 359.4900 C 455.4057 361.7588, 455.0423 362.5702, 454.8470 363.7730 C 454.6517 364.9758, 453.8703 365.9308, 453.6750 366.7070 C 453.4797 367.4832, 454.2537 367.1587, 453.6750 368.4300 C 453.0963 369.7013, 450.7972 372.2467, 450.2030 374.3350 C 449.6088 376.4233, 450.1255 379.8558, 450.1100 380.9600'),
+  new Path2D('M 432.9180 382.3750 C 435.5348 382.3750, 444.0213 382.4968, 448.6190 382.3750 C 453.2167 382.2532, 456.9042 382.0452, 460.5040 381.6440 C 464.1038 381.2428, 463.7088 380.8222, 470.2180 379.9680 C 476.7272 379.1138, 491.0802 377.8040, 499.5590 376.5190 C 508.0378 375.2340, 515.7538 373.2033, 521.0910 372.2580 C 526.4282 371.3127, 528.1607 371.4692, 531.5820 370.8470 C 535.0033 370.2248, 538.3600 369.4530, 541.6190 368.5250 C 544.8780 367.5970, 547.5292 366.2070, 551.1360 365.2790 C 554.7428 364.3510, 559.3998 364.2593, 563.2600 362.9570 C 567.1202 361.6547, 570.2628 359.0988, 574.2970 357.4650 C 578.3312 355.8312, 583.5818 354.6338, 587.4650 353.1540 C 591.3482 351.6742, 591.9817 351.4387, 597.5960 348.5860 C 603.2103 345.7333, 615.0247 338.8962, 621.1510 336.0380 C 627.2773 333.1798, 630.5482 332.8632, 634.3540 331.4370 C 638.1598 330.0108, 641.1332 328.7207, 643.9860 327.4810 C 646.8388 326.2413, 648.8242 325.4632, 651.4710 323.9990 C 654.1178 322.5348, 654.2733 322.9388, 659.8670 318.6960 C 665.4607 314.4532, 679.4230 303.1908, 685.0330 298.5420 C 690.6430 293.8932, 690.9958 293.1952, 693.5270 290.8030 C 696.0582 288.4108, 699.1045 285.2913, 700.2200 284.1890'),
+  new Path2D('M 703.4920 285.7020 C 701.4902 283.7992, 694.5425 277.1415, 691.4810 274.2850 C 688.4195 271.4285, 686.9570 270.3037, 685.1230 268.5630 C 683.2890 266.8223, 682.1633 265.2967, 680.4770 263.8410 C 678.7907 262.3853, 677.1200 261.2603, 675.0050 259.8290 C 672.8900 258.3977, 670.1878 256.4725, 667.7870 255.2530 C 665.3862 254.0335, 663.7995 254.1582, 660.6000 252.5120 C 657.4005 250.8658, 653.0833 247.8780, 648.5900 245.3760 C 644.0967 242.8740, 637.2283 239.4347, 633.6400 237.5000 C 630.0517 235.5653, 629.2570 235.0825, 627.0600 233.7680 C 624.8630 232.4535, 622.9253 231.0962, 620.4580 229.6130 C 617.9907 228.1298, 614.7808 226.5353, 612.2560 224.8690 C 609.7312 223.2027, 607.7582 221.3027, 605.3090 219.6150 C 602.8598 217.9273, 600.3437 216.1867, 597.5610 214.7430 C 594.7783 213.2993, 591.4580 212.3808, 588.6130 210.9530 C 585.7680 209.5252, 583.4067 207.6365, 580.4910 206.1760 C 577.5753 204.7155, 574.4118 203.6503, 571.1190 202.1900 C 567.8262 200.7297, 565.9030 199.6207, 560.7340 197.4140 C 555.5650 195.2073, 544.9003 190.8418, 540.1050 188.9500 C 535.3097 187.0582, 534.8498 187.2395, 531.9620 186.0630 C 529.0742 184.8865, 525.8088 182.9897, 522.7780 181.8910 C 519.7472 180.7923, 516.7680 180.3303, 513.7770 179.4710 C 510.7860 178.6117, 510.5423 178.9472, 504.8320 176.7350 C 499.1217 174.5228, 485.2440 168.5112, 479.5150 166.1980 C 473.7860 163.8848, 473.3032 163.7462, 470.4580 162.8560 C 467.6128 161.9658, 465.1095 161.9338, 462.4440 160.8570 C 459.7785 159.7802, 458.4473 157.8927, 454.4650 156.3950 C 450.4827 154.8973, 446.6507 154.4435, 438.5500 151.8710 C 430.4493 149.2985, 412.9530 143.2077, 405.8610 140.9600 C 398.7690 138.7123, 399.1110 139.0280, 395.9980 138.3850 C 392.8850 137.7420, 390.2863 138.0547, 387.1830 137.1020 C 384.0797 136.1493, 380.6858 133.7988, 377.3780 132.6690 C 374.0702 131.5392, 370.5275 130.7550, 367.3360 130.3230 C 364.1445 129.8910, 364.2980 130.1260, 358.2290 130.0770 C 352.1600 130.0280, 338.9765 130.2648, 330.9220 130.0290 C 322.8675 129.7932, 316.7582 128.8898, 309.9020 128.6620 C 303.0458 128.4342, 295.5783 128.5645, 289.7850 128.6620 C 283.9917 128.7595, 287.1115 129.1495, 275.1420 129.2470 C 263.1725 129.3445, 228.5875 128.9132, 217.9680 129.2470 C 207.3485 129.5808, 213.1958 130.5597, 211.4250 131.2500 C 209.6542 131.9403, 208.9623 132.7070, 207.3430 133.3890 C 205.7237 134.0710, 204.2062 134.9413, 201.7090 135.3420 C 199.2118 135.7427, 195.7952 135.4855, 192.3600 135.7930 C 188.9248 136.1005, 185.1217 136.4323, 181.0980 137.1870 C 177.0743 137.9417, 174.1600 138.6105, 168.2180 140.3210 C 162.2760 142.0315, 149.2413 146.2618, 145.4460 147.4500')
+];
+var SLASH_PATHS_3 = [
+  new Path2D('M 117.5090 94.7950 C 125.2550 94.7623, 149.8055 94.2687, 163.9850 94.5990 C 178.1645 94.9293, 189.6378 95.3370, 202.5860 96.7770 C 215.5342 98.2170, 231.7607 101.8370, 241.6740 103.2390 C 251.5873 104.6410, 252.4540 103.2302, 262.0660 105.1890 C 271.6780 107.1478, 289.8755 112.3168, 299.3460 114.9920 C 308.8165 117.6672, 309.8983 118.1608, 318.8890 121.2400 C 327.8797 124.3192, 344.6712 130.2467, 353.2900 133.4670 C 361.9088 136.6873, 361.9353 136.7083, 370.6020 140.5620 C 379.2687 144.4157, 393.8235 150.7682, 405.2900 156.5890 C 416.7565 162.4098, 426.2698 166.7592, 439.4010 175.4870 C 452.5322 184.2148, 472.8270 200.0800, 484.0770 208.9560 C 495.3270 217.8320, 497.5260 219.7558, 506.9010 228.7430 C 516.2760 237.7302, 534.0463 256.1848, 540.3270 262.8790 C 546.6077 269.5732, 543.1052 265.8607, 544.5850 268.9080 C 546.0648 271.9553, 548.4358 279.1205, 549.2060 281.1630'),
+  new Path2D('M 543.2970 284.8720 C 541.6743 288.3122, 535.6225 299.8202, 533.5610 305.5130 C 531.4995 311.2058, 532.2683 314.8807, 530.9280 319.0290 C 529.5877 323.1773, 527.2345 325.8080, 525.5190 330.4030 C 523.8035 334.9980, 523.9075 339.3215, 520.6350 346.5990 C 517.3625 353.8765, 511.7750 365.2613, 505.8840 374.0680 C 499.9930 382.8747, 492.8957 390.7230, 485.2890 399.4390 C 477.6823 408.1550, 468.5157 418.3355, 460.2440 426.3640 C 451.9723 434.3925, 440.5775 443.5962, 435.6590 447.6100 C 430.7405 451.6238, 433.0763 449.5270, 430.7330 450.4470 C 428.3897 451.3670, 424.8645 451.7840, 421.5990 453.1300 C 418.3335 454.4760, 416.0570 456.2617, 411.1400 458.5230 C 406.2230 460.7843, 395.6753 465.1210, 392.0970 466.6980 C 388.5187 468.2750, 391.0810 466.8497, 389.6700 467.9850 C 388.2590 469.1203, 385.6617 472.0567, 383.6310 473.5100 C 381.6003 474.9633, 380.6560 475.9430, 377.4860 476.7050 C 374.3160 477.4670, 367.7732 477.0140, 364.6110 478.0820 C 361.4488 479.1500, 359.9323 482.0982, 358.5130 483.1130 C 357.0937 484.1278, 359.2933 483.6520, 356.0950 484.1710 C 352.8967 484.6900, 342.8073 485.3565, 339.3230 486.2270 C 335.8387 487.0975, 335.8780 488.8662, 335.1890 489.3940'),
+  new Path2D('M 136.5080 343.9200 C 137.6083 344.3970, 140.7815 345.9603, 143.1100 346.7820 C 145.4385 347.6037, 147.1417 347.4313, 150.4790 348.8500 C 153.8163 350.2687, 158.7727 353.4037, 163.1340 355.2940 C 167.4953 357.1843, 170.6895 357.1872, 176.6470 360.1920 C 182.6045 363.1968, 194.2793 370.8135, 198.8790 373.3230 C 203.4787 375.8325, 200.2593 373.3873, 204.2450 375.2490 C 208.2307 377.1107, 218.8538 382.4015, 222.7930 384.4930 C 226.7322 386.5845, 226.1877 386.6098, 227.8800 387.7980 C 229.5723 388.9862, 231.3405 390.2158, 232.9470 391.6220 C 234.5535 393.0282, 235.1848 394.5975, 237.5190 396.2350 C 239.8532 397.8725, 243.4320 399.0063, 246.9520 401.4470 C 250.4720 403.8877, 254.7180 407.4612, 258.6390 410.8790 C 262.5600 414.2968, 264.6352 417.5245, 270.4780 421.9540 C 276.3208 426.3835, 287.9460 433.1625, 293.6960 437.4560 C 299.4460 441.7495, 300.4237 444.3488, 304.9780 447.7150 C 309.5323 451.0812, 316.7785 454.3487, 321.0220 457.6530 C 325.2655 460.9573, 328.0335 464.6510, 330.4390 467.5410 C 332.8445 470.4310, 333.2355 472.5600, 335.4550 474.9930 C 337.6745 477.4260, 341.1058 480.0478, 343.7560 482.1390 C 346.4062 484.2302, 350.0893 486.6398, 351.3560 487.5400'),
+  new Path2D('M 160.2440 342.9440 C 160.9592 342.4602, 162.8770 340.8865, 164.5350 340.0410 C 166.1930 339.1955, 166.1368 338.4527, 170.1920 337.8710 C 174.2472 337.2893, 182.4932 337.2015, 188.8660 336.5510 C 195.2388 335.9005, 203.0272 334.4478, 208.4290 333.9680 C 213.8308 333.4882, 217.4657 334.0950, 221.2770 333.6720 C 225.0883 333.2490, 227.8207 332.4237, 231.2970 331.4300 C 234.7733 330.4363, 238.7675 328.5507, 242.1350 327.7100 C 245.5025 326.8693, 248.5688 326.9622, 251.5020 326.3860 C 254.4352 325.8098, 256.8373 325.0938, 259.7340 324.2530 C 262.6307 323.4122, 264.1667 323.3752, 268.8820 321.3410 C 273.5973 319.3068, 283.1388 314.2058, 288.0260 312.0480 C 292.9132 309.8902, 296.0643 309.0473, 298.2050 308.3940 C 300.3457 307.7407, 298.7820 309.1897, 300.8700 308.1280 C 302.9580 307.0663, 307.3142 303.2980, 310.7330 302.0240 C 314.1518 300.7500, 317.9712 301.3275, 321.3830 300.4840 C 324.7948 299.6405, 327.6312 298.4732, 331.2040 296.9630 C 334.7768 295.4528, 337.2308 294.5525, 342.8200 291.4230 C 348.4092 288.2935, 360.2087 280.6872, 364.7390 278.1860 C 369.2693 275.6848, 367.6035 277.5340, 370.0020 276.4160 C 372.4005 275.2980, 376.0438 273.6453, 379.1300 271.4780 C 382.2162 269.3107, 385.7042 265.4415, 388.5190 263.4120 C 391.3338 261.3825, 393.9907 260.8513, 396.0190 259.3010 C 398.0473 257.7507, 398.9925 255.4677, 400.6890 254.1100 C 402.3855 252.7523, 403.5695 253.7547, 406.1980 251.1550 C 408.8265 248.5553, 413.8397 241.4060, 416.4600 238.5120 C 419.0803 235.6180, 418.7862 237.7845, 421.9200 233.7910 C 425.0538 229.7975, 433.0392 217.7577, 435.2630 214.5510'),
+  new Path2D('M 443.1260 210.6950 C 442.0982 209.8558, 441.0908 208.3862, 436.9590 205.6600 C 432.8272 202.9338, 422.4175 197.1738, 418.3350 194.3380 C 414.2525 191.5022, 414.1418 189.9875, 412.4640 188.6450 C 410.7862 187.3025, 409.6472 187.3308, 408.2680 186.2830 C 406.8888 185.2352, 405.6637 183.4072, 404.1890 182.3580 C 402.7143 181.3088, 401.9075 180.9497, 399.4200 179.9880 C 396.9325 179.0263, 395.3963 179.4113, 389.2640 176.5880 C 383.1317 173.7647, 368.0785 165.6090, 362.6260 163.0480 C 357.1735 160.4870, 358.7130 162.1383, 356.5490 161.2220 C 354.3850 160.3057, 353.4708 159.1833, 349.6420 157.5500 C 345.8132 155.9167, 341.1387 155.6955, 333.5760 151.4220 C 326.0133 147.1485, 312.3570 136.1708, 304.2660 131.9090 C 296.1750 127.6472, 291.7300 128.3258, 285.0300 125.8510 C 278.3300 123.3762, 270.2090 119.0992, 264.0660 117.0600 C 257.9230 115.0208, 252.9997 114.4545, 248.1720 113.6160 C 243.3443 112.7775, 238.6015 113.0757, 235.1000 112.0290 C 231.5985 110.9823, 229.3438 108.3785, 227.1630 107.3360 C 224.9822 106.2935, 224.4685 106.0423, 222.0150 105.7740 C 219.5615 105.5057, 220.2138 106.9215, 212.4420 105.7260 C 204.6702 104.5305, 185.3848 100.1547, 175.3840 98.6010 C 165.3832 97.0473, 161.3867 96.8107, 152.4370 96.4040 C 143.4873 95.9973, 127.8575 96.1840, 121.6860 96.1610 C 115.5145 96.1380, 119.4008 95.6723, 115.4080 96.2660 C 111.4152 96.8597, 100.6755 99.1468, 97.7290 99.7230')
+];
+var SLASH_PATHS = SLASH_PATHS_1; // 兼容旧引用
+
+var playerHitstop = 0;
+var playerHp = 10, PLAYER_MAX_HP = 10;
+var playerInvul = 0, playerAttackCd = 0, cameraShake = 0;
+var attackCombo = 0, comboWindow = 0, attackDash = 0;
+var battleFocus = 0, lastAttackFrame = 0;
+var spawnerList = [];
+var PLAYER_MELEE_DMG = 4, ENEMY_MELEE_DMG = 3, ELITE_BULLET_DMG = 2;
+var ENEMY_SPAWN_FRAMES = 180, ELITE_SPAWN_FRAMES = 300;
+function updateHpBar() {
+  var fill = document.getElementById('player-hp-fill');
+  if (fill) fill.style.width = Math.max(0, playerHp / PLAYER_MAX_HP * 100) + '%';
 }
-console.log('精彩回放系统加载完成');
-};
-</script>
-</body>
-</html>（'系统加载完成');
-};
-</script>
-</body>
-</html>true;
-    document.getElementById('replay-end-tip').classList.add('show');
-    ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, '#F4F9A7', 30);
-    ext2_replayEndTimer = setTimeout(ext2_closeReplay, 3000);
+function collectSpawners() {
+  spawnerList = [];
+  if (!currentLevel) return;
+  for (var gy = 0; gy < currentLevel.h; gy++) {
+    for (var gx = 0; gx < currentLevel.w; gx++) {
+      var t = currentLevel.grid[gy][gx];
+      if (t === TILE_ENEMY_SPAWNER) spawnerList.push({ gx: gx, gy: gy, elite: false, timer: ENEMY_SPAWN_FRAMES });
+      else if (t === TILE_ELITE_SPAWNER) spawnerList.push({ gx: gx, gy: gy, elite: true, timer: ELITE_SPAWN_FRAMES });
+    }
   }
-  requestAnimationFrame(ext2_replayLoop);
 }
-console.log('精彩回放系统加载完成');
-};
-</script>
-</body>
-</html>��统加载完成');
-};
+function spawnEnemy(s) {
+  enemies.push({
+    x: s.gx * GRID_SIZE, y: s.gy * GRID_SIZE, w: player.w, h: player.h,
+    vx: 0, vy: 0, hp: s.elite ? 15 : 10, maxHp: s.elite ? 15 : 10,
+    type: s.elite ? 'elite' : 'normal', onGround: false, jumpCount: 0,
+    atkCd: 0, shootCd: 100, hitFlash: 0, facing: 1, knockT: 0, knockX: 0
+  });
+}
+function updateSpawners() {
+  for (var i = 0; i < spawnerList.length; i++) {
+    var s = spawnerList[i];
+    s.timer--;
+    if (s.timer <= 0) {
+      s.timer = s.elite ? ELITE_SPAWN_FRAMES : ENEMY_SPAWN_FRAMES;
+      if (enemies.length < 12) spawnEnemy(s);
+    }
+  }
+}
+function tileAtPx(px, py) {
+  var gx = Math.floor(px / GRID_SIZE), gy = Math.floor(py / GRID_SIZE);
+  if (!currentLevel || gy < 0 || gy >= currentLevel.h || gx < 0 || gx >= currentLevel.w) return -1;
+  return currentLevel.grid[gy][gx];
+}
+// ==================== 广播系统（运行时）====================
+let broadcastSentThisFrame = new Set(); // 每帧已发送的广播（防重复）
+let broadcastCooldowns = {}; // 广播冷却时间
+
+function sendBroadcast(name) {
+  // 冷却检查：同一广播 0.5 秒内不重复发送
+  let now = Date.now();
+  if (broadcastCooldowns[name] && now - broadcastCooldowns[name] < 500) return;
+  broadcastCooldowns[name] = now;
+
+  // 触发所有接收该广播的双重方块组
+  if (currentLevel && currentLevel.dualGroups) {
+    for (let g of currentLevel.dualGroups) {
+      if (g.name === name) {
+        // 切换状态：solid -> hollow -> solid
+        g.state = (g.state === 'solid') ? 'hollow' : 'solid';
+      }
+    }
+  }
+
+  // 视觉反馈：广播发送时的粒子效果
+  // 找到触发该广播的所有触发方块中心，生成粒子
+  if (currentLevel && currentLevel.triggerGroups) {
+    for (let g of currentLevel.triggerGroups) {
+      if (g.name === name && g.cells.length > 0) {
+        let c = g.cells[0];
+        spawnParticles(c.x * GRID_SIZE + GRID_SIZE/2, c.y * GRID_SIZE + GRID_SIZE/2, '#FF6B35', 5);
+      }
+    }
+  }
+}
+
+function resetBroadcastSystem() {
+  broadcastSentThisFrame.clear();
+  broadcastCooldowns = {};
+}
+
+function isSolidTile(t) {
+  if (t === TILE_LAND || t === TILE_CRATE || t === TILE_CHECKPOINT) return true;
+  if (t === TILE_DUAL) {
+    // 双重方块：根据状态决定虚实（需要在关卡数据中查找）
+    // 注意：这里只处理 grid 中的值，实际碰撞在 movePlayer 中处理
+    return true; // 默认实心，movePlayer 中会重新判断
+  }
+  return false;
+}
+function isSpikeTile(t) { return t === TILE_SPIKE || t === TILE_SPIKE_AUTO; }
+function updateEnemies() {
+  for (var i = enemies.length - 1; i >= 0; i--) {
+    var e = enemies[i];
+    if (e.hitFlash > 0) e.hitFlash--;
+    var dir = (player.x - e.x) > 0 ? 1 : -1;
+    e.facing = dir;
+    var speed = e.type === 'elite' ? 1.5 : 2.2;
+    // 精英怪保持距离：过近时停止前进，专注远程射击
+    var distToPlayer = Math.abs(player.x - e.x);
+    if (e.type === 'elite' && distToPlayer < 120) {
+      speed = 0;
+    }
+    var frontX = e.x + (dir > 0 ? e.w + 4 : -4);
+    if (e.knockT > 0) {
+      e.knockT--; e.vx = e.knockX;
+    } else if (e.onGround) {
+      // 地面：完整探测决策（墙/尖刺/空缺）
+      e.vx = dir * speed;
+      var frontWall = isSolidTile(tileAtPx(frontX, e.y + e.h / 2));
+      var frontSpike = isSpikeTile(tileAtPx(frontX, e.y + e.h + 4));
+      var frontGround = isSolidTile(tileAtPx(frontX, e.y + e.h + 6));
+      if (frontWall) {
+        e.vy = -9.5; e.jumpCount = 1;
+      } else if (frontSpike) {
+        // 遇到尖刺：检查是否可以跳过去
+        var canJump = false;
+        for (var d = 1; d <= 3; d++) {
+          if (isSolidTile(tileAtPx(frontX + dir * d * GRID_SIZE, e.y + e.h + 6))) { canJump = true; break; }
+        }
+        if (canJump) { e.vy = -8.8; e.jumpCount = 1; }
+        else { e.vx = 0; }
+      } else if (!frontGround) {
+        // 前方没有地面 → 遇到坑
+        // 测量坑宽：从 frontX 开始逐步向前探测
+        var pitWidth = 0;
+        for (var d = 1; d <= 4; d++) {
+          if (isSolidTile(tileAtPx(frontX + dir * d * GRID_SIZE, e.y + e.h + 6))) break;
+          pitWidth++;
+        }
+        // 小坑（1-2格）→ 跳跃；大坑或无底 → 停止
+        if (pitWidth >= 1 && pitWidth <= 2) {
+          e.vy = -9.5; e.jumpCount = 1;
+        } else {
+          e.vx = 0;
+        }
+      }
+    } else {
+      // 空中：保持前进；前方仍有墙则二段跳
+      e.vx = dir * speed;
+      if (isSolidTile(tileAtPx(frontX, e.y + e.h / 2)) && e.jumpCount < 2 && e.vy > -1) {
+        e.vy = -8.5; e.jumpCount = 2;
+      }
+    }
+    // 水平移动与碰撞
+    e.x += e.vx;
+    var hc = getCollisionsAtRect(e.x, e.y, e.w, e.h);
+    for (var h2 = 0; h2 < hc.length; h2++) {
+      var c2 = hc[h2];
+      if (c2.type === 'tile' && isSolidTile(c2.tile)) {
+        if (e.vx > 0) e.x = c2.x - e.w; else if (e.vx < 0) e.x = c2.x + GRID_SIZE;
+        e.vx = 0;
+      } else if (c2.type === 'crate' && !c2.crate.broken) {
+        if (e.vx > 0) e.x = c2.crate.x - e.w; else if (e.vx < 0) e.x = c2.crate.x + GRID_SIZE;
+        e.vx = 0;
+      }
+    }
+    // 重力与垂直
+    e.vy += GRAVITY;
+    e.y += e.vy;
+    e.onGround = false;
+    var vc = getCollisionsAtRect(e.x, e.y, e.w, e.h);
+    for (var v2 = 0; v2 < vc.length; v2++) {
+      var v3 = vc[v2];
+      if (v3.type === 'tile' && isSolidTile(v3.tile)) {
+        if (e.vy > 0 && (e.y - e.vy) + e.h <= v3.y + 8) { e.y = v3.y - e.h; e.vy = 0; e.onGround = true; e.jumpCount = 0; }
+        else if (e.vy < 0 && (e.y - e.vy) >= v3.y + GRID_SIZE - 8) { e.y = v3.y + GRID_SIZE; e.vy = 0; }
+      } else if (v3.type === 'crate' && !v3.crate.broken) {
+        if (e.vy > 0 && (e.y - e.vy) + e.h <= v3.crate.y + 8) { e.y = v3.crate.y - e.h; e.vy = 0; e.onGround = true; e.jumpCount = 0; }
+      }
+    }
+    // 掉出地图移除
+    if (e.y > (getLowestTileY(currentLevel) + 8) * GRID_SIZE) { enemies.splice(i, 1); continue; }
+    // 普通怪：贴身近战
+    e.atkCd = Math.max(0, e.atkCd - 1);
+    var nearX = Math.abs(player.x - e.x) < e.w + 8;
+    var nearY = Math.abs(player.y - e.y) < e.h;
+    if (e.type === 'normal' && nearX && nearY && e.atkCd <= 0 && !player.dead && !player.won) {
+      hurtPlayer(ENEMY_MELEE_DMG, e.x + e.w / 2);
+      e.atkCd = 60;
+    }
+    // 精英：远程直线弹
+    if (e.type === 'elite') {
+      e.shootCd = Math.max(0, (e.shootCd || 180) - 1);
+      if (e.shootCd <= 0 && !player.dead && !player.won) {
+        var bdx = (player.x + player.w / 2) - (e.x + e.w / 2);
+        var bdy = (player.y + player.h / 2) - (e.y + e.h / 2);
+        var bl = Math.max(1, Math.sqrt(bdx * bdx + bdy * bdy));
+        bullets.push({ x: e.x + e.w / 2, y: e.y + e.h / 2, vx: bdx / bl * 5, vy: bdy / bl * 5, dmg: ELITE_BULLET_DMG, life: 200 });
+        e.shootCd = 180;
+      }
+    }
+  }
+}
+function updateBullets() {
+  for (var i = bullets.length - 1; i >= 0; i--) {
+    var b = bullets[i];
+    b.x += b.vx; b.y += b.vy; b.life--;
+    if (b.life <= 0 || isSolidTile(tileAtPx(b.x, b.y))) { bullets.splice(i, 1); continue; }
+    if (!player.dead && !player.won && b.x > player.x && b.x < player.x + player.w && b.y > player.y && b.y < player.y + player.h) {
+      hurtPlayer(b.dmg, b.x - b.vx);
+      bullets.splice(i, 1);
+    }
+  }
+}
+function updateSlashes() {
+  for (var i = slashes.length - 1; i >= 0; i--) {
+    var s = slashes[i];
+    s.x += s.dir * 3; s.life--; s.cd++;
+    if (s.life <= 0) { slashes.splice(i, 1); continue; }
+    for (var j = enemies.length - 1; j >= 0; j--) {
+      var e = enemies[j];
+      // 多段攻击：同一敌人每 6 帧可再次受击
+      if (s.hit[j] !== undefined && s.cd - s.hit[j] < 6) continue;
+      if (s.x + 24 > e.x && s.x - 24 < e.x + e.w && s.y + 26 > e.y && s.y - 26 < e.y + e.h) {
+        s.hit[j] = s.cd;
+        e.hp -= s.dmg;
+        e.hitFlash = 11;
+        e.knockX = s.dir * 4; e.knockT = 11;
+        e.vy = -2.5;
+        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FF4D4D', 9);
+        // 额外命中粒子特效：白色爆发 + 金色火花
+        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FFFFFF', 7);
+        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FFD700', 5);
+        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#00F6FF', 3);
+        // 战斗专注：命中敌人增长进度条
+        battleFocus = Math.min(100, battleFocus + 5);
+        lastAttackFrame = frame;
+        cameraShake = Math.max(cameraShake, 8);
+        playerHitstop = 3;
+        if (e.hp <= 0) {
+          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#E14B4B', 16);
+          enemies.splice(j, 1);
+        }
+      }
+    }
+  }
+}
+function playerAttack() {
+  if (player.dead || player.won) return;
+  // 连击系统：窗口期内可继续攻击，否则检查冷却
+  if (attackCombo > 0 && comboWindow > 0) {
+    attackCombo++;
+  } else if (playerAttackCd > 0) {
+    return;
+  } else {
+    attackCombo = 1;
+  }
+  // 根据连击段数设置冷却和效果
+  if (attackCombo >= 3) {
+    playerAttackCd = 12;
+    comboWindow = 0;
+  } else {
+    playerAttackCd = 3;
+    comboWindow = 18;
+  }
+  // 刀光位置偏移（每段不同）
+  let offsetY = 0;
+  let extraRange = 0;
+  let dmg = PLAYER_MELEE_DMG;
+  if (attackCombo === 2) { offsetY = -6; extraRange = 4; }
+  else if (attackCombo === 3) { offsetY = -12; extraRange = 8; dmg += 5; }
+  let sx = player.x + player.w / 2 + player.facing * (16 + extraRange);
+  let sy = player.y + player.h / 2 - 2 + offsetY;
+  slashes.push({ x: sx, y: sy, vx: 0, dmg: dmg, life: 14, maxLife: 14, dir: player.facing, hit: {}, cd: 0, type: attackCombo });
+  // 攻击位移：角色向前冲刺（带碰撞检测）
+  let dashDist = 5 + attackCombo * 2; // 第1段7px, 第2段9px, 第3段11px
+  let oldX = player.x;
+  player.x += player.facing * dashDist;
+  let dashCols = getCollisionsAtRect(player.x, player.y, player.w, player.h);
+  for (let dc = 0; dc < dashCols.length; dc++) {
+    let dcol = dashCols[dc];
+    if ((dcol.type === 'tile' && isSolidTile(dcol.tile)) || (dcol.type === 'crate' && !dcol.crate.broken)) {
+      player.x = oldX; break;
+    }
+  }
+  player.sx = 0.8; player.sy = 1.16;
+  // 挥砍打击感（无论是否命中）
+  cameraShake = Math.max(cameraShake, 6);
+  spawnParticles(player.x + player.w / 2 + player.facing * 24, player.y + player.h / 2 - 4, '#D0F0FF', 7);
+  spawnParticles(player.x + player.w / 2 + player.facing * 18, player.y + player.h / 2 + 6, '#FFFFFF', 4);
+}
+function hurtPlayer(dmg, srcX) {
+  if (playerInvul > 0 || player.dead || player.won) return;
+  playerHp = Math.max(0, playerHp - dmg);
+  playerInvul = 45;
+  player.hitFlash = 10;
+  player.knockX = (player.x + player.w / 2 < srcX ? -3.5 : 3.5);
+  player.knockT = 12;
+  player.vy = -2.5;
+  cameraShake = 10;
+  spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#FF6B76', 8);
+  updateHpBar();
+  if (playerHp <= 0) playerDies();
+}
 </script>
 </body>
 </html>
