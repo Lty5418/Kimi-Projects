@@ -1904,8 +1904,10 @@ input, textarea {
         <div class="tool-btn" data-tool="espawner">敌刷怪笼</div>
         <div class="tool-btn" data-tool="eselite">精英刷怪笼</div>
         <div class="tool-btn" data-tool="eraser">橡皮擦</div>
-        <div class="tool-btn" data-tool="trigger">触</div>
-        <div class="tool-btn" data-tool="dual">双</div>
+        <div class="tool-btn" data-tool="trigger">开关</div>
+        <div class="tool-btn" data-tool="dual">双重方块</div>
+        <div class="tool-btn" data-tool="ice">冰块</div>
+        <div class="tool-btn" data-tool="sticky">粘性墙壁</div>
         <div class="tool-btn" data-tool="multiselect">多选</div>
         <div class="tool-btn" data-tool="pan" id="btn-tool-pan">移动</div>
       </div>
@@ -1949,6 +1951,27 @@ input, textarea {
           <input type="checkbox" id="opt-show-minimap" checked style="accent-color:#00F6FF;">
           <span>小地图</span>
         </label>
+        <div style="width:1px;height:24px;background:#707070;margin:0 4px;"></div>
+        <!-- 模式选择 -->
+        <div id="editor-mode-selector" style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:12px;color:#8D9390;">模式:</span>
+          <select id="opt-level-mode" style="background:#121212;border:1px solid #707070;color:#fff;padding:3px 6px;font-size:12px;border-radius:4px;outline:none;">
+            <option value="clear">通关</option>
+            <option value="survival">生存</option>
+          </select>
+        </div>
+        <!-- 通关模式：限时开关 -->
+        <label id="opt-time-limit-wrap" style="display:flex;align-items:center;gap:4px;font-size:12px;color:#8D9390;cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="opt-time-limit" style="accent-color:#00F6FF;">
+          <span>限时</span>
+        </label>
+        <input type="number" id="input-time-limit" value="60" min="1" max="999" style="display:none;width:50px;background:#121212;border:1px solid #707070;color:#fff;padding:3px 5px;font-size:12px;border-radius:4px;outline:none;" placeholder="秒">
+        <!-- 生存模式：生存时间 -->
+        <div id="opt-survival-wrap" style="display:none;align-items:center;gap:4px;">
+          <span style="font-size:12px;color:#8D9390;">生存:</span>
+          <input type="number" id="input-survival-time" value="60" min="1" max="999" style="width:50px;background:#121212;border:1px solid #707070;color:#fff;padding:3px 5px;font-size:12px;border-radius:4px;outline:none;">
+          <span style="font-size:12px;color:#8D9390;">秒</span>
+        </div>
       </div>
       <div class="bottom-group-code">
         <div style="width:1px;height:24px;background:#707070;margin:0 6px;"></div>
@@ -2001,6 +2024,7 @@ input, textarea {
   <div id="win-modal">
     <h2>过关!</h2>
     <p>你成功到达了传送门</p>
+    <p id="win-death-count" style="color:#FF6B6B;font-size:14px;margin-top:4px;">死亡次数: 0</p>
     <div class="btn-row">
       <button class="btn" id="btn-next-level">下一关</button>
       <button class="btn" id="btn-back-menu">返回菜单</button>
@@ -2061,6 +2085,10 @@ input, textarea {
       <button class="lb-modal-close" id="lb-modal-close">&times;</button>
     </div>
     <div class="lb-modal-content" id="lb-modal-content">
+      <div class="lb-header-row" style="display:flex;justify-content:space-between;padding:6px 12px 4px;font-size:12px;color:#707070;border-bottom:1px solid #2a2a2a;margin-bottom:4px;">
+        <span>排名 / 玩家</span>
+        <span style="display:flex;gap:24px;"><span>死亡</span><span>用时</span></span>
+      </div>
       <div class="lb-empty">加载中...</div>
     </div>
     <div class="lb-modal-footer">
@@ -2757,6 +2785,7 @@ const TILE_ONE_WAY = 23;
 const TILE_ICE = 24;
 const TILE_TRIGGER = 25;
 const TILE_DUAL = 26;
+const TILE_STICKY_WALL = 27;
 const COLORS = {
   bg: '#121212', grid: '#1a1a1a', land: '#E1E3E6',
   spike: '#FFD1D4', portal: '#F4F9A7', player: '#FFFFFF',
@@ -2858,6 +2887,7 @@ let isEditorTest = false;
 let isFromLobby = false;
 let editorTestWon = false;  // 标记编辑器测试是否通关
 let shareAfterTest = false;  // 标记是否分享测试流程
+let lastLobbyLevelCode = null; // 保存最后玩的大厅关卡编码，供再玩一次使用
 var checkpoints = [];
 // ==================== 多选与移动平台系统 ====================
 let isMultiSelectMode = false;      // 是否处于多选模式
@@ -3015,6 +3045,7 @@ let camera = { x: 0, y: 0 };
 let keys = {};
 let joystick = { active: false, dx: 0, dy: 0 };
 let jumpPressed = false;
+let jumpTrigger = false; // 多指触控跳跃请求标志（防止快速点击时touchend先于gameLoop导致丢失）
 let particles = [];
 // ==================== 设备检测 ====================
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth <= 1024);
@@ -3034,6 +3065,7 @@ function spawnParticles(x, y, color, count) {
 }
 // ==================== 关卡解析 ====================
 function parseLevel(levelData) {
+  try {
   let offset = 100;
   let level = {
     w: 200, h: 200,
@@ -3215,7 +3247,40 @@ function parseLevel(levelData) {
     let gy = i.y + offset, gx = i.x + offset;
     if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) level.grid[gy][gx] = TILE_ICE;
   }
+  for (let s of (levelData.stickyWalls || [])) {
+    let gy = s.y + offset, gx = s.x + offset;
+    if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) level.grid[gy][gx] = TILE_STICKY_WALL;
+  }
+  // 将触发方块组和双重方块组的格子写入 grid
+  level.triggerGroups = [];
+  for (let g of (levelData.triggerGroups || [])) {
+    let group = { name: g.name, cells: [] };
+    for (let c of g.cells) {
+      let gy = c.y + offset, gx = c.x + offset;
+      if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+        level.grid[gy][gx] = TILE_TRIGGER;
+        group.cells.push({ x: gx, y: gy });
+      }
+    }
+    level.triggerGroups.push(group);
+  }
+  level.dualGroups = [];
+  for (let g of (levelData.dualGroups || [])) {
+    let group = { name: g.name, state: g.state || 'solid', cells: [] };
+    for (let c of g.cells) {
+      let gy = c.y + offset, gx = c.x + offset;
+      if (gy >= 0 && gy < level.h && gx >= 0 && gx < level.w) {
+        level.grid[gy][gx] = TILE_DUAL;
+        group.cells.push({ x: gx, y: gy });
+      }
+    }
+    level.dualGroups.push(group);
+  }
   return level;
+  } catch (err) {
+    console.error('[parseLevel] 错误:', err);
+    return null;
+  }
 }
 function getLowestTileY(level) {
   // Find the lowest (largest Y) tile in the level
@@ -3240,6 +3305,11 @@ function loadLevel(idx) {
   document.getElementById('level-name-display').textContent = t(BUILTIN_LEVELS[idx].name);
 }
 function loadCustomLevel(levelData) {
+  if (!levelData) {
+    console.error('[loadCustomLevel] levelData 为 null');
+    alert('关卡数据加载失败');
+    return;
+  }
   isCustomLevel = true;
   isYuedongLevel = !!(levelData && levelData.isYuedong);
   if (levelData.dualEnabled && levelData.worldA && levelData.worldB) {
@@ -3270,6 +3340,10 @@ function loadCustomLevel(levelData) {
   document.getElementById('level-name-display').textContent = levelData.name ? levelData.name : t('自定义关卡');
 }
 function resetPlayer(clearCheckpoint = false) {
+  if (!currentLevel) {
+    console.error('[resetPlayer] currentLevel 为 null');
+    return;
+  }
   let spawnX = currentLevel.spawn.x;
   let spawnY = currentLevel.spawn.y;
   // 只有明确要求时才清空存档点（如退出测试）
@@ -3330,6 +3404,8 @@ function resetPlayer(clearCheckpoint = false) {
 }
 // ==================== 物理更新 ====================
 function updatePhysics() {
+  try {
+  if (!currentLevel) return;
   if (player.dead || player.won) return;
   // 悦动版/涟漪版物理参数（刷新全局变量，供碰撞处理器读取）
   let useYuedongPhysics = isYuedongLevel;
@@ -3358,11 +3434,13 @@ function updatePhysics() {
   player.vx = moveX;
   if (player.knockT > 0) { player.knockT--; player.vx = player.knockX; }
   if (playerHitstop > 0) { playerHitstop--; return; }
-  if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' '] || jumpPressed) && player.jumpCount < player.maxJumps) {
+  let isOnWall = player.wallDir !== 0 && !player.onGround;
+  if (!isOnWall && (keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' '] || jumpPressed || jumpTrigger) && player.jumpCount < player.maxJumps) {
     player.vy = curJumpForce;
     player.jumpCount++;
     player.onGround = false;
     jumpPressed = false;
+    jumpTrigger = false;
     let color = player.jumpCount === 1 ? '#FFFFFF' : '#F4F9A7';
     spawnParticles(player.x + player.w/2, player.y + player.h, color, 10);
     // 起跳拉伸反馈（纯视觉）：以脚底为锚向上弹伸
@@ -3397,26 +3475,47 @@ function updatePhysics() {
   // 限时板倒计时
   updateTimedPlatforms();
 
-  // 悦动版爬墙跳
-  if (useYuedongPhysics) {
-    let leftTile = Math.floor(player.x / GRID_SIZE);
-    let rightTile = Math.floor((player.x + player.w) / GRID_SIZE);
-    let py = Math.floor((player.y + player.h / 2) / GRID_SIZE);
-    let wallLeft = false, wallRight = false;
-    if (py >= 0 && py < currentLevel.h) {
-      if (leftTile >= 0 && leftTile < currentLevel.w && currentLevel.grid[py][leftTile] === TILE_LAND) wallLeft = true;
-      if (rightTile >= 0 && rightTile < currentLevel.w && currentLevel.grid[py][rightTile] === TILE_LAND) wallRight = true;
+  // 爬墙跳（所有关卡通用）
+  let leftTile = Math.floor((player.x - 1) / GRID_SIZE);
+  let rightTile = Math.floor((player.x + player.w + 1) / GRID_SIZE);
+  let py = Math.floor((player.y + player.h / 2) / GRID_SIZE);
+  let wallLeft = false, wallRight = false;
+  let stickyLeft = false, stickyRight = false;
+  if (py >= 0 && py < currentLevel.h) {
+    let tL = leftTile >= 0 && leftTile < currentLevel.w ? currentLevel.grid[py][leftTile] : -1;
+    let tR = rightTile >= 0 && rightTile < currentLevel.w ? currentLevel.grid[py][rightTile] : -1;
+    if (tL === TILE_LAND || tL === TILE_STICKY_WALL) wallLeft = true;
+    if (tR === TILE_LAND || tR === TILE_STICKY_WALL) wallRight = true;
+    if (tL === TILE_STICKY_WALL) stickyLeft = true;
+    if (tR === TILE_STICKY_WALL) stickyRight = true;
+  }
+  player.wallDir = wallLeft ? -1 : (wallRight ? 1 : 0);
+  // 粘性墙壁：贴墙时缓慢下落
+  if ((stickyLeft || stickyRight) && !player.onGround && player.vy > 0) {
+    player.vy *= 0.3;
+    // 按住上键可以爬墙（消耗跳跃请求）
+    if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' '] || jumpPressed || jumpTrigger) && !player._wallClimbed) {
+      player.vy = -3; // 缓慢向上爬
+      player._wallClimbed = true;
+      jumpPressed = false;
+      jumpTrigger = false;
     }
-    player.wallDir = wallLeft ? -1 : (wallRight ? 1 : 0);
-    if (player.wallDir !== 0 && !player.onGround && keys['jump']) {
-      if (player.jumpCount < 2) {
-        player.vx = -player.wallDir * 9;
-        player.vy = -14;
-        player.jumpCount = 2;
-        player.onGround = false;
-        spawnParticles(player.x + player.w/2, player.y + player.h/2, COLORS.playerGlow, 8);
-      }
+  } else {
+    player._wallClimbed = false;
+  }
+  if (player.wallDir !== 0 && !player.onGround && (keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' '] || jumpPressed || jumpTrigger)) {
+    if (!player._wallJumped) {
+      player.vx = -player.wallDir * 9;
+      player.vy = -14;
+      player.jumpCount = 0; // 重置跳跃次数，允许再次二段跳
+      player.onGround = false;
+      player._wallJumped = true;
+      jumpPressed = false; // 消费跳跃请求，防止脱离墙壁后重复起跳
+      jumpTrigger = false;
+      spawnParticles(player.x + player.w/2, player.y + player.h/2, COLORS.playerGlow, 8);
     }
+  } else {
+    player._wallJumped = false;
   }
 
   // 更新木箱物理
@@ -3502,6 +3601,7 @@ function updatePhysics() {
           backBtn.textContent = t('返回菜单');
           nextBtn.style.display = 'inline-block';
         }
+        document.getElementById('win-death-count').textContent = '死亡次数: ' + levelDeathCount;
         document.getElementById('win-modal').style.display = 'flex';
       }, 500);
     }
@@ -3526,6 +3626,9 @@ function updatePhysics() {
   // 垂直方向用较快固定系数，避免跳跃时相机过度晃动
   camera.x += (targetCamX - camera.x) * followX;
   camera.y += (targetCamY - camera.y) * 0.18;
+  } catch (err) {
+    console.error('[updatePhysics] 错误:', err);
+  }
 }
 // ==================== 可扩展碰撞系统 ====================
 const CollisionPriority = {
@@ -3882,9 +3985,51 @@ function movePlayer(dx, dy) {
     }
   }
 }
+// 通用实体移动函数（用于幽灵模拟器）
+function moveEntity(entity, dx, dy) {
+  if (!currentLevel) return;
+  entity.x += dx;
+  entity.y += dy;
+  entity.onGround = false;
+  let cols = getCollisionsAtRect(entity.x, entity.y, entity.w, entity.h);
+  for (let col of cols) {
+    if (col.type === 'platform') {
+      let tp = col.tp, r = { x: col.x, y: col.y, w: col.w, h: col.h };
+      if (dy > 0 && (entity.y - dy) + entity.h <= r.y + 6) {
+        entity.y = r.y - entity.h; entity.vy = 0; entity.onGround = true; entity.jumpCount = 0;
+        entity.x += tp.getTotalVx(); entity.y += tp.getTotalVy();
+      } else if (dy < 0 && (entity.y - dy) >= r.y + r.h - 6) {
+        entity.y = r.y + r.h; entity.vy = 0;
+      } else if (dx > 0 && (entity.x - dx) + entity.w <= r.x + 6) {
+        entity.x = r.x - entity.w; entity.vx = 0;
+      } else if (dx < 0 && (entity.x - dx) >= r.x + r.w - 6) {
+        entity.x = r.x + r.w; entity.vx = 0;
+      }
+    } else if (col.type === 'tile') {
+      let handler = CollisionHandlers[col.tile];
+      if (handler) handler.onCollide(entity, col.x, col.y, dx, dy);
+    } else if (col.type === 'crate') {
+      let crate = col.crate;
+      if (dy > 0 && (entity.y - dy) + entity.h <= crate.y + 6) {
+        entity.y = crate.y - entity.h; entity.vy = 0; entity.onGround = true; entity.jumpCount = 0;
+      } else if (dy < 0 && (entity.y - dy) >= crate.y + GRID_SIZE - 6) {
+        entity.y = crate.y + GRID_SIZE; entity.vy = 0;
+      } else if (dx > 0 && (entity.x - dx) + entity.w <= crate.x + 6) {
+        entity.x = crate.x - entity.w;
+        if (!crate.broken) crate.vx = PLAYER_SPEED * 1.2;
+        entity.vx = 0;
+      } else if (dx < 0 && (entity.x - dx) >= crate.x + GRID_SIZE - 6) {
+        entity.x = crate.x + GRID_SIZE;
+        if (!crate.broken) crate.vx = -PLAYER_SPEED * 1.5;
+        entity.vx = 0;
+      }
+    }
+  }
+}
 function playerDies() {
   if (player.dead) return;
   player.dead = true;
+  levelDeathCount++;
   spawnParticles(player.x + player.w/2, player.y + player.h/2, '#FFD1D4', 20);
   setTimeout(() => { resetPlayer(false); }, 800);
 }
@@ -3913,6 +4058,8 @@ function findTriggerGroupAt(gx, gy) {
 }
 
 function renderNormal() {
+  try {
+  if (!currentLevel) return;
   time += 0.016;
   ctx.fillStyle = COLORS.bg;
   ctx.fillRect(0, 0, canvasW, canvasH);
@@ -4060,11 +4207,6 @@ function renderNormal() {
         ctx.strokeStyle = '#FF6B35';
         ctx.lineWidth = 1.5;
         ctx.strokeRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⚡', tx + GRID_SIZE / 2, ty + GRID_SIZE / 2);
       } else if (tile === TILE_DUAL) {
         // 双重方块：根据状态显示实心或虚心
         let group = findDualGroupAt(x, y);
@@ -4085,11 +4227,6 @@ function renderNormal() {
           ctx.strokeRect(tx + 1, ty + 1, GRID_SIZE - 2, GRID_SIZE - 2);
           ctx.setLineDash([]);
         }
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('↔', tx + GRID_SIZE / 2, ty + GRID_SIZE / 2);
       } else if (tile === TILE_TRAMPOLINE) {
         let bounce = Math.sin(time * 5) * 1.5;
         ctx.fillStyle = COLORS.trampolineDark;
@@ -4120,6 +4257,13 @@ function renderNormal() {
         ctx.strokeStyle = COLORS.iceHighlight; ctx.lineWidth = 1; ctx.beginPath();
         ctx.moveTo(tx + 4, ty + GRID_SIZE - 4); ctx.lineTo(tx + GRID_SIZE - 4, ty + 4);
         ctx.moveTo(tx + 8, ty + GRID_SIZE - 4); ctx.lineTo(tx + GRID_SIZE - 4, ty + 8);
+        ctx.stroke();
+      } else if (tile === TILE_STICKY_WALL) {
+        ctx.fillStyle = '#8B7355'; ctx.fillRect(tx, ty, GRID_SIZE, GRID_SIZE);
+        ctx.strokeStyle = '#6B5345'; ctx.lineWidth = 1; ctx.beginPath();
+        for (let ly = ty + 4; ly < ty + GRID_SIZE; ly += 8) {
+          ctx.moveTo(tx + 2, ly); ctx.lineTo(tx + GRID_SIZE - 2, ly);
+        }
         ctx.stroke();
       } else if (tile >= TILE_SWITCH_R && tile <= TILE_SWITCH_Y) {
         let col = tile === TILE_SWITCH_R ? COLORS.switchR : tile === TILE_SWITCH_B ? COLORS.switchB : tile === TILE_SWITCH_G ? COLORS.switchG : COLORS.switchY;
@@ -4186,43 +4330,70 @@ function renderNormal() {
     var alpha = (0.55 + 0.45 * (1 - prog)) * pulse;
     var S = 0.16 * (1 + prog * 0.06);
     ctx.save();
-    ctx.translate(sl.x, sl.y);
-    ctx.scale(sl.dir * S, S);
-    ctx.translate(-400, -292);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = 3 / S;
-    ctx.strokeStyle = 'rgba(230,250,255,' + alpha.toFixed(3) + ')';
-    ctx.shadowColor = '#9BE9FF';
-    ctx.shadowBlur = 8 * alpha / S;
-    // 根据连击段数选择不同视觉效果（只改颜色/线宽/发光，不改Canvas变换）
-    var paths;
-    if (sl.type === 2) {
-      // 第2段：上挑 - 更亮更蓝，线更粗
-      paths = SLASH_PATHS_2;
-      ctx.lineWidth = 4 / S;
-      ctx.strokeStyle = 'rgba(180,240,255,' + alpha.toFixed(3) + ')';
-      ctx.shadowColor = '#B4F0FF';
-      ctx.shadowBlur = 12 * alpha / S;
-    } else if (sl.type === 3) {
-      // 第3段：重劈 - 白色强光，最粗
-      paths = SLASH_PATHS_3;
-      ctx.lineWidth = 6 / S;
-      ctx.strokeStyle = 'rgba(255,255,255,' + Math.min(1, alpha * 1.3).toFixed(3) + ')';
-      ctx.shadowColor = '#FFFFFF';
-      ctx.shadowBlur = 16 * alpha / S;
+    if (sl.type === 'downslash') {
+      // 下劈刀光：使用 SVG Path2D 绘制复杂弯曲形状
+      ctx.translate(sl.x, sl.y);
+      ctx.scale(0.15, 0.15);
+      ctx.translate(-350, -350);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      // 主刀光层（橙红色）
+      ctx.lineWidth = 18;
+      ctx.strokeStyle = 'rgba(255, 107, 53, ' + alpha.toFixed(3) + ')';
+      ctx.shadowColor = '#FF6B35';
+      ctx.shadowBlur = 40;
+      for (let dpi = 0; dpi < DOWNSLASH_PATHS.length; dpi++) {
+        ctx.stroke(DOWNSLASH_PATHS[dpi]);
+      }
+      // 额外发光层（金色）
+      ctx.globalAlpha = alpha * 0.5;
+      ctx.lineWidth = 28;
+      ctx.strokeStyle = 'rgba(255, 215, 0, ' + alpha.toFixed(3) + ')';
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 50;
+      for (let dpi = 0; dpi < DOWNSLASH_PATHS.length; dpi++) {
+        ctx.stroke(DOWNSLASH_PATHS[dpi]);
+      }
+      ctx.globalAlpha = 1;
     } else {
-      // 第1段：标准横斩 - 青色
-      paths = SLASH_PATHS_1;
+      ctx.translate(sl.x, sl.y);
+      ctx.scale(sl.dir * S, S);
+      ctx.translate(-400, -292);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       ctx.lineWidth = 3 / S;
       ctx.strokeStyle = 'rgba(230,250,255,' + alpha.toFixed(3) + ')';
       ctx.shadowColor = '#9BE9FF';
       ctx.shadowBlur = 8 * alpha / S;
-    }
-    // 安全 fallback：确保 paths 有效
-    if (!paths) paths = SLASH_PATHS_1;
-    for (var pi2 = 0; pi2 < paths.length; pi2++) {
-      ctx.stroke(paths[pi2]);
+      // 根据连击段数选择不同视觉效果（只改颜色/线宽/发光，不改Canvas变换）
+      var paths;
+      if (sl.type === 2) {
+        // 第2段：上挑 - 更亮更蓝，线更粗
+        paths = SLASH_PATHS_2;
+        ctx.lineWidth = 4 / S;
+        ctx.strokeStyle = 'rgba(180,240,255,' + alpha.toFixed(3) + ')';
+        ctx.shadowColor = '#B4F0FF';
+        ctx.shadowBlur = 12 * alpha / S;
+      } else if (sl.type === 3) {
+        // 第3段：重劈 - 白色强光，最粗
+        paths = SLASH_PATHS_3;
+        ctx.lineWidth = 6 / S;
+        ctx.strokeStyle = 'rgba(255,255,255,' + Math.min(1, alpha * 1.3).toFixed(3) + ')';
+        ctx.shadowColor = '#FFFFFF';
+        ctx.shadowBlur = 16 * alpha / S;
+      } else {
+        // 第1段：标准横斩 - 青色
+        paths = SLASH_PATHS_1;
+        ctx.lineWidth = 3 / S;
+        ctx.strokeStyle = 'rgba(230,250,255,' + alpha.toFixed(3) + ')';
+        ctx.shadowColor = '#9BE9FF';
+        ctx.shadowBlur = 8 * alpha / S;
+      }
+      // 安全 fallback：确保 paths 有效
+      if (!paths) paths = SLASH_PATHS_1;
+      for (var pi2 = 0; pi2 < paths.length; pi2++) {
+        ctx.stroke(paths[pi2]);
+      }
     }
     ctx.restore();
   }
@@ -4263,19 +4434,49 @@ function renderNormal() {
   for (let crate of crates) {
     if (crate.broken) continue;
     let cx = crate.x, cy = crate.y;
-    ctx.fillStyle = COLORS.crate;
+    let isDamaged = crate.hp <= 1;
+    ctx.fillStyle = isDamaged ? '#A08060' : COLORS.crate;
     ctx.fillRect(cx + 2, cy + 2, GRID_SIZE - 4, GRID_SIZE - 4);
-    ctx.strokeStyle = '#8B7355';
+    ctx.strokeStyle = isDamaged ? '#6B5545' : '#8B7355';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(cx + 2, cy + 2, GRID_SIZE - 4, GRID_SIZE - 4);
     ctx.beginPath();
     ctx.moveTo(cx + 2, cy + 2); ctx.lineTo(cx + GRID_SIZE - 2, cy + GRID_SIZE - 2);
     ctx.moveTo(cx + GRID_SIZE - 2, cy + 2); ctx.lineTo(cx + 2, cy + GRID_SIZE - 2);
     ctx.stroke();
+    if (isDamaged) {
+      // 半血木箱：额外裂纹 + 碎片效果
+      ctx.strokeStyle = '#5A4535';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx + 8, cy + 4); ctx.lineTo(cx + 4, cy + 12);
+      ctx.moveTo(cx + GRID_SIZE - 8, cy + GRID_SIZE - 4); ctx.lineTo(cx + GRID_SIZE - 4, cy + GRID_SIZE - 12);
+      ctx.stroke();
+      // 显示剩余 HP 小标记
+      ctx.fillStyle = '#FF6B6B';
+      ctx.font = 'bold 8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('1', cx + GRID_SIZE/2, cy + GRID_SIZE/2 + 3);
+      ctx.textAlign = 'left';
+    }
   }
   ctx.restore();
   if (currentLevel.showIndicator !== false) drawPortalIndicator();
   if (currentLevel.showMinimap !== false) updateMinimap();
+  // 倒计时显示（在屏幕空间，不受相机变换影响）
+  if (currentLevel && (currentLevel.timeLimit > 0 || currentLevel.survivalTime > 0)) {
+    let elapsed = currentLevel._elapsed || 0;
+    let total = currentLevel.survivalTime || currentLevel.timeLimit;
+    let remaining = Math.max(0, Math.ceil(total - elapsed));
+    ctx.fillStyle = remaining <= 5 ? '#FF4444' : '#FFFFFF';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(remaining + 's', canvasW - 20, 30);
+    ctx.textAlign = 'left';
+  }
+  } catch (err) {
+    console.error('[renderNormal] 错误:', err);
+  }
 }
 
 // 新的 render 包装器：动画期间先渲染新世界，再在涟漪外部覆盖旧世界快照
@@ -4882,7 +5083,7 @@ function initCrates() {
   // 从稳定的 crateCells（关卡原始格坐标，含 offset）重建，避免 grid 被清空后箱子丢失
   let cells = currentLevel.crateCells || [];
   for (let c of cells) {
-    crates.push({ x: c.x * GRID_SIZE, y: c.y * GRID_SIZE, vx: 0, vy: 0, broken: false });
+    crates.push({ x: c.x * GRID_SIZE, y: c.y * GRID_SIZE, vx: 0, vy: 0, broken: false, hp: 2, maxHp: 2 });
     if (currentLevel.grid[c.y] && currentLevel.grid[c.y][c.x] === TILE_CRATE) {
       currentLevel.grid[c.y][c.x] = 0; // 木箱独立化：从 grid 清除，碰撞改走 crates 数组
     }
@@ -5085,6 +5286,7 @@ function pushCrate(crate, dir, force) {
 // ==================== 存档点 ====================
 let lastCheckpoint = null;
 let activatedCheckpoints = new Set(); // 记录已激活的存档点
+let levelDeathCount = 0;
 function checkCheckpoint() {
   if (!currentLevel) return;
   let px = Math.floor(player.x / GRID_SIZE);
@@ -5165,12 +5367,33 @@ var frame = 0;
 var gameLoopId = null;
 
 function gameLoop() {
-  if (gameState === 'playing') {
-    updateWorldSwitchAnim();
-    updatePhysics();
-    render();
+  try {
+    if (gameState === 'playing') {
+      updateWorldSwitchAnim();
+      updatePhysics();
+      // 生存模式/限时通关 时间检测
+      if (currentLevel && !player.dead && !player.won) {
+        if (currentLevel.levelMode === 'survival') {
+          currentLevel._elapsed = (currentLevel._elapsed || 0) + FIXED_DT / 1000;
+          if (currentLevel._elapsed >= currentLevel.survivalTime) {
+            player.won = true;
+            player.inPortal = false;
+            if (isEditorTest) editorTestWon = true;
+            spawnParticles(player.x + player.w/2, player.y + player.h/2, '#F4F9A7', 30);
+          }
+        } else if (currentLevel.timeLimit > 0) {
+          currentLevel._elapsed = (currentLevel._elapsed || 0) + FIXED_DT / 1000;
+          if (currentLevel._elapsed >= currentLevel.timeLimit) {
+            killPlayer('timeout');
+          }
+        }
+      }
+      render();
+    }
+    frame++;
+  } catch (err) {
+    console.error('[gameLoop] 错误:', err);
   }
-  frame++;
 }
 
 // 使用固定间隔的 setInterval 替代 requestAnimationFrame
@@ -5207,6 +5430,11 @@ let editorSpawn = { x: 2, y: 10 };
 let editorPortal = { x: 20, y: 10 };
 let editorViewX = 0, editorViewY = 0;
 let editorZoom = 1;
+// ==================== 关卡模式系统 ====================
+let editorLevelMode = 'clear'; // 'clear'=通关, 'survival'=生存
+let editorTimeLimitEnabled = false; // 通关模式下是否限时
+let editorTimeLimit = 60; // 限时通关秒数
+let editorSurvivalTime = 60; // 生存模式秒数
 let editorCurrentLand = null;
 let editorPendingCell = null;
 let isDrawing = false;
@@ -5247,7 +5475,11 @@ function doEditorAutoSave() {
       tool: editorTool,
       broadcastNames: editorBroadcastNames,
       triggerGroups: editorTriggerGroups.map(g => ({ name: g.name, cells: Array.from(g.cells) })),
-      dualGroups: editorDualGroups.map(g => ({ name: g.name, cells: Array.from(g.cells), state: g.state }))
+      dualGroups: editorDualGroups.map(g => ({ name: g.name, cells: Array.from(g.cells), state: g.state })),
+      levelMode: editorLevelMode,
+      timeLimitEnabled: editorTimeLimitEnabled,
+      timeLimit: editorTimeLimit,
+      survivalTime: editorSurvivalTime
     };
     localStorage.setItem('editor_autosave', JSON.stringify(data));
   } catch(e) { console.error('自动保存失败:', e); }
@@ -5297,34 +5529,75 @@ function loadEditorAutoSave() {
     if (data.dualGroups) {
       editorDualGroups = data.dualGroups.map(g => ({ name: g.name, cells: new Set(g.cells), state: g.state || 'solid' }));
     }
+    // 加载关卡模式数据（兼容旧版）
+    if (data.levelMode) editorLevelMode = data.levelMode;
+    if (data.timeLimitEnabled !== undefined) editorTimeLimitEnabled = data.timeLimitEnabled;
+    if (data.timeLimit) editorTimeLimit = data.timeLimit;
+    if (data.survivalTime) editorSurvivalTime = data.survivalTime;
+    // 同步模式选择UI
+    let modeSelect = document.getElementById('opt-level-mode');
+    if (modeSelect) modeSelect.value = editorLevelMode;
+    let timeLimitWrap = document.getElementById('opt-time-limit-wrap');
+    if (timeLimitWrap) timeLimitWrap.style.display = editorLevelMode === 'clear' ? 'flex' : 'none';
+    let timeLimitCheck = document.getElementById('opt-time-limit');
+    if (timeLimitCheck) timeLimitCheck.checked = editorTimeLimitEnabled;
+    let timeLimitInput = document.getElementById('input-time-limit');
+    if (timeLimitInput) { timeLimitInput.value = editorTimeLimit; timeLimitInput.style.display = (editorLevelMode === 'clear' && editorTimeLimitEnabled) ? 'inline-block' : 'none'; }
+    let survivalWrap = document.getElementById('opt-survival-wrap');
+    if (survivalWrap) survivalWrap.style.display = editorLevelMode === 'survival' ? 'flex' : 'none';
+    let survivalInput = document.getElementById('input-survival-time');
+    if (survivalInput) survivalInput.value = editorSurvivalTime;
     return true;
   } catch(e) { console.error('加载自动保存失败:', e); return false; }
 }
 function initEditor() {
-  getEditorCells().clear();
-  editorSpawn = { x: 2, y: 10 };
-  editorPortal = { x: 20, y: 10 };
-  editorViewX = 0; editorViewY = 0;
-  editorZoom = 1;
+  // FIX: 先尝试加载自动保存，加载失败才初始化默认值，防止数据丢失
+  let loaded = false;
+  try {
+    loaded = loadEditorAutoSave();
+  } catch(e) { console.error('[initEditor] 加载自动保存失败:', e); }
+
+  if (!loaded) {
+    getEditorCells().clear();
+    editorCellsB.clear();
+    editorSpawn = { x: 2, y: 10 };
+    editorPortal = { x: 20, y: 10 };
+    editorViewX = 0; editorViewY = 0;
+    editorZoom = 1;
+    editorMovingPlatforms = [];
+    editorTrajectories = [];
+    editorBroadcastNames = [];
+    editorTriggerGroups = [];
+    editorDualGroups = [];
+    editorLevelMode = 'clear';
+    editorTimeLimitEnabled = false;
+    editorTimeLimit = 60;
+    editorSurvivalTime = 60;
+  }
+  // 这些状态每次进入编辑器都要重置
   isPanning = false; isDrawing = false;
   isMultiSelectMode = false;
   isSelecting = false;
   selectStart = null; selectEnd = null;
   selectedCells.clear();
   clipboardCells.clear();
-  editorMovingPlatforms = [];
-  editorTrajectories = [];
   isPlacingMovingPlatform = false;
   isPlacingTrajectory = false;
   editorTestWon = false;
-  // 清空广播系统
-  editorBroadcastNames = [];
-  editorTriggerGroups = [];
-  editorDualGroups = [];
   editorPendingGroupType = null;
   editorPendingGroupCells = null;
-  // 尝试加载自动保存
-  loadEditorAutoSave();
+  editorAutoSavePending = false;
+  lastAutoSaveTime = 0;
+  // 启动独立自动保存定时器
+  if (!window._editorAutoSaveInterval) {
+    window._editorAutoSaveInterval = setInterval(() => {
+      if (editorAutoSavePending) {
+        doEditorAutoSave();
+        editorAutoSavePending = false;
+        lastAutoSaveTime = Date.now();
+      }
+    }, 3000);
+  }
   updateSelectActionButtons();
   updateEditorCoords();
   renderEditor();
@@ -5506,29 +5779,19 @@ function renderEditor() {
       ectx.strokeRect(tx + 2, ty + 2, cs - 4, cs - 4);
       ectx.setLineDash([]);
     } else if (tile === TILE_TRIGGER) {
-      // 触发方块：橙色半透明 + 闪电图标
+      // 触发方块：橙色半透明
       ectx.fillStyle = 'rgba(255,107,53,0.7)';
       ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
       ectx.strokeStyle = '#FF6B35';
       ectx.lineWidth = 1.5;
       ectx.strokeRect(tx + 1, ty + 1, cs - 2, cs - 2);
-      ectx.fillStyle = '#FFFFFF';
-      ectx.font = 'bold ' + Math.max(8, cs * 0.4) + 'px sans-serif';
-      ectx.textAlign = 'center';
-      ectx.textBaseline = 'middle';
-      ectx.fillText('⚡', tx + cs / 2, ty + cs / 2);
     } else if (tile === TILE_DUAL) {
-      // 双重方块：紫色半透明 + 双箭头图标
+      // 双重方块：紫色半透明
       ectx.fillStyle = 'rgba(155,89,182,0.7)';
       ectx.fillRect(tx + 1, ty + 1, cs - 2, cs - 2);
       ectx.strokeStyle = '#9B59B6';
       ectx.lineWidth = 1.5;
       ectx.strokeRect(tx + 1, ty + 1, cs - 2, cs - 2);
-      ectx.fillStyle = '#FFFFFF';
-      ectx.font = 'bold ' + Math.max(8, cs * 0.35) + 'px sans-serif';
-      ectx.textAlign = 'center';
-      ectx.textBaseline = 'middle';
-      ectx.fillText('↔', tx + cs / 2, ty + cs / 2);
     }
   }
   // 双宇宙模式：半透明渲染另一个世界的方块（方便对齐）
@@ -5579,10 +5842,12 @@ function renderEditor() {
     }
     ectx.globalAlpha = 1.0;
   }
-  if (editorCurrentLand && (editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual')) {
+  if (editorCurrentLand && (editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual' || editorTool === 'ice' || editorTool === 'sticky')) {
     if (editorTool === 'land') ectx.fillStyle = 'rgba(224,227,230,0.5)';
     else if (editorTool === 'trigger') ectx.fillStyle = 'rgba(255,107,53,0.5)';
     else if (editorTool === 'dual') ectx.fillStyle = 'rgba(155,89,182,0.5)';
+    else if (editorTool === 'ice') ectx.fillStyle = 'rgba(176,224,255,0.5)';
+    else if (editorTool === 'sticky') ectx.fillStyle = 'rgba(139,115,85,0.5)';
     ectx.fillRect(editorCurrentLand.x * cs, editorCurrentLand.y * cs, editorCurrentLand.w * cs, editorCurrentLand.h * cs);
   }
   // 多选选中高亮 - 淡蓝色
@@ -5800,6 +6065,12 @@ function setEditorCell(gx, gy, tool) {
   } else if (tool === 'dual') {
     if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_DUAL) changed = true;
     getEditorCells().set(key, TILE_DUAL);
+  } else if (tool === 'ice') {
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_ICE) changed = true;
+    getEditorCells().set(key, TILE_ICE);
+  } else if (tool === 'sticky') {
+    if (!getEditorCells().has(key) || getEditorCells().get(key) !== TILE_STICKY_WALL) changed = true;
+    getEditorCells().set(key, TILE_STICKY_WALL);
   } else if (tool === 'eraser') {
     if (getEditorCells().has(key)) changed = true;
     getEditorCells().delete(key);
@@ -6020,7 +6291,7 @@ editorCanvas.addEventListener('mousedown', e => {
   isDrawing = true;
   const cell = getEditorCell(e.clientX, e.clientY);
   drawStart = cell;
-  if (editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual') {
+  if (editorTool === 'land' || editorTool === 'trigger' || editorTool === 'dual' || editorTool === 'ice' || editorTool === 'sticky') {
     editorCurrentLand = { x: cell.x, y: cell.y, w: 1, h: 1, type: editorTool };
   } else {
     setEditorCell(cell.x, cell.y, editorTool);
@@ -6501,6 +6772,19 @@ function setupEditorToolbar() {
     }
     renderEditor();
   });
+  // 关卡模式切换事件
+  document.getElementById('opt-level-mode').addEventListener('change', (e) => {
+    editorLevelMode = e.target.value;
+    document.getElementById('opt-time-limit-wrap').style.display = editorLevelMode === 'clear' ? 'flex' : 'none';
+    document.getElementById('input-time-limit').style.display = (editorLevelMode === 'clear' && editorTimeLimitEnabled) ? 'inline-block' : 'none';
+    document.getElementById('opt-survival-wrap').style.display = editorLevelMode === 'survival' ? 'flex' : 'none';
+  });
+  document.getElementById('opt-time-limit').addEventListener('change', (e) => {
+    editorTimeLimitEnabled = e.target.checked;
+    document.getElementById('input-time-limit').style.display = e.target.checked ? 'inline-block' : 'none';
+  });
+  document.getElementById('input-time-limit').addEventListener('input', (e) => { editorTimeLimit = Math.max(1, parseInt(e.target.value) || 60); });
+  document.getElementById('input-survival-time').addEventListener('input', (e) => { editorSurvivalTime = Math.max(1, parseInt(e.target.value) || 60); });
   // 切换世界按钮事件
   document.getElementById('btn-switch-world').addEventListener('click', () => {
     editorCurrentWorld = editorCurrentWorld === 'A' ? 'B' : 'A';
@@ -6842,6 +7126,10 @@ function initMultiTouch() {
 }
 
 function onMultiTouchStart(e) {
+  // 弹窗/回放显示时放行触摸，让按钮click事件正常触发
+  if (document.getElementById('win-modal').style.display === 'flex') return;
+  var replayScr = document.getElementById('replay-screen');
+  if (replayScr && replayScr.classList.contains('active')) return;
   if (gameState !== 'playing') return;
   e.preventDefault();
 
@@ -6874,6 +7162,7 @@ function onMultiTouchStart(e) {
       if (attackBtn) attackBtn.style.background = 'rgba(225,75,75,0.3)';
     } else if (role === 'jump') {
       jumpPressed = true;
+      jumpTrigger = true; // 设置跳跃请求标志，避免快速点击时竞态条件
       if (jumpBtn) jumpBtn.style.background = 'rgba(0,246,255,0.2)';
     }
 
@@ -6882,6 +7171,10 @@ function onMultiTouchStart(e) {
 }
 
 function onMultiTouchMove(e) {
+  // 弹窗/回放显示时放行触摸，让按钮click事件正常触发
+  if (document.getElementById('win-modal').style.display === 'flex') return;
+  var replayScr = document.getElementById('replay-screen');
+  if (replayScr && replayScr.classList.contains('active')) return;
   if (gameState !== 'playing') return;
   e.preventDefault();
 
@@ -6917,6 +7210,7 @@ function onMultiTouchEnd(e) {
       if (attackBtn) attackBtn.style.background = 'rgba(225,75,75,0.12)';
     } else if (data.role === 'jump') {
       jumpPressed = false;
+      jumpTrigger = false;
       if (jumpBtn) jumpBtn.style.background = 'rgba(0,246,255,0.08)';
     }
 
@@ -7052,14 +7346,16 @@ const TILE_TYPE_TO_CODE = {
   [TILE_CRATE]: 3, [TILE_BOUNCER]: 4, [TILE_CHECKPOINT]: 5,
   [TILE_PORTAL]: 6, [TILE_SPAWN]: 7,
   [TILE_ENEMY_SPAWNER]: 8, [TILE_ELITE_SPAWNER]: 9,
-  [TILE_TRIGGER]: 10, [TILE_DUAL]: 11
+  [TILE_TRIGGER]: 10, [TILE_DUAL]: 11,
+  [TILE_ICE]: 12, [TILE_STICKY_WALL]: 13
 };
 const CODE_TO_TILE_TYPE = {
   0: TILE_LAND, 1: TILE_SPIKE, 2: TILE_SPIKE_AUTO,
   3: TILE_CRATE, 4: TILE_BOUNCER, 5: TILE_CHECKPOINT,
   6: TILE_PORTAL, 7: TILE_SPAWN,
   8: TILE_ENEMY_SPAWNER, 9: TILE_ELITE_SPAWNER,
-  10: TILE_TRIGGER, 11: TILE_DUAL
+  10: TILE_TRIGGER, 11: TILE_DUAL,
+  12: TILE_ICE, 13: TILE_STICKY_WALL
 };
 function encodeLevelV8(customName) {
   let ox = editorSpawn.x, oy = editorSpawn.y;
@@ -7084,7 +7380,7 @@ function encodeLevelV8(customName) {
   for (let mp of editorMovingPlatforms) {
     mpSize += 2 + mp.cells.length * 4 + 2 + mp.path.length * 4 + 3; // +3 for speed, wait, parent
   }
-  let totalSize = 1 + 1 + nameBytes.length + 2 + 2 + 2 + tiles.length * 5 + 2 + mpSize + 2 + trajSize;
+  let totalSize = 1 + 1 + nameBytes.length + 2 + 2 + 2 + tiles.length * 5 + 2 + mpSize + 2 + trajSize + 2;
   let bytes = new Uint8Array(totalSize);
   let offset = 0;
   let flags = 0;
@@ -7093,6 +7389,9 @@ function encodeLevelV8(customName) {
   if (showMap) flags |= 0x04;
   // bit 3 (0x08) 标记此编码包含移动平台的 parent 字段（V8.1+）
   flags |= 0x08;
+  // bit 4 (0x10): 限时通关开启; bit 5 (0x20): 生存模式
+  if (editorLevelMode === 'survival') flags |= 0x20;
+  else if (editorTimeLimitEnabled) flags |= 0x10;
   bytes[offset++] = flags;
   bytes[offset++] = nameBytes.length;
   for (let i = 0; i < nameBytes.length; i++) bytes[offset++] = nameBytes[i];
@@ -7184,6 +7483,9 @@ function encodeLevelV8(customName) {
       offset = writeInt16(bytes, offset, c.y);
     }
   }
+  // 编码关卡模式时间值（2字节 Uint16）
+  let timeValue = editorLevelMode === 'survival' ? editorSurvivalTime : (editorTimeLimitEnabled ? editorTimeLimit : 0);
+  offset = writeUint16(bytes, offset, timeValue);
   return '8.' + uint8ToBase64url(bytes);
 }
 function decodeLevelV8(code) {
@@ -7199,6 +7501,8 @@ function decodeLevelV8(code) {
     let showIndicator = (flags & 0x02) !== 0;
     let showMinimap = (flags & 0x04) !== 0;
     let hasParentField = (flags & 0x08) !== 0; // V8.1+ 标记包含 parent 字段
+    let isSurvival = (flags & 0x20) !== 0;
+    let hasTimeLimit = (flags & 0x10) !== 0;
     let nameLen = bytes[offset++];
     let nameBytes = bytes.slice(offset, offset + nameLen);
     let name = new TextDecoder().decode(nameBytes);
@@ -7317,6 +7621,11 @@ function decodeLevelV8(code) {
         dualGroups.push({name, cells, state});
       }
     }
+    // 解码关卡模式时间值（兼容旧版：可能没有此字段）
+    let timeValue = 0;
+    if (offset + 2 <= bytes.length) {
+      timeValue = readUint16(bytes, offset); offset += 2;
+    }
     let landRects = [];
     if (landSet.size > 0) {
       let landGrid = new Map();
@@ -7347,7 +7656,10 @@ function decodeLevelV8(code) {
       portal: hasPortal ? {x: prx, y: pry} : null,
       lands: landRects, spikes, spikeAutos, crates, bouncers, checkpoints, trajectories,
       movingPlatforms, enemySpawners, showIndicator, showMinimap,
-      triggerGroups, dualGroups
+      triggerGroups, dualGroups,
+      levelMode: isSurvival ? 'survival' : 'clear',
+      timeLimit: (!isSurvival && hasTimeLimit) ? timeValue : 0,
+      survivalTime: isSurvival ? timeValue : 0
     };
   } catch (e) {
     console.error('V8解码错误:', e.message);
@@ -7581,6 +7893,12 @@ function encodeLevelV9(customName) {
   console.log('encodeLevelV9 called, dualEnabled=', editorDualEnabled, 'cellsA=', editorCells.size, 'cellsB=', editorCellsB.size);
   let name = encodeURIComponent(customName || '未命名');
   let flags = '1' + (document.getElementById('opt-show-minimap')?.checked !== false ? '1' : '0') + '1';
+  // 追加关卡模式信息
+  if (editorLevelMode === 'survival') {
+    flags += '|M:survival|t:' + editorSurvivalTime;
+  } else if (editorTimeLimitEnabled) {
+    flags += '|M:clear|L:1|t:' + editorTimeLimit;
+  }
   let worldA = encodeWorld(buildWorldDataFromEditor(editorCells));
   let worldB = encodeWorld(buildWorldDataFromEditor(editorCellsB));
   let raw = `9.${name}.${flags}.${worldA}.${worldB}`;
@@ -7593,6 +7911,7 @@ function buildWorldDataFromEditor(cellMap) {
   let lands = [], spikes = [], spikeAutos = [];
   let crates = [], bouncers = [], checkpoints = [];
   let enemySpawners = [];
+  let iceTiles = [], stickyWalls = [];
   let portal = null;
   let grid = new Map();
 
@@ -7609,9 +7928,34 @@ function buildWorldDataFromEditor(cellMap) {
     else if (tile === TILE_ENEMY_SPAWNER) enemySpawners.push({x: rx, y: ry, elite: false});
     else if (tile === TILE_ELITE_SPAWNER) enemySpawners.push({x: rx, y: ry, elite: true});
     else if (tile === TILE_PORTAL) portal = {x: rx, y: ry};
+    else if (tile === TILE_ICE) iceTiles.push({x: rx, y: ry});
+    else if (tile === TILE_STICKY_WALL) stickyWalls.push({x: rx, y: ry});
   }
   // 收集触发方块组和双重方块组（从全局 editorTriggerGroups / editorDualGroups 筛选属于当前 cellMap 的）
+  // FIX: 同时收集 cellMap 中单独放置的（不在任何命名组中的）格子，与 _buildWorldData 保持一致
+  let groupedTrigger = new Set();
+  for (let g of editorTriggerGroups) {
+    for (let key of g.cells) groupedTrigger.add(key);
+  }
+  let groupedDual = new Set();
+  for (let g of editorDualGroups) {
+    for (let key of g.cells) groupedDual.add(key);
+  }
+
+  let triggerCells = [];
+  let dualCells = [];
+  for (let [key, tile] of cellMap) {
+    if (tile === TILE_TRIGGER && !groupedTrigger.has(key)) {
+      let [x, y] = key.split(',').map(Number);
+      triggerCells.push({x: x - ox, y: y - oy});
+    } else if (tile === TILE_DUAL && !groupedDual.has(key)) {
+      let [x, y] = key.split(',').map(Number);
+      dualCells.push({x: x - ox, y: y - oy});
+    }
+  }
+
   let triggerGroups = [];
+  if (triggerCells.length > 0) triggerGroups.push({name: 'default', cells: triggerCells});
   for (let g of editorTriggerGroups) {
     let groupCells = [];
     for (let key of g.cells) {
@@ -7621,6 +7965,7 @@ function buildWorldDataFromEditor(cellMap) {
     if (groupCells.length > 0) triggerGroups.push({name: g.name, cells: groupCells});
   }
   let dualGroups = [];
+  if (dualCells.length > 0) dualGroups.push({name: 'default', cells: dualCells, state: 'solid'});
   for (let g of editorDualGroups) {
     let groupCells = [];
     for (let key of g.cells) {
@@ -7665,7 +8010,7 @@ function buildWorldDataFromEditor(cellMap) {
   // 简化：V9 编码暂时不包含移动平台（需要更复杂的关联逻辑）
   // TODO: 如果需要完整支持，需要建立 editorMovingPlatforms 与 cellMap 的关联
 
-  return { portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups };
+  return { portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups, iceTiles, stickyWalls };
 }
 
 function decodeLevelV9(code) {
@@ -7723,7 +8068,18 @@ function decodeLevelV9(code) {
     }
 
     let name = decodeURIComponent(parts[1] || '未命名');
-    let flags = parts[2] || '110';
+    let flagsRaw = parts[2] || '110';
+    let flagParts = flagsRaw.split('|');
+    let flags = flagParts[0];
+    let levelMode = 'clear', timeLimit = 0, survivalTime = 0;
+    for (let fp of flagParts.slice(1)) {
+      if (fp.startsWith('M:')) levelMode = fp.substring(2);
+      else if (fp.startsWith('t:')) {
+        let tv = parseInt(fp.substring(2)) || 0;
+        if (levelMode === 'survival') survivalTime = tv;
+        else timeLimit = tv;
+      }
+    }
     let worldA = decodeWorld(parts[3] || 'N');
     let worldB = decodeWorld(parts[4] || 'N');
 
@@ -7737,6 +8093,7 @@ function decodeLevelV9(code) {
       movingPlatforms: worldA.movingPlatforms, enemySpawners: worldA.enemySpawners,
       showIndicator: flags[0] === '1', showMinimap: flags[1] === '1',
       dualEnabled: flags[2] === '1',
+      levelMode, timeLimit, survivalTime,
       worldA, worldB
     };
   } catch (e) { console.error('V9解码失败:', e); return null; }
@@ -7836,11 +8193,25 @@ function editorHasPortal() {
   return false;
 }
 function buildLevelFromEditor(cells) {
+  try {
   function _buildWorldData(cellMap) {
     let ox = editorSpawn.x, oy = editorSpawn.y;
     let lands = [], spikes = [], spikeAutos = [];
     let crates = [], bouncers = [], checkpoints = [];
     let enemySpawners = [];
+    let switches = [], doors = [];
+    let iceTiles = [], stickyWalls = [];
+    let triggerCells = []; // 单独放置的触发方块
+    let dualCells = [];    // 单独放置的双重方块
+    // FIX: 排除已被 editorTriggerGroups / editorDualGroups 管理的格子，避免重复
+    let groupedTrigger = new Set();
+    for (let g of editorTriggerGroups) {
+      for (let key of g.cells) groupedTrigger.add(key);
+    }
+    let groupedDual = new Set();
+    for (let g of editorDualGroups) {
+      for (let key of g.cells) groupedDual.add(key);
+    }
     for (let [key, tile] of cellMap) {
       let [x, y] = key.split(',').map(Number);
       let rx = x - ox, ry = y - oy;
@@ -7853,6 +8224,12 @@ function buildLevelFromEditor(cells) {
       else if (tile === TILE_CHECKPOINT) checkpoints.push({x: rx, y: ry});
       else if (tile === TILE_ENEMY_SPAWNER) enemySpawners.push({x: rx, y: ry, elite: false});
       else if (tile === TILE_ELITE_SPAWNER) enemySpawners.push({x: rx, y: ry, elite: true});
+      else if (tile >= TILE_SWITCH_R && tile <= TILE_SWITCH_Y) switches.push({x: rx, y: ry, color: switchColor(tile)});
+      else if (tile >= TILE_DOOR_R && tile <= TILE_DOOR_Y) doors.push({x: rx, y: ry, color: switchColor(tile)});
+      else if (tile === TILE_TRIGGER && !groupedTrigger.has(key)) triggerCells.push({x: rx, y: ry});
+      else if (tile === TILE_DUAL && !groupedDual.has(key)) dualCells.push({x: rx, y: ry});
+      else if (tile === TILE_ICE) iceTiles.push({x: rx, y: ry});
+      else if (tile === TILE_STICKY_WALL) stickyWalls.push({x: rx, y: ry});
     }
     let grid = new Map();
     for (let [key, tile] of cellMap) {
@@ -7899,9 +8276,17 @@ function buildLevelFromEditor(cells) {
         break;
       }
     }
-    // 收集触发方块组和双重方块组
+    // 收集触发方块组和双重方块组（合并单独放置的 + 编辑器中创建的组）
     let triggerGroups = [];
     let dualGroups = [];
+    // 1. 单独放置的触发方块/双重方块 → 包装成默认 group
+    if (triggerCells.length > 0) {
+      triggerGroups.push({name: 'default', cells: triggerCells});
+    }
+    if (dualCells.length > 0) {
+      dualGroups.push({name: 'default', cells: dualCells, state: 'solid'});
+    }
+    // 2. 编辑器中创建的组
     for (let group of editorTriggerGroups) {
       let groupCells = [];
       for (let key of group.cells) {
@@ -7918,7 +8303,7 @@ function buildLevelFromEditor(cells) {
       }
       if (groupCells.length > 0) dualGroups.push({name: group.name, cells: groupCells, state: group.state});
     }
-    return { lands, spikes, spikeAutos, crates, bouncers, checkpoints, enemySpawners, portal: hasPortal ? {x: prx, y: pry} : null, triggerGroups, dualGroups };
+    return { lands, spikes, spikeAutos, crates, bouncers, checkpoints, enemySpawners, portal: hasPortal ? {x: prx, y: pry} : null, triggerGroups, dualGroups, switches, doors, iceTiles, stickyWalls };
   }
 
   const showInd = document.getElementById('opt-show-indicator') && document.getElementById('opt-show-indicator').checked;
@@ -7943,6 +8328,9 @@ function buildLevelFromEditor(cells) {
       lands: worldA.lands, spikes: worldA.spikes, spikeAutos: worldA.spikeAutos,
       crates: worldA.crates, bouncers: worldA.bouncers, checkpoints: worldA.checkpoints,
       enemySpawners: worldA.enemySpawners,
+      triggerGroups: worldA.triggerGroups,
+      dualGroups: worldA.dualGroups,
+      switches: worldA.switches, doors: worldA.doors,
       trajectories, movingPlatforms,
       showIndicator: showInd !== false, showMinimap: showMap !== false,
       dualEnabled: true,
@@ -7958,10 +8346,16 @@ function buildLevelFromEditor(cells) {
       lands: worldData.lands, spikes: worldData.spikes, spikeAutos: worldData.spikeAutos,
       crates: worldData.crates, bouncers: worldData.bouncers, checkpoints: worldData.checkpoints,
       enemySpawners: worldData.enemySpawners,
+      triggerGroups: worldData.triggerGroups, dualGroups: worldData.dualGroups,
+      switches: worldData.switches, doors: worldData.doors,
       trajectories, movingPlatforms,
       showIndicator: showInd !== false, showMinimap: showMap !== false,
       dualEnabled: false
     };
+  }
+  } catch (err) {
+    console.error('[buildLevelFromEditor] 错误:', err);
+    return null;
   }
 }
 // FIX v7: 改进传送门检测逻辑
@@ -8109,11 +8503,12 @@ async function getSharedLevels() {
   } catch (e) { console.error('获取关卡失败:', e); return []; }
 }
 // ==================== 界面切换 ====================
-function showScreen(id) {
+function showScreen(id, callback) {
   ['start-screen', 'auth-screen', 'lobby-screen', 'editor-screen', 'level-select-screen', 'dev-screen', 'changelog-screen'].forEach(sid => {
     let el = document.getElementById(sid);
     if (el) el.style.display = sid === id ? 'flex' : 'none';
   });
+  if (callback) callback();
 }
 function startGame() {
   gameState = 'playing';
@@ -8123,6 +8518,8 @@ function startGame() {
   playerHp = PLAYER_MAX_HP; playerInvul = 0; playerAttackCd = 0; cameraShake = 0;
   attackCombo = 0; comboWindow = 0; attackDash = 0;
   battleFocus = 0; lastAttackFrame = 0;
+  downslashCombo = 0;
+  levelDeathCount = 0;
   currentWorld = 'A';
   player.knockT = 0;
   collectSpawners();
@@ -8166,11 +8563,14 @@ function startGame() {
   showTutorialDialog();
 }
 // ==================== 新手引导对话框 ====================
-const TUTORIAL_LINES = {
-  0: t('欢迎来到这里，现在我带你过一下新手培训。'),
-  1: t('好了，现在该加些危险的东西了。'),
-  2: t('好，这是检验你成果的时候。')
-};
+function getTutorialLine(idx) {
+  const lines = {
+    0: t('欢迎来到这里，现在我带你过一下新手培训。'),
+    1: t('好了，现在该加些危险的东西了。'),
+    2: t('好，这是检验你成果的时候。')
+  };
+  return lines[idx];
+}
 function showTutorialDialog() {
   const overlay = document.getElementById('tutorial-overlay');
   if (!overlay) return;
@@ -8179,7 +8579,7 @@ function showTutorialDialog() {
     overlay.classList.remove('active');
     return;
   }
-  const line = TUTORIAL_LINES[currentLevelIdx];
+  const line = getTutorialLine(currentLevelIdx);
   if (line == null) {
     overlay.classList.remove('active');
     return;
@@ -8192,6 +8592,12 @@ function closeTutorialDialog() {
   if (overlay) overlay.classList.remove('active');
 }
 document.getElementById('tutorial-dialog').addEventListener('click', closeTutorialDialog);
+// 给教程弹窗添加独立触摸处理（阻止传播到 game-container，避免被多指触控拦截）
+const tutorialDialogEl = document.getElementById('tutorial-dialog');
+if (tutorialDialogEl) {
+  tutorialDialogEl.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+  tutorialDialogEl.addEventListener('touchend', (e) => { e.stopPropagation(); closeTutorialDialog(); }, { passive: true });
+}
 // 双世界切换：判断玩家当前像素位置是否落在目标世界实心格内
 function isPlayerEmbedded(level) {
   if (!level || !level.grid) return false;
@@ -8300,6 +8706,7 @@ function exitGame() {
     enemies = []; bullets = []; slashes = []; cameraShake = 0;
     attackCombo = 0; comboWindow = 0; attackDash = 0;
     battleFocus = 0; lastAttackFrame = 0;
+    downslashCombo = 0;
     document.getElementById('game-ui').style.display = 'none';
     document.getElementById('attack-btn').style.display = 'none';
     var gameCanvasEl = document.getElementById('game-canvas');
@@ -8689,9 +9096,22 @@ document.getElementById('btn-next-level').addEventListener('click', () => {
       resetPlayer(true); // 重新测试，清空存档点
     }
   } else if (isFromLobby) {
-    resetPlayer(false);
+    // 大厅关卡：重新加载同一关卡再玩一次
+    if (lastLobbyLevelCode) {
+      const level = decodeLevel(lastLobbyLevelCode);
+      if (level) {
+        isFromLobby = true;
+        loadCustomLevel(level);
+        startGame();
+      } else {
+        exitGame();
+      }
+    } else {
+      exitGame();
+    }
   } else if (!isCustomLevel && currentLevelIdx < BUILTIN_LEVELS.length - 1) {
-    loadLevel(currentLevelIdx + 1); resetPlayer(false);
+    loadLevel(currentLevelIdx + 1);
+    startGame();
   } else {
     exitGame();
   }
@@ -9246,6 +9666,7 @@ function renderDetailMap(code, container) {
 }
 window.playLobbyLevel = function(code) {
   const decodedCode = code.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  lastLobbyLevelCode = decodedCode;
   isEditorTest = false;
   isFromLobby = true;
   const level = decodeLevel(decodedCode);
@@ -9424,6 +9845,7 @@ document.getElementById('btn-upload-play').addEventListener('click', () => {
   if (!level) { alert(t('关卡编码无效')); return; }
   isEditorTest = false;
   isFromLobby = true;
+  lastLobbyLevelCode = code;
   loadCustomLevel(level);
   startGame();
 });
@@ -9455,6 +9877,7 @@ document.getElementById('btn-detail-back').addEventListener('click', () => {
 document.getElementById('btn-detail-play').addEventListener('click', () => {
   if (!detailLevelData) return;
   const decodedCode = detailLevelData.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  lastLobbyLevelCode = decodedCode;
   isEditorTest = false;
   isFromLobby = true;
   const level = decodeLevel(decodedCode);
@@ -9544,6 +9967,11 @@ document.getElementById('btn-changelog-back').addEventListener('click', () => {
     if (val !== this.value) this.value = val;
     document.getElementById('desc-char-count').textContent = len + '/100';
   });
+  // 给发布按钮添加独立触摸处理（阻止传播到 game-container）
+  const publishSubmitBtn = document.getElementById('btn-publish-submit');
+  if (publishSubmitBtn) {
+    publishSubmitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+  }
   document.getElementById('btn-publish-submit').addEventListener('click', async () => {
     const name = document.getElementById('publish-name-input').value.trim();
     const desc = document.getElementById('publish-desc-input').value.trim();
@@ -9652,7 +10080,9 @@ async function ext_getTopTrajectory(levelId) {
   try {
     var records = await supabaseGet('level_leaderboard', { level_id: 'eq.' + levelId, select: 'trajectory_data,clear_time_ms,player_name', order: 'clear_time_ms.asc', limit: 1 });
     if (records && records.length > 0 && records[0].trajectory_data) {
-      return { trajectory: JSON.parse(records[0].trajectory_data), time: records[0].clear_time_ms, player: records[0].player_name };
+      var td = JSON.parse(records[0].trajectory_data);
+      var trajectory = td.points || td; // 兼容新格式（对象含points）和旧格式（纯数组）
+      return { trajectory: trajectory, time: records[0].clear_time_ms, player: records[0].player_name };
     }
     return null;
   } catch (e) { return null; }
@@ -9714,7 +10144,13 @@ async function ext_loadLeaderboard(levelId) {
     container.innerHTML = records.map(function(r, i) {
       var timeSec = (r.clear_time_ms / 1000).toFixed(2);
       var medal = (i + 1) + '.';
-      return '<div style="display:flex;justify-content:space-between;padding:4px 0;color:#C3C3C3;"><span>' + medal + ' ' + (r.player_name || t('匿名')) + '</span><span style="color:#00F6FF;font-family:monospace;">' + timeSec + 's</span></div>';
+      var deathCount = 0;
+      try {
+        var td = r.trajectory_data ? JSON.parse(r.trajectory_data) : null;
+        if (td && td.deathCount !== undefined) deathCount = td.deathCount;
+      } catch (e) {}
+      var deathText = deathCount > 0 ? '<span style="color:#FF6B6B;font-size:11px;">💀' + deathCount + '</span>' : '';
+      return '<div style="display:flex;justify-content:space-between;padding:4px 0;color:#C3C3C3;"><span>' + medal + ' ' + (r.player_name || t('匿名')) + ' ' + deathText + '</span><span style="color:#00F6FF;font-family:monospace;">' + timeSec + 's</span></div>';
     }).join('');
   } catch (e) { container.innerHTML = '<span style="color:#666;">' + t('加载失败') + '</span>'; }
 }
@@ -9820,7 +10256,7 @@ exitGame = function() {
     ext_isRecordingTrajectory = false;
     var clearTimeMs = Date.now() - ext_runStartTime;
     var playerName = currentUser ? currentUser.username : '匿名';
-    ext_submitRecord(ext_detailLevelIdCache, playerName, clearTimeMs, ext_currentRunTrajectory).then(function(isNewRecord) {
+    ext_submitRecord(ext_detailLevelIdCache, playerName, clearTimeMs, { points: ext_currentRunTrajectory, deathCount: levelDeathCount }).then(function(isNewRecord) {
       if (isNewRecord) console.log('新纪录上传成功');
     });
   }
@@ -9835,7 +10271,7 @@ setTimeout(function() {
         ext_isRecordingTrajectory = false;
         var clearTimeMs = Date.now() - ext_runStartTime;
         var playerName = currentUser ? currentUser.username : '匿名';
-        ext_submitRecord(ext_detailLevelIdCache, playerName, clearTimeMs, ext_currentRunTrajectory);
+        ext_submitRecord(ext_detailLevelIdCache, playerName, clearTimeMs, { points: ext_currentRunTrajectory, deathCount: levelDeathCount });
       }
     }, true);
   }
@@ -10001,7 +10437,7 @@ async function ext_fixLoadLeaderboardModal(levelId) {
   try {
     var records = await ext_getLeaderboard(levelId, 50);
     if (!records || records.length === 0) {
-      content.innerHTML = '<div class="lb-empty">' + t('暂无通关记录，快来挑战吧！') + '</div>';
+      content.innerHTML = '<div class="lb-header-row" style="display:flex;justify-content:space-between;padding:6px 12px 4px;font-size:12px;color:#707070;border-bottom:1px solid #2a2a2a;margin-bottom:4px;"><span>排名 / 玩家</span><span style="display:flex;gap:24px;"><span>死亡</span><span>用时</span></span></div><div class="lb-empty">' + t('暂无通关记录，快来挑战吧！') + '</div>';
       return;
     }
     // 去重：同一玩家只保留最好成绩（用时最短）
@@ -10015,12 +10451,19 @@ async function ext_fixLoadLeaderboardModal(levelId) {
     var uniqueRecords = Object.values(bestByPlayer).sort(function(a, b) {
       return a.clear_time_ms - b.clear_time_ms;
     }).slice(0, 50);
-    content.innerHTML = uniqueRecords.map(function(r, i) {
+    var headerHtml = '<div class="lb-header-row" style="display:flex;justify-content:space-between;padding:6px 12px 4px;font-size:12px;color:#707070;border-bottom:1px solid #2a2a2a;margin-bottom:4px;"><span>排名 / 玩家</span><span style="display:flex;gap:24px;"><span>死亡</span><span>用时</span></span></div>';
+    content.innerHTML = headerHtml + uniqueRecords.map(function(r, i) {
       var timeSec = (r.clear_time_ms / 1000).toFixed(2);
       var medal = (i + 1) + '.';
-      return '<div class="lb-record"><span><span class="lb-medal">' + medal + '</span> ' + (r.player_name || t('匿名')) + '</span><span class="lb-time">' + timeSec + 's</span></div>';
+      var deathCount = 0;
+      try {
+        var td = r.trajectory_data ? JSON.parse(r.trajectory_data) : null;
+        if (td && td.deathCount !== undefined) deathCount = td.deathCount;
+      } catch (e) {}
+      var deathText = deathCount > 0 ? '<span style="color:#FF6B6B;margin-left:8px;">💀 ' + deathCount + '</span>' : '<span style="color:#8D9390;margin-left:8px;">-</span>';
+      return '<div class="lb-record"><span><span class="lb-medal">' + medal + '</span> ' + (r.player_name || t('匿名')) + '</span><span>' + deathText + '<span class="lb-time">' + timeSec + 's</span></span></div>';
     }).join('');
-  } catch (e) { content.innerHTML = '<div class="lb-empty">' + t('加载失败') + '</div>'; }
+  } catch (e) { content.innerHTML = '<div class="lb-header-row" style="display:flex;justify-content:space-between;padding:6px 12px 4px;font-size:12px;color:#707070;border-bottom:1px solid #2a2a2a;margin-bottom:4px;"><span>排名 / 玩家</span><span style="display:flex;gap:24px;"><span>死亡</span><span>用时</span></span></div><div class="lb-empty">' + t('加载失败') + '</div>'; }
 }
 // 弹窗关闭事件
 document.addEventListener('click', function(e) {
@@ -10183,6 +10626,7 @@ exitGame = function() {
       startTime: 0,
       endTime: clearTimeMs,
       playerName: playerName,
+      deathCount: levelDeathCount,
       points: ext_replayTrajectory
     };
     ext_submitReplayRecord(ext_detailLevelIdFix, playerName, clearTimeMs, trajectoryPackage);
@@ -10238,7 +10682,8 @@ var ext2_replayTime = 0;
 const EXT2_PLAYER_SIZE = 24;
 
 function ext2_ensureReplayDOM() {
-  if (!document.getElementById('replay-screen')) {
+  var existing = document.getElementById('replay-screen');
+  if (!existing) {
     var scr = document.createElement('div');
     scr.id = 'replay-screen';
     scr.innerHTML =
@@ -10248,7 +10693,12 @@ function ext2_ensureReplayDOM() {
       '<div id="replay-topbar"><span id="replay-title">精彩回放</span><span id="replay-subtitle"></span></div>' +
       '<div id="replay-end-tip"><div class="tip-main">回放结束</div><div class="tip-sub">正在返回排行榜…</div></div>';
     document.body.appendChild(scr);
-    document.getElementById('replay-exit-btn').addEventListener('click', ext2_closeReplay);
+  }
+  // 确保退出按钮事件已绑定（无论DOM是静态还是动态创建的）
+  var exitBtn = document.getElementById('replay-exit-btn');
+  if (exitBtn && !exitBtn._replayBound) {
+    exitBtn.addEventListener('click', ext2_closeReplay);
+    exitBtn._replayBound = true;
   }
   return document.getElementById('replay-screen');
 }
@@ -10277,17 +10727,55 @@ function ext2_spawnReplayParticles(x, y, color, count) {
 // 打开回放界面：解析关卡 → 全屏播放第一名的完整通关轨迹
 async function ext2_openReplay(levelId, trajectoryJson, playerName) {
   try {
-    if (!detailLevelData) { alert(t('关卡数据丢失')); return; }
-    var decodedCode = detailLevelData.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    var levelCode = detailLevelData;
+    // 编码直接游玩时 detailLevelData 可能未设置，尝试从数据库获取
+    if (!levelCode && levelId) {
+      try {
+        var levels = await supabaseGet('levels', { id: 'eq.' + levelId, select: 'code', limit: 1 });
+        if (levels && levels.length > 0 && levels[0].code) {
+          levelCode = levels[0].code;
+        }
+      } catch (dbErr) { console.log('获取关卡编码失败:', dbErr); }
+    }
+    if (!levelCode) { alert(t('关卡数据丢失')); return; }
+    var decodedCode = levelCode.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
     var levelRaw = decodeLevel(decodedCode);
     if (!levelRaw) { alert(t('关卡解析失败')); return; }
+
+    // 调试：解析轨迹数据
     var pkg = typeof trajectoryJson === 'string' ? JSON.parse(trajectoryJson) : trajectoryJson;
-    if (!pkg || !pkg.points || pkg.points.length === 0) { alert(t('暂无精彩回放数据，快来抢第一名吧！')); return; }
+    var points = Array.isArray(pkg) ? pkg : (pkg.points || []);
+
+    // 检测数据格式
+    var isInputFormat = false;
+    if (Array.isArray(points) && points.length > 0) {
+      var first = points[0];
+      // 输入指令格式：{f:帧, type:'dir'/'jump'}
+      // 位置坐标格式：{x, y, t}
+      isInputFormat = first.f !== undefined && first.type !== undefined;
+    }
+
     ext2_replayLevelId = levelId;
-    ext2_replayPlayerName = playerName || pkg.playerName || t('匿名');
-    ext2_replayPoints = pkg.points;
-    var lastP = ext2_replayPoints[ext2_replayPoints.length - 1];
-    ext2_replayTotalMs = (lastP && lastP.t) ? lastP.t : 0;
+    ext2_replayPlayerName = playerName || (pkg.playerName) || t('匿名');
+
+    if (isInputFormat) {
+      // 使用输入指令模拟器（悦动版 MV 回放）
+      ext3_startGhostPlayback(points);
+      var lastF = points.length > 0 ? points[points.length - 1].f : 0;
+      ext2_replayTotalMs = lastF > 0 ? lastF * (1000 / 60) : 0;
+      ext2_replayPoints = [];
+    } else {
+      // 使用位置坐标回放（融合版）
+      ext2_replayPoints = points;
+      var lastP = points.length > 0 ? points[points.length - 1] : null;
+      ext2_replayTotalMs = (lastP && lastP.t) ? lastP.t : 0;
+    }
+
+    if (!points || points.length === 0) {
+      console.log('[回放] 轨迹为空, pkg类型=' + typeof pkg);
+      return;
+    }
+
     ext2_replayIdx = 0;
     ext2_replayFinished = false;
     ext2_replayParticles = [];
@@ -10298,6 +10786,12 @@ async function ext2_openReplay(levelId, trajectoryJson, playerName) {
     currentLevel = parseLevel(levelRaw);
     initCrates();
     activatedCheckpoints = new Set();
+
+    if (!currentLevel) {
+      console.log('[回放] 关卡解析失败');
+      return;
+    }
+
     // UI
     var scr = ext2_ensureReplayDOM();
     ext2_resizeReplayCanvas();
@@ -10311,13 +10805,113 @@ async function ext2_openReplay(levelId, trajectoryJson, playerName) {
     ext2_replayStartTs = performance.now();
     requestAnimationFrame(ext2_replayLoop);
   } catch (e) {
+    console.error('[回放] 异常:', e.message, e.stack);
     console.error('打开回放失败:', e);
-    alert(t('回放启动失败，请重试'));
   }
 }
+
+// ==================== 输入指令模拟器（悦动版 MV 回放）====================
+// 两套模拟器共存：
+//   1. 位置坐标回放（ext2_replayPoints）—— 融合版上传的 {x,y,t} 数据
+//   2. 输入指令模拟器（ext3_ghost）—— 悦动版上传的 {f,type,dx} 数据
+var ext3_replayMode = 'position'; // 'position' | 'simulation'
+var ext3_ghost = null;
+var ext3_ghostMvData = [];
+var ext3_ghostMvIndex = 0;
+var ext3_ghostFrameCount = 0;
+var ext3_ghostCurrentDir = 0;
+var ext3_ghostJumpPending = false;
+var ext3_ghostAttackPending = false;
+var ext3_ghostTrail = [];
+
+function ext3_startGhostPlayback(mvData) {
+  ext3_ghostMvData = mvData;
+  ext3_ghostMvIndex = 0;
+  ext3_ghostFrameCount = 0;
+  ext3_ghostCurrentDir = 0;
+  ext3_ghostJumpPending = false;
+  ext3_ghostAttackPending = false;
+  ext3_ghostTrail = [];
+  ext3_ghost = {
+    x: currentLevel.spawn.x * GRID_SIZE + 4,
+    y: currentLevel.spawn.y * GRID_SIZE + 4,
+    vx: 0, vy: 0,
+    w: 24, h: 24,
+    facing: 1,
+    onGround: false,
+    jumpCount: 0,
+    dead: false,
+    won: false
+  };
+  ext3_replayMode = 'simulation';
+}
+
+function ext3_updateGhost() {
+  if (!ext3_ghost || !currentLevel) return;
+  if (ext3_ghost.dead || ext3_ghost.won) return;
+  ext3_ghost.onGround = false;
+  // 1. 读取当前帧的输入指令
+  while (ext3_ghostMvIndex < ext3_ghostMvData.length &&
+         ext3_ghostMvData[ext3_ghostMvIndex].f <= ext3_ghostFrameCount) {
+    var evt = ext3_ghostMvData[ext3_ghostMvIndex];
+    if (evt.type === 'dir') ext3_ghostCurrentDir = evt.dx;
+    else if (evt.type === 'jump') ext3_ghostJumpPending = true;
+    else if (evt.type === 'attack') ext3_ghostAttackPending = true;
+    ext3_ghostMvIndex++;
+  }
+  if (ext3_ghostMvIndex >= ext3_ghostMvData.length) ext3_ghostCurrentDir = 0;
+  // 2. 移动（融合版风格）
+  if (ext3_ghostCurrentDir !== 0) {
+    ext3_ghost.vx = ext3_ghostCurrentDir * PLAYER_SPEED;
+    ext3_ghost.facing = ext3_ghostCurrentDir;
+  } else {
+    ext3_ghost.vx = 0;
+  }
+  // 3. 跳跃
+  if (ext3_ghostJumpPending && ext3_ghost.onGround) {
+    ext3_ghost.vy = JUMP_VELOCITY;
+    ext3_ghost.onGround = false;
+    ext3_ghostJumpPending = false;
+  }
+  // 4. 重力
+  ext3_ghost.vy += GRAVITY;
+  if (ext3_ghost.vy > MAX_FALL) ext3_ghost.vy = MAX_FALL;
+  // 5. 移动+碰撞（使用通用 moveEntity）
+  moveEntity(ext3_ghost, ext3_ghost.vx, 0);
+  moveEntity(ext3_ghost, 0, ext3_ghost.vy);
+  // 6. 拖尾
+  ext3_ghostTrail.push({ x: ext3_ghost.x, y: ext3_ghost.y });
+  if (ext3_ghostTrail.length > 40) ext3_ghostTrail.shift();
+  // 7. 帧计数
+  ext3_ghostFrameCount++;
+  // 8. 掉出世界 -> 重置
+  if (ext3_ghost.y > cachedDeathY) {
+    ext3_ghost.x = currentLevel.spawn.x * GRID_SIZE + 4;
+    ext3_ghost.y = currentLevel.spawn.y * GRID_SIZE + 4;
+    ext3_ghost.vx = 0; ext3_ghost.vy = 0;
+    ext3_ghost.dead = false; ext3_ghost.won = false;
+    ext3_ghost.jumpCount = 0;
+    ext3_ghostTrail = [];
+    ext3_ghostMvIndex = 0; ext3_ghostFrameCount = 0;
+    ext3_ghostCurrentDir = 0; ext3_ghostJumpPending = false;
+    ext3_ghostAttackPending = false;
+  }
+  // 9. 通关检测
+  if (currentLevel.portal) {
+    var gpx = Math.floor((ext3_ghost.x + ext3_ghost.w / 2) / GRID_SIZE);
+    var gpy = Math.floor((ext3_ghost.y + ext3_ghost.h / 2) / GRID_SIZE);
+    if (gpx === currentLevel.portal.x && gpy === currentLevel.portal.y) {
+      ext3_ghost.won = true;
+      ext3_ghostCurrentDir = 0;
+    }
+  }
+}
+
 // 关闭回放：停止播放，返回排行榜
 function ext2_closeReplay() {
   ext2_replayActive = false;
+  ext3_replayMode = 'position';
+  ext3_ghost = null;
   if (ext2_replayEndTimer) { clearTimeout(ext2_replayEndTimer); ext2_replayEndTimer = null; }
   var scr = document.getElementById('replay-screen');
   if (scr) scr.classList.remove('active');
@@ -10364,13 +10958,30 @@ function ext2_replayLoop() {
     }
   }
   // 取当前轨迹位置
-  var st = ext2_sampleTrajectory(elapsed);
-  var px = st.x, py = st.y;
-  // 动作粒子（跳跃/落地）
-  if (st.action === 'jump' && st.action !== ext2_replayTrail.lastAction) {
-    ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE, '#F4F9A7', 6);
+  var px, py, st, pct;
+  if (ext3_replayMode === 'simulation') {
+    // 输入指令模拟器模式（悦动版 MV 回放）
+    ext3_updateGhost();
+    if (ext3_ghost) {
+      px = ext3_ghost.x;
+      py = ext3_ghost.y;
+    } else {
+      px = 0; py = 0;
+    }
+    // 动作粒子（幽灵跳跃时）
+    if (ext3_ghost && ext3_ghost.vy < -2 && !ext3_ghost.onGround) {
+      ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE, '#F4F9A7', 4);
+    }
+  } else {
+    // 位置坐标回放模式（融合版）
+    st = ext2_sampleTrajectory(elapsed);
+    px = st.x; py = st.y;
+    // 动作粒子（跳跃/落地）
+    if (st.action === 'jump' && st.action !== ext2_replayTrail.lastAction) {
+      ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE, '#F4F9A7', 6);
+    }
+    ext2_replayTrail.lastAction = st.action;
   }
-  ext2_replayTrail.lastAction = st.action;
   // 相机平滑跟随
   var targetCamX = px - w / 2 + EXT2_PLAYER_SIZE / 2;
   var targetCamY = py - h / 2 + EXT2_PLAYER_SIZE / 2;
@@ -10504,22 +11115,40 @@ function ext2_replayLoop() {
     rctx.moveTo(crate.x + GRID_SIZE - 2, crate.y + 2); rctx.lineTo(crate.x + 2, crate.y + GRID_SIZE - 2);
     rctx.stroke();
   }
-  // 回放者（发光方块，与主角造型一致；死亡重生瞬移段隐藏）
-  if (!st.hidden) {
-    var glowSize = 15 + Math.sin(ext2_replayTime * 4) * 5;
-    var gradient = rctx.createRadialGradient(
-      px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, 0,
-      px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, glowSize
-    );
-    gradient.addColorStop(0, 'rgba(0,246,255,0.6)');
-    gradient.addColorStop(1, 'rgba(0,246,255,0)');
-    rctx.fillStyle = gradient;
-    rctx.fillRect(px - glowSize + EXT2_PLAYER_SIZE/2, py - glowSize + EXT2_PLAYER_SIZE/2, glowSize*2, glowSize*2);
-    rctx.fillStyle = COLORS.player;
-    rctx.shadowColor = '#00F6FF';
-    rctx.shadowBlur = 15;
-    rctx.fillRect(px, py, EXT2_PLAYER_SIZE, EXT2_PLAYER_SIZE);
-    rctx.shadowBlur = 0;
+  // 回放者绘制
+  if (ext3_replayMode === 'simulation') {
+    // 输入指令模拟器：绘制幽灵拖尾 + 幽灵本体
+    if (ext3_ghost && !ext3_ghost.dead) {
+      for (var ti = 0; ti < ext3_ghostTrail.length; ti++) {
+        var tpt = ext3_ghostTrail[ti];
+        var ta = (ti / ext3_ghostTrail.length) * 0.25;
+        rctx.fillStyle = 'rgba(255, 179, 71, ' + ta + ')';
+        rctx.fillRect(tpt.x, tpt.y, ext3_ghost.w, ext3_ghost.h);
+      }
+      // 幽灵本体（橙色半透明）
+      rctx.globalAlpha = 0.5;
+      rctx.fillStyle = '#FFB347';
+      rctx.fillRect(ext3_ghost.x, ext3_ghost.y, ext3_ghost.w, ext3_ghost.h);
+      rctx.globalAlpha = 1;
+    }
+  } else {
+    // 位置坐标回放：发光方块（死亡重生瞬移段隐藏）
+    if (!st.hidden) {
+      var glowSize = 15 + Math.sin(ext2_replayTime * 4) * 5;
+      var gradient = rctx.createRadialGradient(
+        px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, 0,
+        px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, glowSize
+      );
+      gradient.addColorStop(0, 'rgba(0,246,255,0.6)');
+      gradient.addColorStop(1, 'rgba(0,246,255,0)');
+      rctx.fillStyle = gradient;
+      rctx.fillRect(px - glowSize + EXT2_PLAYER_SIZE/2, py - glowSize + EXT2_PLAYER_SIZE/2, glowSize*2, glowSize*2);
+      rctx.fillStyle = COLORS.player;
+      rctx.shadowColor = '#00F6FF';
+      rctx.shadowBlur = 15;
+      rctx.fillRect(px, py, EXT2_PLAYER_SIZE, EXT2_PLAYER_SIZE);
+      rctx.shadowBlur = 0;
+    }
   }
   // 粒子
   for (var pi = ext2_replayParticles.length - 1; pi >= 0; pi--) {
@@ -10534,10 +11163,21 @@ function ext2_replayLoop() {
   rctx.globalAlpha = 1;
   rctx.restore();
   // ---------- 进度条（只读展示，不可拖动） ----------
-  var pct = ext2_replayTotalMs > 0 ? Math.min(100, elapsed / ext2_replayTotalMs * 100) : 100;
+  if (ext3_replayMode === 'simulation') {
+    var lastF = ext3_ghostMvData.length > 0 ? ext3_ghostMvData[ext3_ghostMvData.length - 1].f : 1;
+    pct = lastF > 0 ? Math.min(100, ext3_ghostFrameCount / lastF * 100) : 100;
+  } else {
+    pct = ext2_replayTotalMs > 0 ? Math.min(100, elapsed / ext2_replayTotalMs * 100) : 100;
+  }
   document.getElementById('replay-progress-bar').style.width = pct + '%';
   // ---------- 播放结束：完整播完后自动返回 ----------
-  if (st.done && !ext2_replayFinished) {
+  var isDone = false;
+  if (ext3_replayMode === 'simulation') {
+    isDone = ext3_ghost && ext3_ghost.won;
+  } else {
+    isDone = st && st.done;
+  }
+  if (isDone && !ext2_replayFinished) {
     ext2_replayFinished = true;
     document.getElementById('replay-end-tip').classList.add('show');
     ext2_spawnReplayParticles(px + EXT2_PLAYER_SIZE/2, py + EXT2_PLAYER_SIZE/2, '#F4F9A7', 30);
@@ -10670,11 +11310,20 @@ var SLASH_PATHS_3 = [
 ];
 var SLASH_PATHS = SLASH_PATHS_1; // 兼容旧引用
 
+var DOWNSLASH_PATHS = [
+  new Path2D('M 162.5400 489.0040 C 166.3828 481.6487, 177.3555 457.6888, 185.5970 444.8720 C 193.8385 432.0552, 205.3163 419.7398, 211.9890 412.1030 C 218.6617 404.4662, 221.0478 403.0427, 225.6330 399.0510 C 230.2182 395.0593, 235.9265 390.5527, 239.5000 388.1530 C 243.0735 385.7533, 241.4392 387.8527, 247.0740 384.6530 C 252.7088 381.4533, 268.9365 371.5713, 273.3090 368.9550'),
+  new Path2D('M 162.9310 491.1510 C 167.5583 495.4807, 182.7742 510.2185, 190.6950 517.1290 C 198.6158 524.0395, 203.4088 527.5437, 210.4560 532.6140 C 217.5032 537.6843, 225.0345 542.8953, 232.9780 547.5510 C 240.9215 552.2067, 248.1823 555.7070, 258.1170 560.5480 C 268.0517 565.3890, 285.7457 573.6043, 292.5860 576.5970 C 299.4263 579.5897, 294.7040 578.0155, 299.1590 578.5040 C 303.6140 578.9925, 315.5168 579.1620, 319.3160 579.5280 C 323.1152 579.8940, 321.5143 580.5047, 321.9540 580.7000'),
+  new Path2D('M 327.8630 578.5040 C 335.4423 563.5823, 365.1257 506.1268, 373.3390 488.9740 C 381.5523 471.8212, 375.7388 479.6250, 377.1430 475.5870 C 378.5472 471.5490, 379.6850 473.7498, 381.7640 464.7460 C 383.8430 455.7422, 387.8338 431.4612, 389.6170 421.5640 C 391.4002 411.6668, 391.7338 410.9172, 392.4630 405.3630 C 393.1922 399.8088, 393.6475 401.1082, 393.9920 388.2390 C 394.3365 375.3698, 394.8555 345.5418, 394.5300 328.1480 C 394.2045 310.7542, 393.3332 297.6442, 392.0390 283.8760 C 390.7448 270.1078, 387.6440 251.9285, 386.7650 245.5390'),
+  new Path2D('M 391.0140 253.7370 C 390.3803 258.4572, 388.0098 273.7052, 387.2120 282.0580 C 386.4142 290.4108, 387.6750 296.4058, 386.2270 303.8540 C 384.7790 311.3022, 380.1418 320.7273, 378.5240 326.7470 C 376.9062 332.7667, 377.4782 335.4888, 376.5200 339.9720 C 375.5618 344.4552, 377.2187 341.1753, 372.7750 353.6460 C 368.3313 366.1167, 355.0063 402.3470, 349.8580 414.7960 C 344.7097 427.2450, 345.8517 422.4487, 341.8850 428.3400 C 337.9183 434.2313, 329.2233 445.9438, 326.0580 450.1440 C 322.8927 454.3442, 324.7177 452.0610, 322.8930 453.5410 C 321.0683 455.0210, 318.1237 456.2123, 315.1100 459.0240 C 312.0963 461.8357, 306.5275 468.5132, 304.8110 470.4110'),
+  new Path2D('M 277.0690 366.6610 C 276.8575 372.3763, 275.3278 389.8227, 275.8000 400.9530 C 276.2722 412.0833, 277.9327 424.4538, 279.9020 433.4430 C 281.8713 442.4322, 283.9203 448.2387, 287.6160 454.8880 C 291.3117 461.5373, 299.6660 470.2638, 302.0760 473.3390')
+];
+
 var playerHitstop = 0;
 var playerHp = 10, PLAYER_MAX_HP = 10;
 var playerInvul = 0, playerAttackCd = 0, cameraShake = 0;
 var attackCombo = 0, comboWindow = 0, attackDash = 0;
 var battleFocus = 0, lastAttackFrame = 0;
+var downslashCombo = 0; // 连续下劈命中计数（命中才反弹+刷新跳跃）
 var spawnerList = [];
 var PLAYER_MELEE_DMG = 4, ENEMY_MELEE_DMG = 3, ELITE_BULLET_DMG = 2;
 var ENEMY_SPAWN_FRAMES = 180, ELITE_SPAWN_FRAMES = 300;
@@ -10754,7 +11403,7 @@ function resetBroadcastSystem() {
 }
 
 function isSolidTile(t) {
-  if (t === TILE_LAND || t === TILE_CRATE || t === TILE_CHECKPOINT) return true;
+  if (t === TILE_LAND || t === TILE_CRATE || t === TILE_CHECKPOINT || t === TILE_ICE) return true;
   if (t === TILE_DUAL) {
     // 双重方块：根据状态决定虚实（需要在关卡数据中查找）
     // 注意：这里只处理 grid 中的值，实际碰撞在 movePlayer 中处理
@@ -10764,6 +11413,7 @@ function isSolidTile(t) {
 }
 function isSpikeTile(t) { return t === TILE_SPIKE || t === TILE_SPIKE_AUTO; }
 function updateEnemies() {
+  try {
   for (var i = enemies.length - 1; i >= 0; i--) {
     var e = enemies[i];
     if (e.hitFlash > 0) e.hitFlash--;
@@ -10802,11 +11452,24 @@ function updateEnemies() {
           if (isSolidTile(tileAtPx(frontX + dir * d * GRID_SIZE, e.y + e.h + 6))) break;
           pitWidth++;
         }
-        // 小坑（1-2格）→ 跳跃；大坑或无底 → 停止
+        // 小坑（1-2格）→ 跳跃；大坑检测下方是否有平台 → 有则跳下去，无则停止
         if (pitWidth >= 1 && pitWidth <= 2) {
           e.vy = -9.5; e.jumpCount = 1;
         } else {
-          e.vx = 0;
+          // 大坑：检测下方是否有平台
+          var belowGround = false;
+          for (var by = 1; by <= 8; by++) {
+            if (isSolidTile(tileAtPx(frontX, e.y + e.h + by * GRID_SIZE))) {
+              belowGround = true;
+              break;
+            }
+          }
+          if (belowGround) {
+            // 下方有平台：直接走下去（不需要起跳，利用重力自然下落）
+            e.vx = dir * speed * 0.5; // 减速前进，防止冲过头
+          } else {
+            e.vx = 0; // 无底洞：停止
+          }
         }
       }
     } else {
@@ -10843,6 +11506,13 @@ function updateEnemies() {
         if (e.vy > 0 && (e.y - e.vy) + e.h <= v3.crate.y + 8) { e.y = v3.crate.y - e.h; e.vy = 0; e.onGround = true; e.jumpCount = 0; }
       }
     }
+    // 敌人踩到尖刺死亡检测
+    var enemyCenterTile = tileAtPx(e.x + e.w/2, e.y + e.h/2);
+    if (isSpikeTile(enemyCenterTile)) {
+      spawnParticles(e.x + e.w/2, e.y + e.h/2, '#FF6B35', 15);
+      enemies.splice(i, 1);
+      continue;
+    }
     // 掉出地图移除
     if (e.y > (getLowestTileY(currentLevel) + 8) * GRID_SIZE) { enemies.splice(i, 1); continue; }
     // 普通怪：贴身近战
@@ -10865,8 +11535,12 @@ function updateEnemies() {
       }
     }
   }
+  } catch (err) {
+    console.error('[updateEnemies] 错误:', err);
+  }
 }
 function updateBullets() {
+  try {
   for (var i = bullets.length - 1; i >= 0; i--) {
     var b = bullets[i];
     b.x += b.vx; b.y += b.vy; b.life--;
@@ -10876,42 +11550,190 @@ function updateBullets() {
       bullets.splice(i, 1);
     }
   }
+  } catch (err) {
+    console.error('[updateBullets] 错误:', err);
+  }
 }
 function updateSlashes() {
+  try {
   for (var i = slashes.length - 1; i >= 0; i--) {
     var s = slashes[i];
-    s.x += s.dir * 3; s.life--; s.cd++;
-    if (s.life <= 0) { slashes.splice(i, 1); continue; }
-    for (var j = enemies.length - 1; j >= 0; j--) {
-      var e = enemies[j];
-      // 多段攻击：同一敌人每 6 帧可再次受击
-      if (s.hit[j] !== undefined && s.cd - s.hit[j] < 6) continue;
-      if (s.x + 24 > e.x && s.x - 24 < e.x + e.w && s.y + 26 > e.y && s.y - 26 < e.y + e.h) {
-        s.hit[j] = s.cd;
-        e.hp -= s.dmg;
-        e.hitFlash = 11;
-        e.knockX = s.dir * 4; e.knockT = 11;
-        e.vy = -2.5;
-        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FF4D4D', 9);
-        // 额外命中粒子特效：白色爆发 + 金色火花
-        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FFFFFF', 7);
-        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FFD700', 5);
-        spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#00F6FF', 3);
-        // 战斗专注：命中敌人增长进度条
-        battleFocus = Math.min(100, battleFocus + 5);
-        lastAttackFrame = frame;
+    if (s.type === 'downslash') {
+      // 下劈刀光：向下移动
+      s.y += s.vy;
+      s.life--; s.cd++;
+      if (s.life <= 0) {
+        // 刀光消失时：如果没命中任何目标，重置下劈连击
+        if (!s.hitAny) downslashCombo = 0;
+        slashes.splice(i, 1);
+        continue;
+      }
+      // 下劈与敌人碰撞（下方大范围）
+      for (var j = enemies.length - 1; j >= 0; j--) {
+        var e = enemies[j];
+        if (s.hit[j] !== undefined && s.cd - s.hit[j] < 6) continue;
+        // 下劈碰撞框：刀光中心下方宽36高60的区域
+        if (e.x + e.w > s.x - s.w/2 && e.x < s.x + s.w/2 && e.y + e.h > s.y && e.y < s.y + s.h) {
+          s.hit[j] = s.cd;
+          s.hitAny = true;
+          e.hp -= s.dmg;
+          e.hitFlash = 15;
+          e.knockX = 0; e.knockT = 0;
+          e.vy = 5; // 敌人被向下击飞
+          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FF6B35', 12);
+          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FFD700', 8);
+          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FFFFFF', 6);
+          battleFocus = Math.min(100, battleFocus + 8);
+          lastAttackFrame = frame;
+          cameraShake = Math.max(cameraShake, 12);
+          playerHitstop = 4;
+          // 命中反弹：轻微向上弹 + 刷新跳跃
+          player.vy = -6;
+          player.jumpCount = 0;
+          downslashCombo++;
+          // 递增伤害反馈粒子（连击数越高粒子越多）
+          var bonusParticles = Math.min(12, 4 + downslashCombo * 2);
+          spawnParticles(player.x + player.w/2, player.y + player.h/2, '#FFD700', bonusParticles);
+          if (e.hp <= 0) {
+            spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#E14B4B', 20);
+            enemies.splice(j, 1);
+          }
+        }
+      }
+      // 下劈与木箱碰撞
+      for (var ci = crates.length - 1; ci >= 0; ci--) {
+        var crate = crates[ci];
+        if (crate.broken) continue;
+        if (s.hit['crate_' + ci] !== undefined && s.cd - s.hit['crate_' + ci] < 6) continue;
+        if (crate.x + GRID_SIZE > s.x - s.w/2 && crate.x < s.x + s.w/2 && crate.y + GRID_SIZE > s.y && crate.y < s.y + s.h) {
+          s.hit['crate_' + ci] = s.cd;
+          s.hitAny = true;
+          crate.hp -= 2; // 下劈对木箱造成2点伤害（直接砍碎）
+          spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 10);
+          spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, '#FF6B35', 6);
+          spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, '#FFD700', 4);
+          cameraShake = Math.max(cameraShake, 8);
+          playerHitstop = 3;
+          // 命中反弹：轻微向上弹 + 刷新跳跃
+          player.vy = -6;
+          player.jumpCount = 0;
+          downslashCombo++;
+          if (crate.hp <= 0) {
+            crate.broken = true;
+            spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 16);
+            spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, '#8B7355', 10);
+          }
+        }
+      }
+      // 下劈碰到尖刺时反弹（命中效果）
+      var tileBelow = tileAtPx(s.x, s.y + s.h);
+      if (tileBelow === TILE_SPIKE || tileBelow === TILE_SPIKE_AUTO) {
+        s.hitAny = true;
+        player.vy = -6;
+        player.jumpCount = 0;
+        downslashCombo++;
+        spawnParticles(s.x, s.y + s.h, '#FF6B35', 10);
+        spawnParticles(s.x, s.y + s.h, '#FFD700', 6);
         cameraShake = Math.max(cameraShake, 8);
         playerHitstop = 3;
-        if (e.hp <= 0) {
-          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#E14B4B', 16);
-          enemies.splice(j, 1);
+        slashes.splice(i, 1);
+        continue;
+      }
+      // 下劈碰到地面时提前结束（没命中目标则重置连击）
+      if (isSolidTile(tileBelow)) {
+        if (!s.hitAny) downslashCombo = 0;
+        spawnParticles(s.x, s.y + s.h, '#FF6B35', 8);
+        slashes.splice(i, 1);
+        continue;
+      }
+    } else {
+      // 普通刀光：水平移动
+      s.x += s.dir * 3; s.life--; s.cd++;
+      if (s.life <= 0) { slashes.splice(i, 1); continue; }
+      for (var j = enemies.length - 1; j >= 0; j--) {
+        var e = enemies[j];
+        // 多段攻击：同一敌人每 6 帧可再次受击
+        if (s.hit[j] !== undefined && s.cd - s.hit[j] < 6) continue;
+        if (s.x + 24 > e.x && s.x - 24 < e.x + e.w && s.y + 26 > e.y && s.y - 26 < e.y + e.h) {
+          s.hit[j] = s.cd;
+          e.hp -= s.dmg;
+          e.hitFlash = 11;
+          e.knockX = s.dir * 4; e.knockT = 11;
+          e.vy = -2.5;
+          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FF4D4D', 9);
+          // 额外命中粒子特效：白色爆发 + 金色火花
+          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FFFFFF', 7);
+          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#FFD700', 5);
+          spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#00F6FF', 3);
+          // 战斗专注：命中敌人增长进度条
+          battleFocus = Math.min(100, battleFocus + 5);
+          lastAttackFrame = frame;
+          cameraShake = Math.max(cameraShake, 8);
+          playerHitstop = 3;
+          if (e.hp <= 0) {
+            spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#E14B4B', 16);
+            enemies.splice(j, 1);
+          }
+        }
+      }
+      // 刀光与木箱碰撞（砍2下碎）
+      for (var ci = crates.length - 1; ci >= 0; ci--) {
+        var crate = crates[ci];
+        if (crate.broken) continue;
+        if (s.hit['crate_' + ci] !== undefined && s.cd - s.hit['crate_' + ci] < 6) continue;
+        if (s.x + 24 > crate.x && s.x - 24 < crate.x + GRID_SIZE && s.y + 26 > crate.y && s.y - 26 < crate.y + GRID_SIZE) {
+          s.hit['crate_' + ci] = s.cd;
+          crate.hp--;
+          spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 6);
+          spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, '#FFFFFF', 4);
+          cameraShake = Math.max(cameraShake, 4);
+          playerHitstop = 2;
+          if (crate.hp <= 0) {
+            crate.broken = true;
+            spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, COLORS.crate, 12);
+            spawnParticles(crate.x + GRID_SIZE/2, crate.y + GRID_SIZE/2, '#8B7355', 8);
+          }
         }
       }
     }
   }
+  } catch (err) {
+    console.error('[updateSlashes] 错误:', err);
+  }
 }
 function playerAttack() {
   if (player.dead || player.won) return;
+  
+  // 下劈：空中快速下落时触发
+  var DOWNSLASH_VY_THRESHOLD = 4; // 下落速度阈值
+  if (!player.onGround && player.vy > DOWNSLASH_VY_THRESHOLD) {
+    // 触发下劈（命中才反弹，伤害随连续命中递增）
+    var dsx = player.x + player.w / 2;
+    var dsy = player.y + player.h / 2;
+    // 伤害递增：基础2倍，每连续命中一次+50%
+    var dsDmg = Math.floor(PLAYER_MELEE_DMG * 2 * (1 + downslashCombo * 0.5));
+    slashes.push({
+      x: dsx, y: dsy,
+      vx: 0, vy: 10,
+      dmg: dsDmg,
+      life: 12, maxLife: 12,
+      dir: 0,
+      hit: {}, cd: 0,
+      type: 'downslash',
+      w: 36, h: 60,
+      hitAny: false // 标记本次下劈是否命中目标
+    });
+    // 下劈特效（触发时）
+    cameraShake = Math.max(cameraShake, 6);
+    spawnParticles(player.x + player.w / 2, player.y + player.h, '#FF6B35', 8);
+    spawnParticles(player.x + player.w / 2, player.y + player.h, '#FFD700', 4);
+    // 下劈不进入连击系统，独立冷却
+    playerAttackCd = 15;
+    comboWindow = 0;
+    attackCombo = 0;
+    return;
+  }
+  
   // 连击系统：窗口期内可继续攻击，否则检查冷却
   if (attackCombo > 0 && comboWindow > 0) {
     attackCombo++;
@@ -10936,7 +11758,7 @@ function playerAttack() {
   else if (attackCombo === 3) { offsetY = -12; extraRange = 8; dmg += 5; }
   let sx = player.x + player.w / 2 + player.facing * (16 + extraRange);
   let sy = player.y + player.h / 2 - 2 + offsetY;
-  slashes.push({ x: sx, y: sy, vx: 0, dmg: dmg, life: 14, maxLife: 14, dir: player.facing, hit: {}, cd: 0, type: attackCombo });
+  slashes.push({ x: sx, y: sy, vx: 0, vy: 0, dmg: dmg, life: 14, maxLife: 14, dir: player.facing, hit: {}, cd: 0, type: attackCombo });
   // 攻击位移：角色向前冲刺（带碰撞检测）
   let dashDist = 5 + attackCombo * 2; // 第1段7px, 第2段9px, 第3段11px
   let oldX = player.x;
@@ -10967,6 +11789,13 @@ function hurtPlayer(dmg, srcX) {
   updateHpBar();
   if (playerHp <= 0) playerDies();
 }
+
+// FIX: 页面关闭/刷新前强制保存编辑器数据
+window.addEventListener('beforeunload', () => {
+  if (editorAutoSavePending) {
+    doEditorAutoSave();
+  }
+});
 </script>
 </body>
 </html>
