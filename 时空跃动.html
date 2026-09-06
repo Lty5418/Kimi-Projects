@@ -1280,6 +1280,9 @@ html, body {
   outline: none;
   font-family: inherit;
   transition: border-color 0.3s;
+  user-select: text;
+  -webkit-user-select: text;
+  pointer-events: auto;
 }
 .form-group input:focus,
 .form-group textarea:focus {
@@ -9971,6 +9974,15 @@ document.getElementById('btn-changelog-back').addEventListener('click', () => {
   const publishSubmitBtn = document.getElementById('btn-publish-submit');
   if (publishSubmitBtn) {
     publishSubmitBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+  }
+  // FIX: 给发布页输入框添加独立触摸处理，防止被游戏容器拦截
+  const publishNameInput = document.getElementById('publish-name-input');
+  const publishDescInput = document.getElementById('publish-desc-input');
+  if (publishNameInput) {
+    publishNameInput.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+  }
+  if (publishDescInput) {
+    publishDescInput.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
   }
   document.getElementById('btn-publish-submit').addEventListener('click', async () => {
     const name = document.getElementById('publish-name-input').value.trim();
