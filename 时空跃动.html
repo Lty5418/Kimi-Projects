@@ -8220,11 +8220,6 @@ function refreshPropsPanel() {
         if (sw) sw.style.background = broadcastColor(e.target.value.trim());
       });
     }
-    document.getElementById('tpp-gravity').addEventListener('change', (e) => {
-      editorGravityCustom = Math.max(0, parseFloat(e.target.value) || 0);
-      e.target.value = editorGravityCustom || '';
-      editorAutoSavePending = true;
-    });
     panel.style.display = 'flex';
     return;
   }
@@ -8703,11 +8698,11 @@ function setupEditorToolbar() {
         return;
       }
       if (!currentUser) { alert(t('请先登录')); return; }
-      // 走发布流程：先生成编码，再进入发布页
+      // 发布前需先测试过关：先生成编码，再弹测试确认框；测试通过后由 shareAfterTest 流程自动进入发布页
       const code = encodeLevel();
       pendingPublishCode = code;
       document.getElementById('publish-code-preview').textContent = code;
-      showScreen('publish-page');
+      document.getElementById('test-confirm-modal').style.display = 'flex';
     } catch (err) {
       alert(t('发布失败: ') + (err.message || err));
       console.error('发布按钮错误:', err);
@@ -10198,6 +10193,10 @@ function decodeLevel(code) {
   if (['9', '10', '11', '12'].includes(ver)) {
     return decodeYuedongLevel(code);
   }
+  if (code.startsWith('BIN1')) {
+    // BIN1 二进制编码（CS 版 v3.1.1 兼容，>3KB 大关卡自动转二进制）
+    return decodeLevelBinary(code);
+  }
   if (code.startsWith('cs')) {
     // FIX: 直接解码 cs1/cs2 财神爷编码，不再剥离前缀
     return decodeYuedongLevel(code);
@@ -10220,6 +10219,289 @@ function decodeLevel(code) {
   console.error('未知编码格式，ver=' + ver + '，无法解码');
   return null;
 }
+// ==================== BIN1 二进制编码解码（CS 版 v3.1.1 兼容） ====================
+// 值用数字字面量（不引用 TILE_* 常量：本文件多内核缝合，TILE 常量在此作用域不可达）
+// 键=BIN 字节，值=融合版 TILE 数值（两边常量值已逐一验证一致）
+const _BIN_TILE_MAP = {
+  1: 1, 2: 2, 3: 5, 4: 6, 5: 7, 6: 8, 7: 9, 8: 13,
+  9: 17, 10: 18, 11: 19, 12: -1, 13: 20, 14: 21,
+  17: 27, 18: 28, 19: 29, 20: 30,
+  21: 22, 22: 23, 23: 24, 24: 25, 25: 26, 26: 31, 27: 32, 28: 33,
+  29: 34, 30: 35, 31: 36, 32: 37, 33: 38, 34: 39
+};
+const _BIN_EGG_TYPE_MAP = {
+  21: 'red', 22: 'blue', 23: 'purple', 24: 'green', 25: 'pink',
+  26: 'orange', 27: 'cyan', 28: 'yellow', 29: 'coral',
+  30: 'black', 31: 'gold', 32: 'diamond', 33: 'shadow'
+};
+function _binReadInt16(d, p) {
+  let v = (d[p] << 8) | d[p + 1];
+  if (v & 0x8000) v -= 0x10000;
+  return v;
+}
+function _binNeed(d, p, n) { return p + n <= d.length; }
+
+function decodeLevelBinary(code) {
+  try {
+    const b64 = code.substring(4); // 去掉 'BIN1' 前缀
+    const bin = atob(b64);
+    const data = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
+    let pos = 0;
+    if (!_binNeed(data, pos, 4)) return null;
+    pos += 4; // 'BIN1' 魔数
+    const version = data[pos++];
+    const ox = _binReadInt16(data, pos); pos += 2;
+    const oy = _binReadInt16(data, pos); pos += 2;
+    const prx = _binReadInt16(data, pos); pos += 2;
+    const pry = _binReadInt16(data, pos); pos += 2;
+    const flags = data[pos++];
+    const hasPortal = (flags & 1) !== 0;
+    let levelName = '';
+    if (_binNeed(data, pos, 1)) {
+      const nameLen = data[pos++];
+      if (_binNeed(data, pos, nameLen)) {
+        levelName = new TextDecoder().decode(data.subarray(pos, pos + nameLen));
+        pos += nameLen;
+      }
+    }
+    let levelDesc = '';
+    if (_binNeed(data, pos, 1)) {
+      const descLen = data[pos++];
+      if (_binNeed(data, pos, descLen)) {
+        levelDesc = new TextDecoder().decode(data.subarray(pos, pos + descLen));
+        pos += descLen;
+      }
+    }
+    const landGrid = new Set();
+    const hiddenTiles = [];
+    const spikes = [], checkpoints = [], trampolines = [], springs = [], switches = [], doors = [];
+    const timedPlatforms = [], oneWayPlatforms = [], iceTiles = [], crates = [], spawners = [];
+    const healthPacks = [], shrines = [], monsterEggs = [], customEggs = [];
+    let timeLimit = 0;
+    let showIndicator = true, showMinimap = true;
+    while (pos < data.length) {
+      const typeByte = data[pos++];
+      if (typeByte === 0xFF) break; // 条目结束标记
+      // RLE 陆地：type=1 + x(int16) + y(int16) + len(1)，横向连续展开
+      if (typeByte === 1) {
+        const rx = _binReadInt16(data, pos); pos += 2;
+        const ry = _binReadInt16(data, pos); pos += 2;
+        const runLen = data[pos++];
+        for (let i = 0; i < runLen; i++) landGrid.add((rx + i) + ',' + ry);
+        continue;
+      }
+      const tileType = _BIN_TILE_MAP[typeByte];
+      const rx = _binReadInt16(data, pos); pos += 2;
+      const ry = _binReadInt16(data, pos); pos += 2;
+      if (typeByte === 12) { hiddenTiles.push({ x: rx, y: ry }); continue; }
+      if (!tileType) continue;
+      switch (tileType) {
+        case 2: spikes.push({ x: rx, y: ry }); break;
+        case 5: checkpoints.push({ x: rx, y: ry }); break;
+        case 6: trampolines.push({ x: rx, y: ry }); break;
+        case 7: springs.push({ x: rx, y: ry, dir: 'l' }); break;
+        case 8: springs.push({ x: rx, y: ry, dir: 'r' }); break;
+        case 9: {
+          let gLen = 0; let gName = 'default';
+          if (_binNeed(data, pos, 1)) { gLen = data[pos++]; }
+          if (_binNeed(data, pos, gLen)) { gName = new TextDecoder().decode(data.subarray(pos, pos + gLen)) || 'default'; pos += gLen; }
+          switches.push({ x: rx, y: ry, group: gName, color: '#FFD700' });
+          break;
+        }
+        case 13: {
+          let gLen = 0; let gName = 'default';
+          if (_binNeed(data, pos, 1)) { gLen = data[pos++]; }
+          if (_binNeed(data, pos, gLen)) { gName = new TextDecoder().decode(data.subarray(pos, pos + gLen)) || 'default'; pos += gLen; }
+          if (version >= 2) {
+            // 门 v2：组名 + 颜色长度(1B) + 变长颜色hex + 默认开(1B)
+            let color = '#FF4444'; let defaultOpen = false;
+            if (_binNeed(data, pos, 1)) {
+              const colLen = data[pos++];
+              if (_binNeed(data, pos, colLen)) {
+                color = '#' + String.fromCharCode.apply(null, data.subarray(pos, pos + colLen));
+                pos += colLen;
+              }
+              defaultOpen = data[pos++] !== 0;
+            }
+            doors.push({ x: rx, y: ry, group: gName, color, name: gName, defaultOpen });
+          } else {
+            doors.push({ x: rx, y: ry, group: gName, color: '#FF4444', name: gName });
+          }
+          break;
+        }
+        case 17: timedPlatforms.push({ x: rx, y: ry, duration: 0, respawn: false, respawnTime: 0 }); break;
+        case 18: oneWayPlatforms.push({ x: rx, y: ry }); break;
+        case 19: iceTiles.push({ x: rx, y: ry }); break;
+        case 20: crates.push({ x: rx, y: ry }); break;
+        case 21: spawners.push({ x: rx, y: ry }); break;
+        case 27: healthPacks.push({ x: rx, y: ry, type: 'basic' }); break;
+        case 28: healthPacks.push({ x: rx, y: ry, type: 'mid' }); break;
+        case 29: healthPacks.push({ x: rx, y: ry, type: 'adv' }); break;
+        case 30: shrines.push({ x: rx, y: ry }); break;
+        case 39: {
+          // 自定义蛋：spawners 同步登记 + name + hp/atk/def 各2B小端 + 颜色长度(1B)+变长hex
+          spawners.push({ x: rx, y: ry });
+          let nLen = 0, ceName = '';
+          let ceHp = 100, ceAtk = 20, ceDef = 5, ceColor = '#FF8C00';
+          if (_binNeed(data, pos, 1)) { nLen = data[pos++]; }
+          if (_binNeed(data, pos, nLen)) { ceName = new TextDecoder().decode(data.subarray(pos, pos + nLen)); pos += nLen; }
+          if (_binNeed(data, pos, 7)) {
+            ceHp = data[pos] | (data[pos + 1] << 8); pos += 2;
+            ceAtk = data[pos] | (data[pos + 1] << 8); pos += 2;
+            ceDef = data[pos] | (data[pos + 1] << 8); pos += 2;
+            const ceColLen = data[pos++];
+            if (_binNeed(data, pos, ceColLen)) {
+              ceColor = '#' + String.fromCharCode.apply(null, data.subarray(pos, pos + ceColLen));
+              pos += ceColLen;
+            }
+          }
+          customEggs.push({ x: rx, y: ry, name: ceName, hp: ceHp, atk: ceAtk, def: ceDef, color: ceColor });
+          break;
+        }
+        default:
+          // 蛋类型数字内联判断（22-26 红蓝紫绿粉 / 31-38 橙青黄珊黑金钻影），不引用 isEggTile（作用域不可达）
+          // 蛋关联生成器：spawners 同步登记（与蓝本一致，否则蛋无 spawnerKey 不生成敌人）
+          if ((tileType >= 22 && tileType <= 26) || (tileType >= 31 && tileType <= 38)) {
+            const eggType = _BIN_EGG_TYPE_MAP[typeByte];
+            spawners.push({ x: rx, y: ry });
+            monsterEggs.push({ x: rx, y: ry, type: eggType });
+          }
+          break;
+      }
+    }
+    // 尾部：时间限制(2B，秒)
+    if (_binNeed(data, pos, 2)) { timeLimit = _binReadInt16(data, pos); pos += 2; }
+    // 选项(1B)：bit1=传送门指示器, bit0=小地图
+    if (_binNeed(data, pos, 1)) {
+      const opts = data[pos++];
+      showIndicator = (opts & 2) !== 0;
+      showMinimap = (opts & 1) !== 0;
+    }
+    // ox/oy 归一化：编码以出生点为原点，还塬为绝对坐标
+    if (ox !== 0 || oy !== 0) {
+      const _shift = (arr) => { for (let e of arr) { e.x += ox; e.y += oy; } };
+      _shift(spikes); _shift(checkpoints); _shift(trampolines); _shift(springs);
+      _shift(switches); _shift(doors); _shift(timedPlatforms); _shift(oneWayPlatforms);
+      _shift(iceTiles); _shift(crates); _shift(spawners); _shift(monsterEggs);
+      _shift(healthPacks); _shift(shrines); _shift(customEggs);
+      const _shiftSet = new Set();
+      for (let k of landGrid) { const c = k.split(','); _shiftSet.add((parseInt(c[0]) + ox) + ',' + (parseInt(c[1]) + oy)); }
+      landGrid.clear(); for (let k of _shiftSet) landGrid.add(k);
+    }
+    // 合并陆地方块为矩形
+    let lands = [];
+    if (landGrid.size > 0) {
+      const keys = Array.from(landGrid).map(k => k.split(',').map(Number));
+      const minY = Math.min.apply(null, keys.map(k => k[1]));
+      const maxY = Math.max.apply(null, keys.map(k => k[1]));
+      for (let y = minY; y <= maxY; y++) {
+        const rowKeys = keys.filter(k => k[1] === y).map(k => k[0]).sort((a, b) => a - b);
+        if (rowKeys.length === 0) continue;
+        let startX = rowKeys[0], w = 1;
+        for (let i = 1; i < rowKeys.length; i++) {
+          if (rowKeys[i] === startX + w) w++;
+          else { lands.push({ x: startX, y: y, w: w, h: 1 }); startX = rowKeys[i]; w = 1; }
+        }
+        lands.push({ x: startX, y: y, w: w, h: 1 });
+      }
+      let merged = true;
+      while (merged) {
+        merged = false;
+        for (let i = 0; i < lands.length; i++) {
+          for (let j = i + 1; j < lands.length; j++) {
+            const a = lands[i], b = lands[j];
+            if (a.x === b.x && a.w === b.w && a.y + a.h === b.y) {
+              a.h += b.h; lands.splice(j, 1); merged = true; break;
+            }
+          }
+          if (merged) break;
+        }
+      }
+    }
+    // 动态计算关卡大小
+    let maxTileX = 0, maxTileY = 0;
+    for (let k of landGrid) { const c = k.split(',').map(Number); if (c[0] > maxTileX) maxTileX = c[0]; if (c[1] > maxTileY) maxTileY = c[1]; }
+    const allEnts = [spikes, checkpoints, trampolines, springs, switches, doors, timedPlatforms, oneWayPlatforms, iceTiles, hiddenTiles, crates, spawners, monsterEggs, healthPacks, shrines, customEggs];
+    for (let arr of allEnts) { for (let e of arr) { if (e.x > maxTileX) maxTileX = e.x; if (e.y > maxTileY) maxTileY = e.y; } }
+    if (hasPortal) { if (prx + ox > maxTileX) maxTileX = prx + ox; if (pry + oy > maxTileY) maxTileY = pry + oy; }
+    const levelW = Math.max(20, maxTileX + 2);
+    const levelH = Math.max(20, maxTileY + 2);
+    return {
+      name: levelName, desc: levelDesc, w: levelW, h: levelH,
+      spawn: { x: ox, y: oy },
+      portal: hasPortal ? { x: prx + ox, y: pry + oy } : null,
+      lands, spikes, checkpoints, trampolines, springs, switches, doors,
+      timedPlatforms, oneWayPlatforms, iceTiles, hiddenTiles, timeLimit,
+      crates, spawners, monsterEggs, healthPacks, shrines, customEggs,
+      showIndicator, showMinimap
+    };
+  } catch (e) {
+    console.error('[BIN1解码] 失败:', e);
+    return null;
+  }
+}
+
+// ==================== CHUNK! 分片编码解析（CS 版 v3.1.1 兼容） ====================
+// 大关卡（编码 >2000 字节）在 CS 版发布时自动拆分为多条分片记录：
+//   清单行（存 levels.code 列）：CHUNK!<token>~<片数>
+//   分片行（存独立记录 description 列）：CHUNK!<token>:<序号>
+// 客户端拉取清单后按序号并发下载全部分片、按顺序拼接，再交给 decodeLevel。
+const CHUNK_CODE_MAGIC = 'CHUNK!';
+const CODE_CHUNK_THRESHOLD = 2000;   // 超过此长度走分片（与 CS 版发布端一致）
+const CODE_CHUNK_SIZE = 1800;        // 单片内容上限（留 JSON 转义余量）
+const CODE_CHUNK_FETCH_BATCH = 30;   // 并发拉取批大小
+function isChunkManifest(code) { return typeof code === 'string' && code.startsWith(CHUNK_CODE_MAGIC) && code.includes('~') && !code.includes(':'); }
+function isChunkRow(code) { return typeof code === 'string' && code.startsWith(CHUNK_CODE_MAGIC) && code.includes(':'); }
+// 分片行（应在大厅隐藏）：① 引用型（code=CHUNK!token:00X）② 内容型（name='[分片]' 占位且非清单——分片内容直接存 code 列）
+// 清单主关卡（code=CHUNK!token~N）不命中，保留展示
+function isShardLevelRow(l) {
+  if (isChunkRow(l.code)) return true;
+  if (l.name === '[分片]' && !isChunkManifest(l.code)) return true;
+  return false;
+}
+function parseChunkManifest(code) {
+  const body = code.substring(CHUNK_CODE_MAGIC.length);
+  const sep = body.indexOf('~');
+  if (sep === -1) return null;
+  return { token: body.substring(0, sep), total: parseInt(body.substring(sep + 1), 10) || 0 };
+}
+async function fetchChunkedCode(code) {
+  const m = parseChunkManifest(code);
+  if (!m || !m.token || !(m.total > 0)) return code;
+  // 与蓝本一致：不过滤预编码（buildRestUrl 的 searchParams.set 会自动编码，预编码会双重编码导致匹配不到）
+  // 序号 3 位补零（:001/:002/:003），按 30 片一批并发，缺片按空串拼接
+  const parts = [];
+  for (let i = 0; i < m.total; i += CODE_CHUNK_FETCH_BATCH) {
+    const end = Math.min(i + CODE_CHUNK_FETCH_BATCH, m.total);
+    const batch = await Promise.all(Array.from({ length: end - i }, (_, k) => {
+      const seq = String(i + k + 1).padStart(3, '0');
+      return supabaseGet('levels', { code: 'eq.' + CHUNK_CODE_MAGIC + m.token + ':' + seq, select: 'description', limit: 1 })
+        .then(arr => (arr && arr[0] && arr[0].description) || '')
+        .catch(() => '');
+    }));
+    parts.push(...batch);
+  }
+  const merged = parts.join('');
+  if (!merged) { console.warn('[分片] 未拉到任何分片', m.token); return code; }
+  return merged;
+}
+async function resolveLevelCode(code) {
+  // 与蓝本一致：先还原 HTML 实体（卡片 data-code 属性转义会引入 &#39;/&#92;）
+  const c = (code || '').replace(/&#39;/g, "'").replace(/&#92;/g, "\\");
+  if (isChunkManifest(c)) {
+    try {
+      const full = await fetchChunkedCode(c);
+      if (!full || full.trim().length === 0) return null;
+      return full;
+    } catch (e) {
+      console.error('[分片拉取] 失败:', e);
+      return null;
+    }
+  }
+  return c;
+}
+
 function decodeYuedongLevel(code) {
   let parts = code.split('.');
   let ver = parts[0];
@@ -10257,8 +10539,10 @@ function decodeYuedongLevel(code) {
   let showIndicatorVal = true, showMinimapVal = true;
   for (let seg of segments) {
     if (seg.type === 'a') {
-      let m = seg.str.match(/a\((-?\d+),(-?\d+)\)/g);
-      if (m) { let ls = new Set(); for (let mm of m) { let c2 = mm.match(/a\((-?\d+),(-?\d+)\)/); if (c2) ls.add(c2[1]+','+c2[2]); }
+      // cs2 陆地 RLE：a(rx,ry)x<长度> 表示从 (rx,ry) 起横向连续 <长度> 格陆地
+      //（兼容 v3.1.1 新版编码；无 x 后缀的旧格式逐格解析，行为不变）
+      let m = seg.str.match(/a\((-?\d+),(-?\d+)\)(?:x(\d+))?/g);
+      if (m) { let ls = new Set(); for (let mm of m) { let c2 = mm.match(/a\((-?\d+),(-?\d+)\)(?:x(\d+))?/); if (c2) { let _bx = parseInt(c2[1]), _by = parseInt(c2[2]); let _bl = parseInt(c2[3]) || 1; for (let _bi = 0; _bi < _bl; _bi++) ls.add((_bx+_bi)+','+_by); } }
       let lg = new Map(); for (let k of ls) lg.set(k, 1); let proc = new Set();
       for (let k of ls) { if (proc.has(k)) continue; let [x, y] = k.split(',').map(Number); let w = 1; while (lg.has((x+w)+','+y)) w++; let h = 1; let ce = true;
       while (ce) { for (let dx = 0; dx < w; dx++) { if (!lg.has((x+dx)+','+(y+h))) { ce = false; break; } } if (ce) h++; }
@@ -10273,7 +10557,7 @@ function decodeYuedongLevel(code) {
       else { let m = seg.str.match(/w\((-?\d+),(-?\d+),([rbgy])\)/g); if (m) for (let mm of m) { let c2 = mm.match(/w\((-?\d+),(-?\d+),([rbgy])\)/); if (c2) switches.push({x: parseInt(c2[1]), y: parseInt(c2[2]), color: c2[3]}); } }
     }
     else if (seg.type === 'd') {
-      if (isCs) { let m = seg.str.match(/d\((-?\d+),(-?\d+),([^,)]+),([0-9A-Fa-f]{6})\)/g); if (m) for (let mm of m) { let c2 = mm.match(/d\((-?\d+),(-?\d+),([^,)]+),([0-9A-Fa-f]{6})\)/); if (c2) doors.push({x: parseInt(c2[1]), y: parseInt(c2[2]), group: c2[3], color: '#'+c2[4], name: c2[3]}); } }
+      if (isCs) { let m = seg.str.match(/d\((-?\d+),(-?\d+),([^,)]+),([0-9A-Fa-f]{6})(?:,(0|1))?\)/g); if (m) for (let mm of m) { let c2 = mm.match(/d\((-?\d+),(-?\d+),([^,)]+),([0-9A-Fa-f]{6})(?:,(0|1))?\)/); if (c2) doors.push({x: parseInt(c2[1]), y: parseInt(c2[2]), group: c2[3], color: '#'+c2[4], name: c2[3], defaultOpen: c2[5] === '1'}); } }
       else { let m = seg.str.match(/d\((-?\d+),(-?\d+),([rbgy])\)/g); if (m) for (let mm of m) { let c2 = mm.match(/d\((-?\d+),(-?\d+),([rbgy])\)/); if (c2) doors.push({x: parseInt(c2[1]), y: parseInt(c2[2]), color: c2[3]}); } }
     }
     else if (seg.type === 'p') { let m = seg.str.match(/p\((-?\d+),(-?\d+)\)/g); if (m) for (let mm of m) { let c2 = mm.match(/p\((-?\d+),(-?\d+)\)/); if (c2) timedPlatforms.push({x: parseInt(c2[1]), y: parseInt(c2[2])}); } }
@@ -10295,17 +10579,17 @@ function decodeYuedongLevel(code) {
   for (let s of springs) {
     bouncers.push({x: s.x, y: s.y});
     let dir = s.dir === 'l' ? 'left' : (s.dir === 'r' ? 'right' : 'up');
-    bouncerDirs.set((s.x + offset) + ',' + (s.y + offset), dir);
+    bouncerDirs.set((s.x + 100) + ',' + (s.y + 100), dir);
   }
   for (let t of trampolines) {
     bouncers.push({x: t.x, y: t.y});
-    bouncerDirs.set((t.x + offset) + ',' + (t.y + offset), 'up');
+    bouncerDirs.set((t.x + 100) + ',' + (t.y + 100), 'up');
   }
-  // FIX: 根据实际 lands 坐标计算 spawn，避免硬编码 {0,0} 导致 parseLevel 平移后 spawn 飞出画面
-  let spawnX = 0, spawnY = 0;
-  if (lands.length > 0) { spawnX = lands[0].x; spawnY = lands[0].y; }
+  // cs2 文本格式规范：编码端以出生点为原点归一化，所有坐标（含 lands）均为相对出生点的偏移。
+  // 故 spawn 必须为 {0,0}；parseLevel 整体 +100 平移后 spawn 与地图内容天然对齐。
+  // 取 lands[0] 当出生点（上一版 FIX）会导致玩家出生在实际第一块陆地处而非出生点，多数关卡错位。
   return {
-    name, desc, w: 100, h: 100, spawn: {x: spawnX, y: spawnY},
+    name, desc, w: 100, h: 100, spawn: {x: 0, y: 0},
     portal: hasPortal ? {x: prx, y: pry} : null,
     lands, spikes, checkpoints, bouncers,
     switches, doors, timedPlatforms, oneWayPlatforms, iceTiles,
@@ -10637,7 +10921,8 @@ async function getSharedLevels() {
         myLiked.add(lk.level_id);
       }
     }
-    const result = levels.map(l => ({
+    // 隐藏分片行（引用型 CHUNK!tok:00X + 内容型 name='[分片]'），只保留清单主关卡
+    const result = levels.filter(l => !isShardLevelRow(l)).map(l => ({
       ...l,
       views: viewMap[l.id] || 0,
       likes: likeCount[l.id] || 0,
@@ -10648,7 +10933,7 @@ async function getSharedLevels() {
 }
 // ==================== 界面切换 ====================
 function showScreen(id, callback) {
-  ['start-screen', 'auth-screen', 'lobby-screen', 'hub-select-screen', 'editor-screen', 'level-select-screen', 'dev-screen', 'changelog-screen'].forEach(sid => {
+  ['start-screen', 'auth-screen', 'lobby-screen', 'hub-select-screen', 'editor-screen', 'level-select-screen', 'dev-screen', 'changelog-screen', 'publish-page'].forEach(sid => {
     let el = document.getElementById(sid);
     if (el) el.style.display = sid === id ? 'flex' : 'none';
   });
@@ -10853,6 +11138,7 @@ function exitGame() {
     attackCombo = 0; comboWindow = 0; attackDash = 0;
     battleFocus = 0; lastAttackFrame = 0;
     downslashCombo = 0;
+    invalidateChunkCache(); // 释放分块渲染显存（上限512块），防退出后卡顿
     document.getElementById('game-ui').style.display = 'none';
     document.getElementById('attack-btn').style.display = 'none';
     var gameCanvasEl = document.getElementById('game-canvas');
@@ -10884,9 +11170,11 @@ function exitGame() {
 // ==================== 开始界面 ====================
 let selectedLevelIdx = -1;
 // ==================== 编辑器导入编码 ====================
-function importEditorCode(code) {
+async function importEditorCode(code) {
   if (!code) { alert(t('请输入关卡编码')); return; }
-  const level = decodeLevel(code);
+  // CHUNK! 分片清单：先拉取合并再解码
+  const fullCode = await resolveLevelCode(code);
+  const level = decodeLevel(fullCode);
   if (!level) { alert(t('关卡编码无效，请检查输入')); return; }
   getEditorCells().clear();
   editorTestWon = false;
@@ -11023,7 +11311,7 @@ function showPublishPage() {
   document.getElementById('publish-page').style.display = 'flex';
 }
 async function doShareLevel() {
-  // 强制重新生成编码，确保分享的是最新数据
+  // 强制重新生成编码，确保分享的是最新数据（本版 V8z 格式；CS 编码仅用于兼容读取）
   const code = encodeLevel();
   const outEl = document.getElementById('level-code-output');
   if (outEl) outEl.value = code;
@@ -11463,7 +11751,7 @@ async function renderPublicLevels(filter = '') {
     <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-views="${l.views || 0}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/\"/g, '&quot;')}" data-author="${(l.author || '').replace(/\"/g, '&quot;')}" data-desc="${(l.description || '').replace(/\"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}">
       ${!hasPortal ? '<span class="lc-no-portal">' + t('无传送门') + '</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">' + t('旧版') + '</span>' : ''}
-      ${isYuedong ? '<span class="lc-badge" style="background:#FFDD44;color:#000;">CS</span>' : ''}
+      ${isYuedong ? '<span class="lc-badge" style="background:#0a2a2a;color:#00F6FF;border:1px solid rgba(0,246,255,0.5);">CS</span>' : ''}
       <div class="lc-minimap">${(!showMinimap) ? '<div class="lc-map-placeholder">' + t('已隐藏') + '</div>' : ((getMini(l) === '__TOO_BIG__') ? '<div class="lc-map-placeholder">' + t('地图过大') + '</div>' : '<img src="' + (getMini(l) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') + '" alt="">')}</div>
       <div class="lc-info">
         <div class="lc-name">${truncateChars(l.name || '未命名', 5)}</div>
@@ -11522,7 +11810,7 @@ async function renderMyLevels(filter = '') {
       _id: 'local_' + i + '_' + (l.code ? l.code.slice(0, 20) : Date.now())
     });
   }
-  for (const cl of cloudLevels) {
+  for (const cl of cloudLevels.filter(c => !isShardLevelRow(c))) {
     const existsLocal = localLevels.find(ll => ll.code === cl.code);
     if (!existsLocal) {
       allMyLevels.push({
@@ -11561,7 +11849,7 @@ async function renderMyLevels(filter = '') {
       }
     } catch(e) { hasPortal = false; }
     const isYuedong2 = l.code && (l.code.startsWith('cs') || ['9','10','11','12'].includes(l.code.split('.')[0]));
-    const isOldVersion = l.code && !isYuedong2 && l.code.split('.')[0] !== '7';
+    const isOldVersion = l.code && !isYuedong2 && !l.code.startsWith('7.') && !l.code.startsWith('8z');
     const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `
     <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
@@ -11843,14 +12131,18 @@ function renderDetailMap(code, container) {
     container.innerHTML = '<span class="detail-map-blocked">地图预览加载失败</span>';
   }
 }
-window.playLobbyLevel = function(code) {
+window.playLobbyLevel = async function(code) {
   const decodedCode = code.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  lastLobbyLevelCode = decodedCode;
+  // CHUNK! 分片清单：先并发拉取全部分片合并为完整编码，再解码（与 CS 版 v3.1.1 兼容）
+  const fullCode = await resolveLevelCode(decodedCode);
+  lastLobbyLevelCode = fullCode;
   isEditorTest = false;
   isFromLobby = true;
-  const level = decodeLevel(decodedCode);
+  const level = decodeLevel(fullCode);
   if (level) { loadCustomLevel(level); startGame(); }
-  else { console.error('关卡编码无效'); }
+  else { console.error('关卡编码无效');
+    if (typeof customAlert === 'function') customAlert('关卡编码无效或分片缺失，无法游玩');
+  }
 };
 window.copyLevelCode = async function(code) {
   const decodedCode = code.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
@@ -12068,13 +12360,15 @@ document.getElementById('btn-detail-back').addEventListener('click', () => {
   }, 300);
 });
 // 8. 详情页开始培训按钮
-document.getElementById('btn-detail-play').addEventListener('click', () => {
+document.getElementById('btn-detail-play').addEventListener('click', async () => {
   if (!detailLevelData) return;
   const decodedCode = detailLevelData.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  lastLobbyLevelCode = decodedCode;
+  // CHUNK! 分片清单：先拉取合并再解码
+  const fullCode = await resolveLevelCode(decodedCode);
+  lastLobbyLevelCode = fullCode;
   isEditorTest = false;
   isFromLobby = true;
-  const level = decodeLevel(decodedCode);
+  const level = decodeLevel(fullCode);
   if (level) {
     closeDetailPage();
     loadCustomLevel(level);
@@ -12191,7 +12485,18 @@ document.getElementById('btn-changelog-back').addEventListener('click', () => {
       document.getElementById('publish-page').style.display = 'none';
       isEditorTest = false;
       editorTestWon = false;
-      showScreen('lobby-screen');
+      // 清理游戏视图并停止游戏循环（自包含防御版：cleanupGameView 是局部函数不可见，内联清理）
+      showScreen('lobby-screen', function() {
+        gameState = 'menu';
+        var _c = document.getElementById('game-canvas');
+        if (_c) {
+          _c.style.display = 'none';
+          try { var _x = _c.getContext('2d'); if (_x) { _x.fillStyle = COLORS.bg; _x.fillRect(0, 0, _c.width, _c.height); } } catch (e) {}
+        }
+        var _u = document.getElementById('game-ui');
+        if (_u) _u.style.display = 'none';
+        if (window.cleanupGameView) { try { window.cleanupGameView(); } catch (e) {} }
+      });
       refreshLobby();
     } catch (e) {
       alert(t('发布失败: ') + (e.message || '网络错误'));
@@ -12979,7 +13284,9 @@ async function ext2_openReplay(levelId, trajectoryJson, playerName) {
     }
     if (!levelCode) { alert(t('关卡数据丢失')); return; }
     var decodedCode = levelCode.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    var levelRaw = decodeLevel(decodedCode);
+    // CHUNK! 分片清单：先拉取合并再解码
+    var fullCode = await resolveLevelCode(decodedCode);
+    var levelRaw = decodeLevel(fullCode);
     if (!levelRaw) { alert(t('关卡解析失败')); return; }
 
     // 调试：解析轨迹数据
