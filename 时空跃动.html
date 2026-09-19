@@ -3291,6 +3291,12 @@ input, textarea {
           <input type="text" id="public-search-input" placeholder="搜索关卡名称或作者...">
           <button class="btn btn-small" id="btn-public-search">搜索</button>
           <button class="btn btn-small" id="btn-public-refresh" title="刷新">刷新</button>
+          <select id="public-sort-select" class="btn btn-small" title="排序方式" style="appearance:auto;-webkit-appearance:auto;">
+            <option value="time_desc">时间·最新</option>
+            <option value="time_asc">时间·最旧</option>
+            <option value="heat_desc">热度·高到低</option>
+            <option value="heat_asc">热度·低到高</option>
+          </select>
         </div>
         <div id="public-levels-list" class="levels-stack"></div>
       </div>
@@ -4855,6 +4861,9 @@ function kimiStartLogin(mode) {
   try {
     sessionStorage.setItem(KIMI_STATE_KEY, state);
     sessionStorage.setItem(KIMI_MODE_KEY, mode === 'bind' ? 'bind' : 'login');
+    // 记住当前所在界面，授权跳回后原路返回（而不是固定落大厅）
+    var scr = Array.prototype.slice.call(document.querySelectorAll('div[id$="-screen"]')).filter(function (e) { return e.style.display !== 'none'; })[0];
+    sessionStorage.setItem('kimi_return_screen', scr ? scr.id : 'lobby-screen');
   } catch (e) {}
   var redirectUri = location.href.split('?')[0].split('#')[0];
   // 优先经 Edge Function 改写回调地址（根治中转站内网回调超时）；函数不可用时回退直连中转站
@@ -4905,6 +4914,7 @@ async function kimiHandleOAuthCallback() {
   try {
     var savedState = sessionStorage.getItem(KIMI_STATE_KEY);
     sessionStorage.removeItem(KIMI_STATE_KEY);
+    console.log('Kimi回调: 收到code=' + !!code + ' state匹配=' + (state && state === savedState));
     if (!code || !state || state !== savedState) { alert('Kimi 登录失败：state 校验未通过，请重试'); return; }
     // code 换取用户信息：由 Supabase Edge Function（kimi-login）在服务端用 secret 完成，前端不接触 secret
     var ku = await kimiFetchJson(SUPABASE_URL + '/functions/v1/kimi-login', {
@@ -4912,6 +4922,7 @@ async function kimiHandleOAuthCallback() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: code })
     });
+    console.log('Kimi回调: 交换结果 id=' + (ku && ku.id) + ' error=' + (ku && ku.error));
     if (!ku || ku.error || !ku.id) {
       alert('Kimi 登录失败：' + (ku && ku.error ? String(ku.error).slice(0, 120) : '服务未返回用户信息'));
       return;
@@ -4940,6 +4951,7 @@ async function kimiResolveAccount(ku, mode) {
     localStorage.setItem('bwjump_user', JSON.stringify(currentUser));
     alert('绑定成功！之后可用 Kimi 账号一键登录');
     updateUserDisplay();
+    kimiRestoreScreen();
     return;
   }
   // 3) 全新用户 → 自动建号（用户名取 Kimi 昵称，冲突加后缀）
@@ -4962,11 +4974,17 @@ async function kimiResolveAccount(ku, mode) {
   var created = await supabaseGet('users', { kimi_id: 'eq.' + kimiId, select: 'id,username', limit: 1 });
   kimiLoginAs(created && created[0] ? created[0].username : newName, created && created[0] ? Number(created[0].id) : null, kimiId);
 }
+function kimiRestoreScreen() {
+  // 授权跳回后恢复到发起前的界面（默认大厅）
+  var back = 'lobby-screen';
+  try { back = sessionStorage.getItem('kimi_return_screen') || 'lobby-screen'; sessionStorage.removeItem('kimi_return_screen'); } catch (e) {}
+  if (typeof showScreen === 'function') showScreen(back);
+}
 function kimiLoginAs(username, id, kimiId) {
   currentUser = { username: username, id: id, kimi_id: kimiId };
   localStorage.setItem('bwjump_user', JSON.stringify(currentUser));
   updateUserDisplay();
-  if (typeof showScreen === 'function') showScreen('lobby-screen');
+  kimiRestoreScreen();
   if (typeof refreshLobby === 'function') { try { refreshLobby(); } catch (e) {} }
 }
 // 登录/注册页 Kimi 按钮
@@ -12600,6 +12618,16 @@ async function shareLevelToLobby(levelData, code) {
     return true;
   } catch (e) { throw e; }
 }
+// 编码格式快速校验：与 decodeLevel 调度一致的"可游玩"前缀白名单（过滤无编码/坏编码关卡）
+function isLikelyPlayableCode(code) {
+  if (!code || typeof code !== 'string') return false;
+  const v = code.split('.')[0];
+  if (v === '8z' || v === '9z') return true;
+  if (v === '9' || v === '10' || v === '11' || v === '12') return true;
+  const n = parseFloat(v);
+  return isFinite(n) && n >= 4 && n <= 8;
+}
+
 async function getSharedLevels() {
   try {
     // 并行拉取：关卡 / 浏览量 / 所有点赞记录（用于统计每关点赞数 + 当前用户点赞状态）
@@ -12625,7 +12653,7 @@ async function getSharedLevels() {
       }
     }
     // 隐藏历史分片遗留关卡（CHUNK! 编码清单/分片行与 [分片] 占位行，旧分片格式已不再支持）
-    const result = levels.filter(l => !(typeof l.code === 'string' && l.code.startsWith('CHUNK!')) && l.name !== '[分片]').map(l => ({
+    const result = levels.filter(l => !(typeof l.code === 'string' && l.code.startsWith('CHUNK!')) && l.name !== '[分片]' && isLikelyPlayableCode(l.code)).map(l => ({
       ...l,
       views: viewMap[l.id] || 0,
       likes: likeCount[l.id] || 0,
@@ -13412,6 +13440,15 @@ async function renderPublicLevels(filter = '') {
   const topIds = new Set(top3.map(l => l.id));
   // 其余保持发布顺序（created_at.desc，最新在上），排除已进最热的 3 个
   let rest = withHeat.filter(l => !topIds.has(l.id));
+  // 排序方式（时间正/倒、热度正/倒；time_desc 为默认，保持服务端 created_at.desc 顺序）
+  const sortMode = ((document.getElementById('public-sort-select') || {}).value) || 'time_desc';
+  if (sortMode === 'time_asc') {
+    rest = rest.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  } else if (sortMode === 'heat_desc') {
+    rest = rest.slice().sort((a, b) => b._heat - a._heat);
+  } else if (sortMode === 'heat_asc') {
+    rest = rest.slice().sort((a, b) => a._heat - b._heat);
+  }
 
   if (keyword) {
     const match = l => (l.name && l.name.toLowerCase().includes(keyword)) || (l.author && l.author.toLowerCase().includes(keyword));
@@ -13513,7 +13550,7 @@ async function renderMyLevels(filter = '') {
       _id: 'local_' + i + '_' + (l.code ? l.code.slice(0, 20) : Date.now())
     });
   }
-  for (const cl of cloudLevels.filter(c => !(typeof c.code === 'string' && c.code.startsWith('CHUNK!')) && c.name !== '[分片]')) {
+  for (const cl of cloudLevels.filter(c => !(typeof c.code === 'string' && c.code.startsWith('CHUNK!')) && c.name !== '[分片]' && isLikelyPlayableCode(c.code))) {
     const existsLocal = localLevels.find(ll => ll.code === cl.code);
     if (!existsLocal) {
       allMyLevels.push({
@@ -14020,6 +14057,9 @@ document.getElementById('my-search-input').addEventListener('keydown', (e) => {
     const filter = document.getElementById('public-search-input').value;
     renderPublicLevels(filter);
   });
+  // 排序方式切换：即时重排公共大厅
+  const sortSel = document.getElementById('public-sort-select');
+  if (sortSel) sortSel.addEventListener('change', () => renderPublicLevels((document.getElementById('public-search-input') || {}).value || ''));
   document.getElementById('btn-my-refresh').addEventListener('click', () => {
     const filter = document.getElementById('my-search-input').value;
     renderMyLevels(filter);
