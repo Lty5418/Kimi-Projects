@@ -4824,16 +4824,27 @@ const KIMI_STATE_KEY = 'kimi_oauth_state';
 const KIMI_MODE_KEY = 'kimi_oauth_mode';
 
 async function rpcCall(fnName, args) {
-  const res = await sbAuthFetchWithAuth(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
-    method: 'POST', mode: 'cors', credentials: 'omit',
-    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify(args || {})
-  });
-  if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`rpc ${fnName}: ${res.status} ${t.slice(0, 120)}`);
+  // 15s 超时，避免弱网无限等待
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const res = await sbAuthFetchWithAuth(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+      method: 'POST', mode: 'cors', credentials: 'omit',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(args || {}),
+      signal: ctrl.signal
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => '');
+      throw new Error(`rpc ${fnName}: ${res.status} ${t.slice(0, 120)}`);
+    }
+    return res.json();
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw new Error(`rpc ${fnName}: 请求超时（15秒无响应）`);
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
-  return res.json();
 }
 function kimiConfigReady() {
   return KIMI_CLIENT_ID.indexOf('PASTE_') !== 0 && KIMI_CLIENT_ID.length > 10;
@@ -4846,19 +4857,40 @@ function kimiStartLogin(mode) {
     sessionStorage.setItem(KIMI_MODE_KEY, mode === 'bind' ? 'bind' : 'login');
   } catch (e) {}
   var redirectUri = location.href.split('?')[0].split('#')[0];
-  var url = KIMI_OAUTH_BASE + '/oauth/authorize?client_id=' + encodeURIComponent(KIMI_CLIENT_ID)
+  // 优先经 Edge Function 改写回调地址（根治中转站内网回调超时）；函数不可用时回退直连中转站
+  kimiFetchJson(SUPABASE_URL + '/functions/v1/kimi-login?client_id=' + encodeURIComponent(KIMI_CLIENT_ID)
     + '&redirect_uri=' + encodeURIComponent(redirectUri)
-    + '&state=' + encodeURIComponent(state);
-  location.href = url;
+    + '&state=' + encodeURIComponent(state), {
+    method: 'GET', mode: 'cors', credentials: 'omit'
+  }).then(function (r) {
+    if (r && r.url) { location.href = r.url; return; }
+    alert('Kimi 登录初始化失败，请重试');
+  }).catch(function () {
+    location.href = KIMI_OAUTH_BASE + '/oauth/authorize?client_id=' + encodeURIComponent(KIMI_CLIENT_ID)
+      + '&redirect_uri=' + encodeURIComponent(redirectUri)
+      + '&state=' + encodeURIComponent(state);
+  });
 }
 async function kimiFetchJson(url, options) {
-  var res = await fetch(url, options);
-  var data = null;
-  try { data = await res.json(); } catch (e) {}
-  if (!res.ok) {
-    throw new Error('kimi ' + res.status + (data && (data.error_description || data.error) ? ' ' + (data.error_description || data.error) : ''));
+  // 15s 超时：网络慢时明确报错，避免无限等待
+  var ctrl = new AbortController();
+  var timer = setTimeout(function () { ctrl.abort(); }, 15000);
+  try {
+    options = options || {};
+    options.signal = ctrl.signal;
+    var res = await fetch(url, options);
+    var data = null;
+    try { data = await res.json(); } catch (e) {}
+    if (!res.ok) {
+      throw new Error('kimi ' + res.status + (data && (data.error_description || data.error) ? ' ' + (data.error_description || data.error) : ''));
+    }
+    return data;
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw new Error('请求超时（15秒无响应），请检查网络后重试');
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
-  return data;
 }
 async function kimiHandleOAuthCallback() {
   var qs = location.search || '';
@@ -5598,7 +5630,7 @@ function resetPlayer(clearCheckpoint = false) {
   } else {
     player.x = spawnX * GRID_SIZE + 4;
     player.y = spawnY * GRID_SIZE + 4;
-    // 出生安全网：编码异常（如 BIN1 头部出生点在地图外）时出生点周围无任何地形，
+    // 出生安全网：编码异常（如头部出生点在地图外）时出生点周围无任何地形，
     // 自动移到最近的有实体方块的格子（从落点向上找空气，防卡进地里），保证不出生在地图外虚空
     (function snapSpawnToTerrain() {
       try {
@@ -7491,7 +7523,7 @@ function invalidateMinimap() {
 function getAutoDir(gx, gy, tileType) {
   // 编辑器渲染时 currentLevel 可能为 null
   if (!currentLevel || !currentLevel.grid) return 'up';
-  // FIX: 弹板优先使用编码中明确指定的方向（悦动版 cs1/cs2 编码）
+  // FIX: 弹板优先使用编码中明确指定的方向（悦动版 v9-v12 编码）
   if (tileType === 'bouncer' && currentLevel.bouncerDirs) {
     let dir = currentLevel.bouncerDirs.get(gx + ',' + gy);
     if (dir) return dir;
@@ -10428,7 +10460,7 @@ const MH_MAIN = [
       '<div class="help-grid">',
       '<div class="help-item"><b>公开关卡</b>所有玩家发布的关卡。支持按名称 / 作者搜索与刷新；点卡片进入详情页。</div>',
       '<div class="help-item"><b>我的关卡</b>你发布过的关卡都在这里，可以随时重玩。</div>',
-      '<div class="help-item"><b>导入关卡</b>粘贴朋友分享的关卡编码，点 <b>立即游玩</b>。大关卡编码可能以 <code>CHUNK!</code> 开头（自动联网拉取分片）。</div>',
+      '<div class="help-item"><b>导入关卡</b>粘贴朋友分享的关卡编码，点 <b>立即游玩</b>。</div>',
       '</div>',
       '<h4>关卡详情页</h4>',
       '<ul><li>顶部是 <b>地图全貌预览</b>（作者关闭小地图时显示"地图预览已屏蔽"）。</li><li>下方显示关卡名、作者与简介（过长可点 <b>展开简介</b>）。</li><li><b>开始培训</b> 进入游戏；<b>复制编码</b> 复制关卡编码用于分享；<b>点赞</b> 支持作者。</li></ul>',
@@ -10441,7 +10473,7 @@ const MH_MAIN = [
       '<div class="help-grid">',
       '<div class="help-item"><b>Public Levels</b>Levels published by all players. Search by name / author and refresh; tap a card for details.</div>',
       '<div class="help-item"><b>My Levels</b>Everything you have published, ready to replay.</div>',
-      '<div class="help-item"><b>Import Level</b>Paste a level code shared by a friend and tap <b>Play Now</b>. Large levels may use a <code>CHUNK!</code> code (splits are fetched automatically).</div>',
+      '<div class="help-item"><b>Import Level</b>Paste a level code shared by a friend and tap <b>Play Now</b>.</div>',
       '</div>',
       '<h4>Level Detail Page</h4>',
       '<ul><li>A full <b>map preview</b> on top ("preview blocked" if the author disabled the minimap).</li><li>Name, author and description below (tap <b>Expand</b> for long text).</li><li><b>Start Training</b> to play; <b>Copy Code</b> to share; <b>Like</b> to support the author.</li></ul>',
@@ -10559,8 +10591,7 @@ const MH_MAIN = [
       '<li>搭建关卡：放陆地、机关、出生点、传送门；随时点 <b>测试</b> 试玩。</li>',
       '<li>点 <b>生成编码</b> 得到关卡编码，复制发给朋友（对方在"导入关卡"粘贴即玩）。</li>',
       '<li>点 <b>发布</b>，填写名称与简介；发布后出现在时空中枢的"我的关卡"与公开大厅。</li>',
-      '<li>编码过长的大关卡会自动切成 <code>CHUNK!</code> 分片上传，玩家侧无感。</li>',
-      '</ol>',
+            '</ol>',
       '<div class="help-note">编辑器细节（工具、快捷键、属性面板、双宇宙编辑）请查看<b>编辑器内的可拖动手册</b>。</div>'
     ],
     en: [
@@ -10570,14 +10601,13 @@ const MH_MAIN = [
       '<li>Build: place land, mechanisms, spawn and portal; tap <b>Test</b> to try anytime.</li>',
       '<li>Tap <b>Generate Code</b> to get a shareable code (friends paste it in "Import Level").</li>',
       '<li>Tap <b>Publish</b>, fill in name and description; the level appears in "My Levels" and the public lobby.</li>',
-      '<li>Oversized levels are automatically split into <code>CHUNK!</code> shards on upload — players notice nothing.</li>',
-      '</ol>',
+            '</ol>',
       '<div class="help-note">For editor details (tools, shortcuts, properties panel, dual-world editing), see the <b>draggable manual inside the editor</b>.</div>'
     ] },
   { id: 'faq', zhT: '常见问题', enT: 'FAQ',
     zh: [
       '<ul>',
-      '<li><b>导入编码提示无效？</b> 确认完整粘贴了整串编码；以 <code>CHUNK!</code> 开头的大关卡需要联网拉取分片，网络不佳时会失败。</li>',
+      '<li><b>导入编码提示无效？</b> 确认完整粘贴了整串编码。</li>',
       '<li><b>按键位置不顺手？</b> 设置 → 直接拖拽布局，拖到你舒服的位置，记得点 <b>确认生效</b>。</li>',
       '<li><b>想恢复默认按键？</b> 各控件点 <b>恢复默认</b>，再点 <b>确认生效</b>。</li>',
       '<li><b>发布后在哪里找到？</b> 时空中枢 → 我的关卡。</li>',
@@ -10587,7 +10617,7 @@ const MH_MAIN = [
     ],
     en: [
       '<ul>',
-      '<li><b>"Invalid code" when importing?</b> Make sure the whole code is pasted; <code>CHUNK!</code> codes need network to fetch shards and may fail on bad connections.</li>',
+      '<li><b>"Invalid code" when importing?</b> Make sure the whole code is pasted.</li>',
       '<li><b>Buttons feel awkward?</b> Settings → Direct drag layout — drag them where you like, then tap <b>Apply</b>.</li>',
       '<li><b>Back to default controls?</b> Tap <b>Reset</b> on each control, then <b>Apply</b>.</li>',
       '<li><b>Where is my published level?</b> Space-Time Hub → My Levels.</li>',
@@ -10708,7 +10738,6 @@ const MH_EDITOR = [
       '<li><b>返回</b>：回到时空中枢（未发布的内容请先生成编码保存）。</li></ul>',
       '<h4>发布流程</h4>',
       '<ol><li>点右下角 <b>发布</b>。</li><li>填写关卡名称与简介。</li><li>确认发布后，关卡出现在"我的关卡"与公开大厅。</li></ol>',
-      '<div class="ehp-note ehp-warn">编码过长的大关卡会自动切成 <code>CHUNK!</code> 分片上传，属正常现象。</div>'
     ],
     en: [
       '<ul><li><b>Generate Code</b>: exports the level code for sharing; friends paste it under "Import Level".</li>',
@@ -10718,7 +10747,6 @@ const MH_EDITOR = [
       '<li><b>Back</b>: returns to the hub (generate a code first to keep unpublished work).</li></ul>',
       '<h4>Publishing</h4>',
       '<ol><li>Tap <b>Publish</b> at the bottom-right.</li><li>Fill in the level name and description.</li><li>After confirming, the level appears in "My Levels" and the public lobby.</li></ol>',
-      '<div class="ehp-note ehp-warn">Oversized levels are auto-split into <code>CHUNK!</code> shards on upload — this is normal.</div>'
     ] },
   { zhT: '快捷键速查', enT: 'Shortcuts',
     zh: [
@@ -11755,93 +11783,6 @@ function encodeLevel(customName) {
   return encodeLevelV8z(customName);
 }
 
-function encodeLevelCS2(customName) {
-  let ox = editorSpawn.x, oy = editorSpawn.y;
-  let hasPortal = editorHasPortal();
-  let prx = hasPortal ? (editorPortal.x - ox) : null;
-  let pry = hasPortal ? (editorPortal.y - oy) : null;
-  
-  let landCoords = [], spikeCoords = [], checkpointCoords = [];
-  let trampolineCoords = [], springCoords = [];
-  let switchCoords = [], doorCoords = [], timedPCoords = [];
-  let oneWayCoords = [], iceCoords = [];
-  let crateCoords = [], spawnerCoords = [], eggCoords = [], customEggCoords = [];
-  let healthPackCoords = [], shrineCoords = [];
-  
-  for (let [key, tile] of getEditorCells()) {
-    if (tile === TILE_SPAWN) continue;
-    let [x, y] = key.split(',').map(Number);
-    let rx = x - ox, ry = y - oy;
-    if (tile === TILE_LAND) landCoords.push(`a(${rx},${ry})`);
-    else if (tile === TILE_SPIKE) spikeCoords.push(`s(${rx},${ry})`);
-    else if (tile === TILE_CHECKPOINT) checkpointCoords.push(`c(${rx},${ry})`);
-    else if (tile === TILE_TRAMPOLINE) trampolineCoords.push(`t(${rx},${ry})`);
-    else if (tile === TILE_SPRING_L) springCoords.push(`b(${rx},${ry},dir,l)`);
-    else if (tile === TILE_SPRING_R) springCoords.push(`b(${rx},${ry},dir,r)`);
-    else if (tile >= TILE_SWITCH_R && tile <= TILE_SWITCH_Y) {
-      let col = switchColor(tile);
-      switchCoords.push(`w(${rx},${ry},${col})`);
-    }
-    else if (tile >= TILE_DOOR_R && tile <= TILE_DOOR_Y) {
-      let col = switchColor(tile);
-      let hex = ({r:'FF4444',b:'4444FF',g:'44FF44',y:'FFFF44'})[col] || 'FF4444';
-      doorCoords.push(`d(${rx},${ry},${col},${hex})`);
-    }
-    else if (tile === TILE_TIMED_PLATFORM) timedPCoords.push(`p(${rx},${ry})`);
-    else if (tile === TILE_ONE_WAY) oneWayCoords.push(`o(${rx},${ry})`);
-    else if (tile === TILE_ICE) iceCoords.push(`i(${rx},${ry})`);
-    else if (tile === TILE_CRATE) crateCoords.push(`k(${rx},${ry})`);
-    else if (tile === TILE_ENEMY_SPAWNER || tile === TILE_ELITE_SPAWNER) {
-      let _el = tile === TILE_ELITE_SPAWNER;
-      let _pr = editorTileProps.get(key);
-      if (_pr) spawnerCoords.push(`m(${rx},${ry},${_el ? 1 : 0},${_pr.hp || 0},${_pr.dmg || 0},${_pr.ranged ? 1 : 0})`);
-      else spawnerCoords.push(`m(${rx},${ry}${_el ? ',1' : ''})`);
-    }
-  }
-  
-  const name = (customName || '自定义').replace(/\./g, '_');
-  const desc = '';
-  const tlEl = document.getElementById('opt-time-limit');
-  const tlInput = document.getElementById('time-limit-input');
-  let timeLimitVal = (tlEl && tlEl.checked && tlInput && parseInt(tlInput.value) > 0) ? `z(${parseInt(tlInput.value)})` : '';
-  let gravityVal = editorGravityCustom > 0 ? `g(${editorGravityCustom})` : '';
-  
-  const showInd = document.getElementById('opt-show-indicator')?.checked ?? true;
-  const showMap = document.getElementById('opt-show-minimap')?.checked ?? true;
-  
-  let parts = ['cs2'];
-  parts.push(hasPortal ? prx : '');
-  parts.push(hasPortal ? pry : '');
-  parts.push(name);
-  parts.push(desc);
-  parts.push(landCoords.join(''));
-  parts.push(spikeCoords.join(''));
-  parts.push(checkpointCoords.join(''));
-  parts.push(trampolineCoords.join(''));
-  parts.push(springCoords.join(''));
-  parts.push(switchCoords.join(''));
-  parts.push(doorCoords.join(''));
-  parts.push(timedPCoords.join(''));
-  parts.push(oneWayCoords.join(''));
-  parts.push(iceCoords.join(''));
-  parts.push(timeLimitVal);
-  parts.push(gravityVal);
-  parts.push(crateCoords.join(''));
-  parts.push(spawnerCoords.join(''));
-  parts.push(eggCoords.join(''));
-  parts.push(healthPackCoords.join(''));
-  parts.push(shrineCoords.join(''));
-  parts.push(customEggCoords.join(''));
-  parts.push(`v(${showInd ? 1 : 0},${showMap ? 1 : 0})`);
-  return parts.join('.');
-}
-
-// ==================== V9 编码解码系统（双世界）====================
-// 格式: 9z + base64url(RLE压缩数据)
-// raw 格式: 9.nameEncoded.flags.worldA.worldB
-// world 格式: portal!lands!spikes!spikeAutos!crates!bouncers!checkpoints!movingPlatforms!enemySpawners
-// 各部分用 ! 分隔，N 表示 null/空
-
 function simpleCompress(str) {
   // RLE 压缩：将连续重复字符压缩为 "字符+次数"
   // 用数组 join 拼接，避免 JS 字符串 += 的反复拷贝（O(n²) → O(n)）
@@ -12196,14 +12137,6 @@ function decodeLevel(code) {
   if (['9', '10', '11', '12'].includes(ver)) {
     return decodeYuedongLevel(code);
   }
-  if (code.startsWith('BIN1')) {
-    // BIN1 二进制编码（CS 版 v3.1.1 兼容，>3KB 大关卡自动转二进制）
-    return decodeLevelBinary(code);
-  }
-  if (code.startsWith('cs')) {
-    // FIX: 直接解码 cs1/cs2 财神爷编码，不再剥离前缀
-    return decodeYuedongLevel(code);
-  }
   if (code.startsWith('9z')) return decodeLevelV9(code);
   if (code.startsWith('8z')) {
     // 压缩版 V8：解 base64 → RLE 解压 → 按 V8 解码
@@ -12222,287 +12155,9 @@ function decodeLevel(code) {
   console.error('未知编码格式，ver=' + ver + '，无法解码');
   return null;
 }
-// ==================== BIN1 二进制编码解码（CS 版 v3.1.1 兼容） ====================
-// 值用数字字面量（不引用 TILE_* 常量：本文件多内核缝合，TILE 常量在此作用域不可达）
-// 键=BIN 字节，值=融合版 TILE 数值（两边常量值已逐一验证一致）
-const _BIN_TILE_MAP = {
-  1: 1, 2: 2, 3: 5, 4: 6, 5: 7, 6: 8, 7: 9, 8: 13,
-  9: 17, 10: 18, 11: 19, 12: -1, 13: 20, 14: 21,
-  17: 27, 18: 28, 19: 29, 20: 30,
-  21: 22, 22: 23, 23: 24, 24: 25, 25: 26, 26: 31, 27: 32, 28: 33,
-  29: 34, 30: 35, 31: 36, 32: 37, 33: 38, 34: 39
-};
-const _BIN_EGG_TYPE_MAP = {
-  21: 'red', 22: 'blue', 23: 'purple', 24: 'green', 25: 'pink',
-  26: 'orange', 27: 'cyan', 28: 'yellow', 29: 'coral',
-  30: 'black', 31: 'gold', 32: 'diamond', 33: 'shadow'
-};
-function _binReadInt16(d, p) {
-  let v = (d[p] << 8) | d[p + 1];
-  if (v & 0x8000) v -= 0x10000;
-  return v;
-}
-function _binNeed(d, p, n) { return p + n <= d.length; }
-
-function decodeLevelBinary(code) {
-  try {
-    const b64 = code.substring(4); // 去掉 'BIN1' 前缀
-    const bin = atob(b64);
-    const data = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
-    let pos = 0;
-    if (!_binNeed(data, pos, 4)) return null;
-    pos += 4; // 'BIN1' 魔数
-    const version = data[pos++];
-    const ox = _binReadInt16(data, pos); pos += 2;
-    const oy = _binReadInt16(data, pos); pos += 2;
-    const prx = _binReadInt16(data, pos); pos += 2;
-    const pry = _binReadInt16(data, pos); pos += 2;
-    const flags = data[pos++];
-    const hasPortal = (flags & 1) !== 0;
-    let levelName = '';
-    if (_binNeed(data, pos, 1)) {
-      const nameLen = data[pos++];
-      if (_binNeed(data, pos, nameLen)) {
-        levelName = new TextDecoder().decode(data.subarray(pos, pos + nameLen));
-        pos += nameLen;
-      }
-    }
-    let levelDesc = '';
-    if (_binNeed(data, pos, 1)) {
-      const descLen = data[pos++];
-      if (_binNeed(data, pos, descLen)) {
-        levelDesc = new TextDecoder().decode(data.subarray(pos, pos + descLen));
-        pos += descLen;
-      }
-    }
-    const landGrid = new Set();
-    const hiddenTiles = [];
-    const spikes = [], checkpoints = [], trampolines = [], springs = [], switches = [], doors = [];
-    const timedPlatforms = [], oneWayPlatforms = [], iceTiles = [], crates = [], spawners = [];
-    const healthPacks = [], shrines = [], monsterEggs = [], customEggs = [];
-    let timeLimit = 0;
-    let showIndicator = true, showMinimap = true;
-    while (pos < data.length) {
-      const typeByte = data[pos++];
-      if (typeByte === 0xFF) break; // 条目结束标记
-      // RLE 陆地：type=1 + x(int16) + y(int16) + len(1)，横向连续展开
-      if (typeByte === 1) {
-        const rx = _binReadInt16(data, pos); pos += 2;
-        const ry = _binReadInt16(data, pos); pos += 2;
-        const runLen = data[pos++];
-        for (let i = 0; i < runLen; i++) landGrid.add((rx + i) + ',' + ry);
-        continue;
-      }
-      const tileType = _BIN_TILE_MAP[typeByte];
-      const rx = _binReadInt16(data, pos); pos += 2;
-      const ry = _binReadInt16(data, pos); pos += 2;
-      if (typeByte === 12) { hiddenTiles.push({ x: rx, y: ry }); continue; }
-      if (!tileType) continue;
-      switch (tileType) {
-        case 2: spikes.push({ x: rx, y: ry }); break;
-        case 5: checkpoints.push({ x: rx, y: ry }); break;
-        case 6: trampolines.push({ x: rx, y: ry }); break;
-        case 7: springs.push({ x: rx, y: ry, dir: 'l' }); break;
-        case 8: springs.push({ x: rx, y: ry, dir: 'r' }); break;
-        case 9: {
-          let gLen = 0; let gName = 'default';
-          if (_binNeed(data, pos, 1)) { gLen = data[pos++]; }
-          if (_binNeed(data, pos, gLen)) { gName = new TextDecoder().decode(data.subarray(pos, pos + gLen)) || 'default'; pos += gLen; }
-          switches.push({ x: rx, y: ry, group: gName, color: '#FFD700' });
-          break;
-        }
-        case 13: {
-          let gLen = 0; let gName = 'default';
-          if (_binNeed(data, pos, 1)) { gLen = data[pos++]; }
-          if (_binNeed(data, pos, gLen)) { gName = new TextDecoder().decode(data.subarray(pos, pos + gLen)) || 'default'; pos += gLen; }
-          if (version >= 2) {
-            // 门 v2：组名 + 颜色长度(1B) + 变长颜色hex + 默认开(1B)
-            let color = '#FF4444'; let defaultOpen = false;
-            if (_binNeed(data, pos, 1)) {
-              const colLen = data[pos++];
-              if (_binNeed(data, pos, colLen)) {
-                color = '#' + String.fromCharCode.apply(null, data.subarray(pos, pos + colLen));
-                pos += colLen;
-              }
-              defaultOpen = data[pos++] !== 0;
-            }
-            doors.push({ x: rx, y: ry, group: gName, color, name: gName, defaultOpen });
-          } else {
-            doors.push({ x: rx, y: ry, group: gName, color: '#FF4444', name: gName });
-          }
-          break;
-        }
-        case 17: timedPlatforms.push({ x: rx, y: ry, duration: 0, respawn: false, respawnTime: 0 }); break;
-        case 18: oneWayPlatforms.push({ x: rx, y: ry }); break;
-        case 19: iceTiles.push({ x: rx, y: ry }); break;
-        case 20: crates.push({ x: rx, y: ry }); break;
-        case 21: spawners.push({ x: rx, y: ry }); break;
-        case 27: healthPacks.push({ x: rx, y: ry, type: 'basic' }); break;
-        case 28: healthPacks.push({ x: rx, y: ry, type: 'mid' }); break;
-        case 29: healthPacks.push({ x: rx, y: ry, type: 'adv' }); break;
-        case 30: shrines.push({ x: rx, y: ry }); break;
-        case 39: {
-          // 自定义蛋：spawners 同步登记 + name + hp/atk/def 各2B小端 + 颜色长度(1B)+变长hex
-          spawners.push({ x: rx, y: ry });
-          let nLen = 0, ceName = '';
-          let ceHp = 100, ceAtk = 20, ceDef = 5, ceColor = '#FF8C00';
-          if (_binNeed(data, pos, 1)) { nLen = data[pos++]; }
-          if (_binNeed(data, pos, nLen)) { ceName = new TextDecoder().decode(data.subarray(pos, pos + nLen)); pos += nLen; }
-          if (_binNeed(data, pos, 7)) {
-            ceHp = data[pos] | (data[pos + 1] << 8); pos += 2;
-            ceAtk = data[pos] | (data[pos + 1] << 8); pos += 2;
-            ceDef = data[pos] | (data[pos + 1] << 8); pos += 2;
-            const ceColLen = data[pos++];
-            if (_binNeed(data, pos, ceColLen)) {
-              ceColor = '#' + String.fromCharCode.apply(null, data.subarray(pos, pos + ceColLen));
-              pos += ceColLen;
-            }
-          }
-          customEggs.push({ x: rx, y: ry, name: ceName, hp: ceHp, atk: ceAtk, def: ceDef, color: ceColor });
-          break;
-        }
-        default:
-          // 蛋类型数字内联判断（22-26 红蓝紫绿粉 / 31-38 橙青黄珊黑金钻影），不引用 isEggTile（作用域不可达）
-          // 蛋关联生成器：spawners 同步登记（与蓝本一致，否则蛋无 spawnerKey 不生成敌人）
-          if ((tileType >= 22 && tileType <= 26) || (tileType >= 31 && tileType <= 38)) {
-            const eggType = _BIN_EGG_TYPE_MAP[typeByte];
-            spawners.push({ x: rx, y: ry });
-            monsterEggs.push({ x: rx, y: ry, type: eggType });
-          }
-          break;
-      }
-    }
-    // 尾部：时间限制(2B，秒)
-    if (_binNeed(data, pos, 2)) { timeLimit = _binReadInt16(data, pos); pos += 2; }
-    // 选项(1B)：bit1=传送门指示器, bit0=小地图
-    if (_binNeed(data, pos, 1)) {
-      const opts = data[pos++];
-      showIndicator = (opts & 2) !== 0;
-      showMinimap = (opts & 1) !== 0;
-    }
-    // ox/oy 归一化：编码以出生点为原点，还塬为绝对坐标
-    if (ox !== 0 || oy !== 0) {
-      const _shift = (arr) => { for (let e of arr) { e.x += ox; e.y += oy; } };
-      _shift(spikes); _shift(checkpoints); _shift(trampolines); _shift(springs);
-      _shift(switches); _shift(doors); _shift(timedPlatforms); _shift(oneWayPlatforms);
-      _shift(iceTiles); _shift(crates); _shift(spawners); _shift(monsterEggs);
-      _shift(healthPacks); _shift(shrines); _shift(customEggs);
-      const _shiftSet = new Set();
-      for (let k of landGrid) { const c = k.split(','); _shiftSet.add((parseInt(c[0]) + ox) + ',' + (parseInt(c[1]) + oy)); }
-      landGrid.clear(); for (let k of _shiftSet) landGrid.add(k);
-    }
-    // 合并陆地方块为矩形
-    let lands = [];
-    if (landGrid.size > 0) {
-      const keys = Array.from(landGrid).map(k => k.split(',').map(Number));
-      const minY = Math.min.apply(null, keys.map(k => k[1]));
-      const maxY = Math.max.apply(null, keys.map(k => k[1]));
-      for (let y = minY; y <= maxY; y++) {
-        const rowKeys = keys.filter(k => k[1] === y).map(k => k[0]).sort((a, b) => a - b);
-        if (rowKeys.length === 0) continue;
-        let startX = rowKeys[0], w = 1;
-        for (let i = 1; i < rowKeys.length; i++) {
-          if (rowKeys[i] === startX + w) w++;
-          else { lands.push({ x: startX, y: y, w: w, h: 1 }); startX = rowKeys[i]; w = 1; }
-        }
-        lands.push({ x: startX, y: y, w: w, h: 1 });
-      }
-      let merged = true;
-      while (merged) {
-        merged = false;
-        for (let i = 0; i < lands.length; i++) {
-          for (let j = i + 1; j < lands.length; j++) {
-            const a = lands[i], b = lands[j];
-            if (a.x === b.x && a.w === b.w && a.y + a.h === b.y) {
-              a.h += b.h; lands.splice(j, 1); merged = true; break;
-            }
-          }
-          if (merged) break;
-        }
-      }
-    }
-    // 动态计算关卡大小
-    let maxTileX = 0, maxTileY = 0;
-    for (let k of landGrid) { const c = k.split(',').map(Number); if (c[0] > maxTileX) maxTileX = c[0]; if (c[1] > maxTileY) maxTileY = c[1]; }
-    const allEnts = [spikes, checkpoints, trampolines, springs, switches, doors, timedPlatforms, oneWayPlatforms, iceTiles, hiddenTiles, crates, spawners, monsterEggs, healthPacks, shrines, customEggs];
-    for (let arr of allEnts) { for (let e of arr) { if (e.x > maxTileX) maxTileX = e.x; if (e.y > maxTileY) maxTileY = e.y; } }
-    if (hasPortal) { if (prx + ox > maxTileX) maxTileX = prx + ox; if (pry + oy > maxTileY) maxTileY = pry + oy; }
-    const levelW = Math.max(20, maxTileX + 2);
-    const levelH = Math.max(20, maxTileY + 2);
-    return {
-      name: levelName, desc: levelDesc, w: levelW, h: levelH,
-      spawn: { x: ox, y: oy },
-      portal: hasPortal ? { x: prx + ox, y: pry + oy } : null,
-      lands, spikes, checkpoints, trampolines, springs, switches, doors,
-      timedPlatforms, oneWayPlatforms, iceTiles, hiddenTiles, timeLimit,
-      crates, spawners, monsterEggs, healthPacks, shrines, customEggs,
-      showIndicator, showMinimap
-    };
-  } catch (e) {
-    console.error('[BIN1解码] 失败:', e);
-    return null;
-  }
-}
-
-// ==================== CHUNK! 分片编码解析（CS 版 v3.1.1 兼容） ====================
-// 大关卡（编码 >2000 字节）在 CS 版发布时自动拆分为多条分片记录：
-//   清单行（存 levels.code 列）：CHUNK!<token>~<片数>
-//   分片行（存独立记录 description 列）：CHUNK!<token>:<序号>
-// 客户端拉取清单后按序号并发下载全部分片、按顺序拼接，再交给 decodeLevel。
-const CHUNK_CODE_MAGIC = 'CHUNK!';
-const CODE_CHUNK_THRESHOLD = 2000;   // 超过此长度走分片（与 CS 版发布端一致）
-const CODE_CHUNK_SIZE = 1800;        // 单片内容上限（留 JSON 转义余量）
-const CODE_CHUNK_FETCH_BATCH = 30;   // 并发拉取批大小
-function isChunkManifest(code) { return typeof code === 'string' && code.startsWith(CHUNK_CODE_MAGIC) && code.includes('~') && !code.includes(':'); }
-function isChunkRow(code) { return typeof code === 'string' && code.startsWith(CHUNK_CODE_MAGIC) && code.includes(':'); }
-// 分片行（应在大厅隐藏）：① 引用型（code=CHUNK!token:00X）② 内容型（name='[分片]' 占位且非清单——分片内容直接存 code 列）
-// 清单主关卡（code=CHUNK!token~N）不命中，保留展示
-function isShardLevelRow(l) {
-  if (isChunkRow(l.code)) return true;
-  if (l.name === '[分片]' && !isChunkManifest(l.code)) return true;
-  return false;
-}
-function parseChunkManifest(code) {
-  const body = code.substring(CHUNK_CODE_MAGIC.length);
-  const sep = body.indexOf('~');
-  if (sep === -1) return null;
-  return { token: body.substring(0, sep), total: parseInt(body.substring(sep + 1), 10) || 0 };
-}
-async function fetchChunkedCode(code) {
-  const m = parseChunkManifest(code);
-  if (!m || !m.token || !(m.total > 0)) return code;
-  // 与蓝本一致：不过滤预编码（buildRestUrl 的 searchParams.set 会自动编码，预编码会双重编码导致匹配不到）
-  // 序号 3 位补零（:001/:002/:003），按 30 片一批并发，缺片按空串拼接
-  const parts = [];
-  for (let i = 0; i < m.total; i += CODE_CHUNK_FETCH_BATCH) {
-    const end = Math.min(i + CODE_CHUNK_FETCH_BATCH, m.total);
-    const batch = await Promise.all(Array.from({ length: end - i }, (_, k) => {
-      const seq = String(i + k + 1).padStart(3, '0');
-      return supabaseGet('levels', { code: 'eq.' + CHUNK_CODE_MAGIC + m.token + ':' + seq, select: 'description', limit: 1 })
-        .then(arr => (arr && arr[0] && arr[0].description) || '')
-        .catch(() => '');
-    }));
-    parts.push(...batch);
-  }
-  const merged = parts.join('');
-  if (!merged) { console.warn('[分片] 未拉到任何分片', m.token); return code; }
-  return merged;
-}
 async function resolveLevelCode(code) {
-  // 与蓝本一致：先还原 HTML 实体（卡片 data-code 属性转义会引入 &#39;/&#92;）
-  const c = (code || '').replace(/&#39;/g, "'").replace(/&#92;/g, "\\");
-  if (isChunkManifest(c)) {
-    try {
-      const full = await fetchChunkedCode(c);
-      if (!full || full.trim().length === 0) return null;
-      return full;
-    } catch (e) {
-      console.error('[分片拉取] 失败:', e);
-      return null;
-    }
-  }
-  return c;
+  // 还原 HTML 实体（卡片 data-code 属性转义会引入 &#39;/&#92;）
+  return (code || '').replace(/&#39;/g, "'").replace(/&#92;/g, "\\");
 }
 
 function decodeYuedongLevel(code) {
@@ -12969,8 +12624,8 @@ async function getSharedLevels() {
         myLiked.add(lk.level_id);
       }
     }
-    // 隐藏分片行（引用型 CHUNK!tok:00X + 内容型 name='[分片]'），只保留清单主关卡
-    const result = levels.filter(l => !isShardLevelRow(l)).map(l => ({
+    // 隐藏历史分片遗留关卡（CHUNK! 编码清单/分片行与 [分片] 占位行，旧分片格式已不再支持）
+    const result = levels.filter(l => !(typeof l.code === 'string' && l.code.startsWith('CHUNK!')) && l.name !== '[分片]').map(l => ({
       ...l,
       views: viewMap[l.id] || 0,
       likes: likeCount[l.id] || 0,
@@ -13221,7 +12876,6 @@ let selectedLevelIdx = -1;
 // ==================== 编辑器导入编码 ====================
 async function importEditorCode(code) {
   if (!code) { alert(t('请输入关卡编码')); return; }
-  // CHUNK! 分片清单：先拉取合并再解码
   const fullCode = await resolveLevelCode(code);
   const level = decodeLevel(fullCode);
   if (!level) { alert(t('关卡编码无效，请检查输入')); return; }
@@ -13793,7 +13447,7 @@ async function renderPublicLevels(filter = '') {
       }
     } catch(e) { hasPortal = false; }
     const isLiked = l.user_liked || false;
-    const isYuedong = l.code && (l.code.startsWith('cs') || ['9','10','11','12'].includes(l.code.split('.')[0]));
+    const isYuedong = l.code && ['9','10','11','12'].includes(l.code.split('.')[0]);
     const isOldVersion = l.code && !isYuedong && l.code.split('.')[0] !== '7';
     const safeCode = (l.code || '').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `
@@ -13859,7 +13513,7 @@ async function renderMyLevels(filter = '') {
       _id: 'local_' + i + '_' + (l.code ? l.code.slice(0, 20) : Date.now())
     });
   }
-  for (const cl of cloudLevels.filter(c => !isShardLevelRow(c))) {
+  for (const cl of cloudLevels.filter(c => !(typeof c.code === 'string' && c.code.startsWith('CHUNK!')) && c.name !== '[分片]')) {
     const existsLocal = localLevels.find(ll => ll.code === cl.code);
     if (!existsLocal) {
       allMyLevels.push({
@@ -13897,7 +13551,7 @@ async function renderMyLevels(filter = '') {
         showIndicator = decoded.showIndicator !== false;
       }
     } catch(e) { hasPortal = false; }
-    const isYuedong2 = l.code && (l.code.startsWith('cs') || ['9','10','11','12'].includes(l.code.split('.')[0]));
+    const isYuedong2 = l.code && ['9','10','11','12'].includes(l.code.split('.')[0]);
     const isOldVersion = l.code && !isYuedong2 && !l.code.startsWith('7.') && !l.code.startsWith('8z');
     const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `
@@ -14182,7 +13836,6 @@ function renderDetailMap(code, container) {
 }
 window.playLobbyLevel = async function(code) {
   const decodedCode = code.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  // CHUNK! 分片清单：先并发拉取全部分片合并为完整编码，再解码（与 CS 版 v3.1.1 兼容）
   const fullCode = await resolveLevelCode(decodedCode);
   lastLobbyLevelCode = fullCode;
   isEditorTest = false;
@@ -14412,7 +14065,6 @@ document.getElementById('btn-detail-back').addEventListener('click', () => {
 document.getElementById('btn-detail-play').addEventListener('click', async () => {
   if (!detailLevelData) return;
   const decodedCode = detailLevelData.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  // CHUNK! 分片清单：先拉取合并再解码
   const fullCode = await resolveLevelCode(decodedCode);
   lastLobbyLevelCode = fullCode;
   isEditorTest = false;
@@ -15322,7 +14974,7 @@ async function ext2_openReplay(levelId, trajectoryJson, playerName) {
     // [调试弹窗1] 进入函数
     alert('[回放调试-1] 进入ext2_openReplay\nlevelId=' + levelId + '\ntrajectoryJson类型=' + typeof trajectoryJson + '\ntrajectoryJson长度=' + (typeof trajectoryJson === 'string' ? trajectoryJson.length : JSON.stringify(trajectoryJson).length) + '\nplayerName=' + playerName);
     // 回放路径：detailLevelData 是详情页残留变量（可能是别的关卡甚至失效），仅作兜底；
-    // 有 levelId 时优先用它查库拿本关编码，且残留的 CHUNK! 清单不可直接当完整编码用
+    // 有 levelId 时优先用它查库拿本关编码
     var levelCode = null;
     if (levelId && String(levelId) !== 'null') {
       try {
@@ -15332,18 +14984,13 @@ async function ext2_openReplay(levelId, trajectoryJson, playerName) {
         }
       } catch (dbErr) { console.log('获取关卡编码失败:', dbErr); }
     }
-    // 兜底：无 levelId 或查库失败时，才用详情页残留编码（仅限非分片清单）
-    if (!levelCode && detailLevelData && !isChunkManifest(detailLevelData)) {
-      levelCode = detailLevelData;
-    }
-    if (!levelCode && detailLevelData && isChunkManifest(detailLevelData)) {
-      // 残留的是分片清单：仍尝试拉取合并（resolveLevelCode 在下方统一处理）
+    // 兜底：无 levelId 或查库失败时，才用详情页残留编码
+    if (!levelCode && detailLevelData) {
       levelCode = detailLevelData;
     }
     if (!levelCode) { alert(t('关卡数据丢失')); return; }
     var decodedCode = levelCode.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    // CHUNK! 分片清单：先拉取合并再解码
-    var fullCode = await resolveLevelCode(decodedCode);
+      var fullCode = await resolveLevelCode(decodedCode);
     var levelRaw = decodeLevel(fullCode);
     if (!levelRaw) { alert(t('关卡解析失败')); return; }
 
