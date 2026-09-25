@@ -4824,7 +4824,7 @@ sbAuthEnsureSession();
 // 流程：跳中转站授权 → 带回 code → 页面内换取 token → 查/建/绑 users 行。
 // 不配置 client_id 时仅按钮提示，不影响任何其他功能；不绑定 Kimi 也可完整游玩。
 const KIMI_OAUTH_BASE = 'https://kimi-oauth.kimi.site';
-const KIMI_CLIENT_ID = 'krc_fab26fa18ebea6ea'; // Kimi OAuth 应用 ID（公开，随页面分发无妨）
+const KIMI_CLIENT_ID = 'krc_90fb37c23cdc6491'; // Kimi OAuth 应用 ID（公开，随页面分发无妨）
 // client_secret 不下发前端：code 换 token 由 Supabase Edge Function（kimi-login）在服务端完成
 const KIMI_STATE_KEY = 'kimi_oauth_state';
 const KIMI_MODE_KEY = 'kimi_oauth_mode';
@@ -4905,8 +4905,17 @@ async function kimiFetchJson(url, options) {
 }
 async function kimiHandleOAuthCallback() {
   var qs = location.search || '';
-  if (qs.indexOf('code=') === -1) return;
+  if (qs.indexOf('code=') === -1 && qs.indexOf('error=') === -1) return;
   var params = new URLSearchParams(qs);
+  // OAuth 标准错误响应（如中转站返回 error=server_error）：明确弹出，不再静默吞掉
+  var errCode = params.get('error');
+  if (errCode) {
+    var errDesc = params.get('error_description');
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+    console.log('Kimi回调: relay错误 ' + errCode + ' - ' + errDesc);
+    alert('Kimi 登录失败：' + errCode + (errDesc ? '\n' + String(errDesc).replace(/\+/g, ' ') : ''));
+    return;
+  }
   var code = params.get('code');
   var state = params.get('state');
   var mode = 'login';
