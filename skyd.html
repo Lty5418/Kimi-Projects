@@ -2752,7 +2752,7 @@ html, body {
 }
 /* ===== 直接拖拽布局编辑 ===== */
 #layout-drag-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 30;
   display: none;
@@ -14350,7 +14350,7 @@ function generateCardMinimap(code) {
     maxX += pad; maxY += pad;
     const levelW = maxX - minX + 1;
     const levelH = maxY - minY + 1;
-    if (Math.max(levelW, levelH) > 80) return '__TOO_BIG__';
+    if (Math.max(levelW, levelH) > 80) { _minimapCache[code] = '__TOO_BIG__'; return '__TOO_BIG__'; }
     const canvas = document.createElement('canvas');
     const maxCanvasSize = 80;
     const tileSize = Math.min(6, Math.floor(maxCanvasSize / Math.max(levelW, levelH)));
@@ -14406,6 +14406,26 @@ async function refreshLobby() {
 }
 let _lobbyRenderToken = 0;
 const _lobbyMinimapCache = {};
+// 卡片元数据缓存：decodeLevel 是重操作（8d 需 LZ4+base91+V8 解析），每张卡每次渲染都解码会卡顿
+const _lobbyMetaCache = {};
+function getCardMeta(code) {
+  if (code && _lobbyMetaCache[code]) return _lobbyMetaCache[code];
+  let meta = { hasPortal: false, showMinimap: true, showIndicator: true };
+  try {
+    const decoded = decodeLevel(code);
+    meta.hasPortal = levelHasPortal(decoded);
+    if (decoded) {
+      meta.showMinimap = decoded.showMinimap !== false;
+      meta.showIndicator = decoded.showIndicator !== false;
+    }
+  } catch (e) {}
+  if (code) {
+    const keys = Object.keys(_lobbyMetaCache);
+    if (keys.length > 400) delete _lobbyMetaCache[keys[0]]; // 简易上限，防无限增长
+    _lobbyMetaCache[code] = meta;
+  }
+  return meta;
+}
 async function renderPublicLevels(filter = '') {
   const container = document.getElementById('public-levels-list');
   const token = ++_lobbyRenderToken;
@@ -14457,18 +14477,10 @@ async function renderPublicLevels(filter = '') {
     return url;
   };
   const cardHtml = l => {
-    let hasPortal = false;
-    let showMinimap = true;
-    let showIndicator = true;
-    let decoded = null;
-    try {
-      decoded = decodeLevel(l.code);
-      hasPortal = levelHasPortal(decoded);
-      if (decoded) {
-        showMinimap = decoded.showMinimap !== false;
-        showIndicator = decoded.showIndicator !== false;
-      }
-    } catch(e) { hasPortal = false; }
+    const meta = getCardMeta(l.code);
+    const hasPortal = meta.hasPortal;
+    const showMinimap = meta.showMinimap;
+    const showIndicator = meta.showIndicator;
     const isLiked = l.user_liked || false;
     const isYuedong = l.code && ['9','10','11','12'].includes(l.code.split('.')[0]);
     const isNewFmt = l.code && (l.code.startsWith('8d') || l.code.startsWith('9d') || l.code.startsWith('6d'));
@@ -14564,17 +14576,10 @@ async function renderMyLevels(filter = '') {
     return;
   }
   container.innerHTML = displayLevels.map(l => {
-    let hasPortal = false;
-    let showMinimap = true;
-    let showIndicator = true;
-    try {
-      const decoded = decodeLevel(l.code);
-      hasPortal = levelHasPortal(decoded);
-      if (decoded) {
-        showMinimap = decoded.showMinimap !== false;
-        showIndicator = decoded.showIndicator !== false;
-      }
-    } catch(e) { hasPortal = false; }
+    const meta = getCardMeta(l.code);
+    const hasPortal = meta.hasPortal;
+    const showMinimap = meta.showMinimap;
+    const showIndicator = meta.showIndicator;
     const isYuedong2 = l.code && ['9','10','11','12'].includes(l.code.split('.')[0]);
     const isNewFmt2 = l.code && (l.code.startsWith('8d') || l.code.startsWith('9d') || l.code.startsWith('6d'));
     const isOldVersion = l.code && !isYuedong2 && !isNewFmt2 && !l.code.startsWith('7.') && !l.code.startsWith('8z');
@@ -14584,7 +14589,7 @@ async function renderMyLevels(filter = '') {
       ${!hasPortal ? '<span class="lc-no-portal">' + t('无传送门') + '</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">' + t('旧版') + '</span>' : ''}
       ${isYuedong2 ? '<span class="lc-badge" style="background:#FFDD44;color:#000;">财神爷版</span>' : ''}
-      <div class="lc-minimap">${(!showMinimap) ? '<div class="lc-map-placeholder">' + t('已隐藏') + '</div>' : ((generateCardMinimap(l.code) === '__TOO_BIG__') ? '<div class="lc-map-placeholder">' + t('地图过大') + '</div>' : '<img src="' + (generateCardMinimap(l.code) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') + '" alt="">')}</div>
+      <div class="lc-minimap">${(!showMinimap) ? '<div class="lc-map-placeholder">' + t('已隐藏') + '</div>' : (function(){ const _m = generateCardMinimap(l.code); return _m === '__TOO_BIG__' ? '<div class="lc-map-placeholder">' + t('地图过大') + '</div>' : '<img src="' + (_m || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') + '" alt="">'; })()}</div>
       <div class="lc-info">
         <div class="lc-name">${truncateChars(l.name || '未命名', 5)}</div>
         <div class="lc-desc">${truncateChars(l.description || (l._source === 'cloud' ? '已分享' : '本地'), 10)}</div>
