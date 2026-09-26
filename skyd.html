@@ -13890,6 +13890,9 @@ let selectedLevelIdx = -1;
 // ==================== 编辑器导入编码 ====================
 async function importEditorCode(code) {
   if (!code) { alert(t('请输入关卡编码')); return; }
+  // 容忍复制时带入的首尾空白与分隔符（如全角逗号、句号）
+  code = String(code).trim().replace(/^[\\s\\uFF0C\\u3002\\u3001\\uFF1B;,;]+|[\\s\\uFF0C\\u3002\\u3001\\uFF1B;,;]+$/g, '');
+  if (!code) { alert(t('请输入关卡编码')); return; }
   const fullCode = await resolveLevelCode(code);
   const level = decodeLevel(fullCode);
   if (!level) { alert(t('关卡编码无效，请检查输入')); return; }
@@ -15917,7 +15920,7 @@ function probeSolidAtPx(px, py) {
   return isSolidTile(lvl.grid[gy * lvl.w + gx]) && !cellFxNoCollision(lvl, gx, gy);
 }
 function isSolidTile(t) {
-  if (t === TILE_LAND || t === TILE_CRATE || t === TILE_CHECKPOINT || t === TILE_ICE) return true;
+  if (t === TILE_LAND || t === TILE_CRATE || t === TILE_CHECKPOINT || t === TILE_ICE || t === TILE_STICKY_WALL) return true;
   if (t === TILE_DUAL) {
     // 双重方块：根据状态决定虚实（需要在关卡数据中查找）
     // 注意：这里只处理 grid 中的值，实际碰撞在 movePlayer 中处理
