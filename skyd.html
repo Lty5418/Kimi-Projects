@@ -5691,7 +5691,7 @@ function updatePhysics() {
   // 特效方块移动/巡逻/亮起计时
   updateFxMotion();
 
-  // 爬墙跳（所有关卡通用）
+  // 爬墙跳（仅粘性方块可爬墙，普通陆地不可）
   let leftTile = Math.floor((player.x - 1) / GRID_SIZE);
   let rightTile = Math.floor((player.x + player.w + 1) / GRID_SIZE);
   let py = Math.floor((player.y + player.h / 2) / GRID_SIZE);
@@ -5700,8 +5700,8 @@ function updatePhysics() {
   if (py >= 0 && py < currentLevel.h) {
     let tL = leftTile >= 0 && leftTile < currentLevel.w ? currentLevel.grid[py * currentLevel.w + leftTile] : -1;
     let tR = rightTile >= 0 && rightTile < currentLevel.w ? currentLevel.grid[py * currentLevel.w + rightTile] : -1;
-    if (tL === TILE_LAND || tL === TILE_STICKY_WALL) wallLeft = true;
-    if (tR === TILE_LAND || tR === TILE_STICKY_WALL) wallRight = true;
+    if (tL === TILE_STICKY_WALL) wallLeft = true;
+    if (tR === TILE_STICKY_WALL) wallRight = true;
     if (tL === TILE_STICKY_WALL) stickyLeft = true;
     if (tR === TILE_STICKY_WALL) stickyRight = true;
   }
@@ -11816,6 +11816,18 @@ function encodeLevelV8(customName) {
     if (last && last.type === t.type && last.y === t.y && last.x + last.len === t.x && last.len < 65535) last.len++;
     else runs.push({ type: t.type, x: t.x, y: t.y, len: 1 });
   }
+  // 纵向二次合并：横向合并后剩余的单格，若同列同类型纵向连续则并为纵向游程（type 高位 0x80 标记）
+  {
+    const merged = [];
+    for (const r of runs) {
+      if (r.len === 1) {
+        const last = merged[merged.length - 1];
+        if (last && last.v && last.type === r.type && last.x === r.x && last.y + last.len === r.y && last.len < 65535) { last.len++; continue; }
+      }
+      merged.push(r.len === 1 ? { type: r.type, x: r.x, y: r.y, len: 1, v: true } : r);
+    }
+    runs = merged;
+  }
   const showInd = document.getElementById('opt-show-indicator')?.checked ?? true;
   const showMap = document.getElementById('opt-show-minimap')?.checked ?? true;
   const levelName = customName || '自定义';
@@ -11876,7 +11888,7 @@ function encodeLevelV8(customName) {
   offset = writeInt16(bytes, offset, pry);
   offset = writeUint16(bytes, offset, runs.length);
   for (const r of runs) {
-    bytes[offset++] = r.type;
+    bytes[offset++] = r.type | (r.v ? 0x80 : 0);   // 高位标记纵向游程
     offset = writeInt16(bytes, offset, r.x);
     offset = writeInt16(bytes, offset, r.y);
     offset = writeUint16(bytes, offset, r.len);
@@ -12235,7 +12247,7 @@ function encodeLevelV8FromData(level) {
   offset = writeInt16(bytes, offset, hasPortal ? level.portal.y : 0);
   offset = writeUint16(bytes, offset, runs.length);
   for (const r of runs) {
-    bytes[offset++] = r.type;
+    bytes[offset++] = r.type | (r.v ? 0x80 : 0);   // 高位标记纵向游程
     offset = writeInt16(bytes, offset, r.x);
     offset = writeInt16(bytes, offset, r.y);
     offset = writeUint16(bytes, offset, r.len);
@@ -12381,6 +12393,7 @@ function decodeLevelV8(code) {
     let crates = [], bouncers = [], checkpoints = [];
     let enemySpawners = [];
     let oneWayPlatforms = [];
+    let iceTiles = [], stickyWalls = [];   // 游程格式：冰块/粘性墙数组（旧格式在独立段读取）
     let landSet = new Set();
     const handleTile = (typeCode, x, y) => {
       let tileType = CODE_TO_TILE_TYPE[typeCode];
@@ -12393,16 +12406,20 @@ function decodeLevelV8(code) {
       else if (tileType === TILE_ENEMY_SPAWNER) enemySpawners.push({x, y, elite: false});
       else if (tileType === TILE_ELITE_SPAWNER) enemySpawners.push({x, y, elite: true});
       else if (tileType === TILE_ONE_WAY) oneWayPlatforms.push({x, y});
+      else if (tileType === TILE_ICE) iceTiles.push({x, y});
+      else if (tileType === TILE_STICKY_WALL) stickyWalls.push({x, y});
     };
     if (runFormat) {
       for (let i = 0; i < tileCount; i++) {
         if (offset + 7 > bytes.length) break;
-        let typeCode = bytes[offset++];
+        let rawType = bytes[offset++];
+        const vert = (rawType & 0x80) !== 0;   // 高位：纵向游程（旧编码无此位，掩码兼容）
+        let typeCode = rawType & 0x7F;
         let x = readInt16(bytes, offset); offset += 2;
         let y = readInt16(bytes, offset); offset += 2;
         let len = readUint16(bytes, offset); offset += 2;
         if (len > 4096) len = 4096; // 防御性上限
-        for (let k = 0; k < len; k++) handleTile(typeCode, x + k, y);
+        for (let k = 0; k < len; k++) handleTile(typeCode, vert ? x : x + k, vert ? y + k : y);
       }
     } else {
       for (let i = 0; i < tileCount; i++) {
@@ -12591,6 +12608,7 @@ function decodeLevelV8(code) {
       lands: landRects, spikes, spikeAutos, crates, bouncers, checkpoints, trajectories,
       movingPlatforms, enemySpawners, showIndicator, showMinimap,
       triggerGroups, dualGroups, oneWayPlatforms,
+      iceTiles, stickyWalls,
       tileFx, cellEvents,
       gravity: gravity || 0,
       levelMode: isSurvival ? 'survival' : 'clear',
@@ -13426,6 +13444,7 @@ function buildLevelFromEditor(cells) {
       triggerGroups: worldA.triggerGroups,
       dualGroups: worldA.dualGroups,
       switches: worldA.switches, doors: worldA.doors,
+      iceTiles: worldA.iceTiles, stickyWalls: worldA.stickyWalls,
       trajectories, movingPlatforms,
       showIndicator: showInd !== false, showMinimap: showMap !== false,
       healthPacks: [], shrines: [], customEggs: [],
@@ -13446,6 +13465,7 @@ function buildLevelFromEditor(cells) {
       enemySpawners: worldData.enemySpawners,
       triggerGroups: worldData.triggerGroups, dualGroups: worldData.dualGroups,
       switches: worldData.switches, doors: worldData.doors,
+      iceTiles: worldData.iceTiles, stickyWalls: worldData.stickyWalls,
       tileFx: worldData.tileFx, cellEvents: worldData.cellEvents,
       trajectories, movingPlatforms,
       showIndicator: showInd !== false, showMinimap: showMap !== false,
