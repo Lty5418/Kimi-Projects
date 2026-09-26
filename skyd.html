@@ -14451,7 +14451,8 @@ async function renderPublicLevels(filter = '') {
     } catch(e) { hasPortal = false; }
     const isLiked = l.user_liked || false;
     const isYuedong = l.code && ['9','10','11','12'].includes(l.code.split('.')[0]);
-    const isOldVersion = l.code && !isYuedong && l.code.split('.')[0] !== '7';
+    const isNewFmt = l.code && (l.code.startsWith('8d') || l.code.startsWith('9d') || l.code.startsWith('6d'));
+    const isOldVersion = l.code && !isYuedong && !isNewFmt && l.code.split('.')[0] !== '7';
     const safeCode = (l.code || '').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `
     <div class="level-card-square" data-code="${safeCode}" data-id="${l.id || ''}" data-liked="${isLiked ? '1' : '0'}" data-views="${l.views || 0}" data-likes="${l.likes || 0}" data-name="${(l.name || '').replace(/\"/g, '&quot;')}" data-author="${(l.author || '').replace(/\"/g, '&quot;')}" data-desc="${(l.description || '').replace(/\"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}">
@@ -14555,7 +14556,8 @@ async function renderMyLevels(filter = '') {
       }
     } catch(e) { hasPortal = false; }
     const isYuedong2 = l.code && ['9','10','11','12'].includes(l.code.split('.')[0]);
-    const isOldVersion = l.code && !isYuedong2 && !l.code.startsWith('7.') && !l.code.startsWith('8z');
+    const isNewFmt2 = l.code && (l.code.startsWith('8d') || l.code.startsWith('9d') || l.code.startsWith('6d'));
+    const isOldVersion = l.code && !isYuedong2 && !isNewFmt2 && !l.code.startsWith('7.') && !l.code.startsWith('8z');
     const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `
     <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
