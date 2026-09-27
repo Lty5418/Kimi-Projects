@@ -88,6 +88,13 @@ html, body {
   overflow: hidden;
 }
 /* 背景：黑洞图 + 渐变暗角遮罩 */
+/* 自定义背景：激活时覆盖默认首页背景（恢复默认=移除 custom-bg 类） */
+#start-screen.custom-bg::before {
+  background-image: var(--custom-bg-img, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 #start-screen::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; bottom: 0; inset: 0;
@@ -1730,7 +1737,9 @@ html, body {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0; inset: 0;
   display: none;
   z-index: 70;
-  background: rgba(18,18,18,0.55);
+  background: rgba(14,18,24,0.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  backdrop-filter: blur(18px) saturate(1.1);
 }
 #tutorial-overlay.active { display: block; }
 #tutorial-dialog {
@@ -3173,6 +3182,18 @@ input, textarea {
       </div>
       <div class="settings-row">
         <div class="settings-copy">
+          <div class="settings-label">自定义背景</div>
+          <div class="settings-desc">选颜色或上传图片（仅本机保存）；恢复默认还原首页背景图</div>
+        </div>
+        <div class="settings-control" style="display:flex;align-items:center;gap:8px">
+          <input type="color" id="settings-bg-color" value="#1b2430" style="width:34px;height:26px;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:transparent;padding:2px;cursor:pointer">
+          <button class="btn" id="settings-bg-upload" style="font-size:11px;padding:6px 10px">上传图片</button>
+          <button class="btn" id="settings-bg-clear" style="font-size:11px;padding:6px 10px">恢复默认</button>
+          <input type="file" id="settings-bg-file" accept="image/*" style="display:none">
+        </div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-copy">
           <div class="settings-label">自定义按键布局</div>
           <div class="settings-desc">进入模拟真实游玩的全屏界面，拖动攻击键、跳跃键、摇杆和切换世界键到任意位置；点选控件后用 ＋ / － 调整大小；确认后才真正生效。</div>
         </div>
@@ -4087,6 +4108,34 @@ function applyJumpPowerSetting() {
   if (s) s.value = Math.round(JUMP_POWER_SCALE * 100);
   if (v) v.textContent = Math.round(JUMP_POWER_SCALE * 100) + '%';
 }
+// 自定义背景（仅本机保存：颜色或图片）
+var CUSTOM_BG = { mode: 'default', color: '#1b2430', image: '' };
+try {
+  CUSTOM_BG.mode = localStorage.getItem('st_bg_mode') || 'default';
+  CUSTOM_BG.color = localStorage.getItem('st_bg_color') || '#1b2430';
+  CUSTOM_BG.image = localStorage.getItem('st_bg_image') || '';
+} catch (e) {}
+function applyCustomBg() {
+  var ss = document.getElementById('start-screen');
+  if (!ss) return;
+  if (CUSTOM_BG.mode === 'color') {
+    ss.classList.add('custom-bg');
+    ss.style.setProperty('--custom-bg-img', 'linear-gradient(' + CUSTOM_BG.color + ',' + CUSTOM_BG.color + ')');
+  } else if (CUSTOM_BG.mode === 'image' && CUSTOM_BG.image) {
+    ss.classList.add('custom-bg');
+    ss.style.setProperty('--custom-bg-img', 'url("' + CUSTOM_BG.image + '")');
+  } else {
+    ss.classList.remove('custom-bg');
+    ss.style.removeProperty('--custom-bg-img');
+  }
+}
+function saveCustomBg() {
+  try {
+    localStorage.setItem('st_bg_mode', CUSTOM_BG.mode);
+    localStorage.setItem('st_bg_color', CUSTOM_BG.color);
+    localStorage.setItem('st_bg_image', CUSTOM_BG.image);
+  } catch (e) { alert('本机存储空间不足，背景保存失败'); }
+}
 function applyFaceExpressionSetting() {
   var tg = document.getElementById('settings-face-expression');
   if (tg) tg.checked = FACE_EXPRESSION;
@@ -4625,6 +4674,46 @@ syncSettingsUi();
     if (pv) pv.textContent = this.value + '%';
   });
   if (jp) jp.addEventListener('change', function () { setJumpPower(parseInt(this.value, 10) / 100); });
+  // 自定义背景
+  var bgColor = document.getElementById('settings-bg-color');
+  if (bgColor) {
+    bgColor.value = CUSTOM_BG.color;
+    bgColor.addEventListener('input', function () {
+      CUSTOM_BG.mode = 'color'; CUSTOM_BG.color = this.value;
+      saveCustomBg(); applyCustomBg();
+    });
+  }
+  var bgFile = document.getElementById('settings-bg-file');
+  var bgUpload = document.getElementById('settings-bg-upload');
+  if (bgUpload && bgFile) bgUpload.addEventListener('click', function () { bgFile.click(); });
+  if (bgFile) bgFile.addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var maxW = 1280;
+        var scale = Math.min(1, maxW / img.width);
+        var cv = document.createElement('canvas');
+        cv.width = Math.max(1, Math.round(img.width * scale));
+        cv.height = Math.max(1, Math.round(img.height * scale));
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        CUSTOM_BG.mode = 'image';
+        CUSTOM_BG.image = cv.toDataURL('image/jpeg', 0.82);
+        saveCustomBg(); applyCustomBg();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+    this.value = '';
+  });
+  var bgClear = document.getElementById('settings-bg-clear');
+  if (bgClear) bgClear.addEventListener('click', function () {
+    CUSTOM_BG.mode = 'default'; CUSTOM_BG.image = '';
+    saveCustomBg(); applyCustomBg();
+  });
+  applyCustomBg();   // 启动即还原本机背景
 })();
 applyI18n();
 // 语言切换时，重渲染当前已打开的动态弹窗，使其跟随翻译
@@ -4788,11 +4877,27 @@ function sbAuthGetHeaders() {
   return {};
 }
 async function sbAuthFetchJson(path, body) {
-  var res = await fetch(SUPABASE_URL + '/auth/v1' + path, {
-    method: 'POST', mode: 'cors', credentials: 'omit',
-    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body || {})
-  });
+  // 网络层失败自动重试一次，并给出可操作的友好提示（个别用户网络拦截 supabase 域名时报 Failed to fetch）
+  var res = null, netErr = null;
+  for (var attempt = 0; attempt < 2; attempt++) {
+    try {
+      res = await fetch(SUPABASE_URL + '/auth/v1' + path, {
+        method: 'POST', mode: 'cors', credentials: 'omit',
+        headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {})
+      });
+      netErr = null;
+      break;
+    } catch (e) {
+      netErr = e;
+      if (attempt === 0) await new Promise(function (r) { setTimeout(r, 800); });
+    }
+  }
+  if (netErr) {
+    throw new Error('网络无法连接认证服务器（Failed to fetch）。可能原因与对策：①当前网络拦截了 ' +
+      SUPABASE_URL + ' 域名（尝试切换 WiFi/流量，或开启代理）②广告拦截/隐私插件拦截（关闭后重试）' +
+      '③系统 WebView 过旧（更新 Android System WebView / iOS 系统）④完全断网');
+  }
   var data = null;
   try { data = await res.json(); } catch (e) {}
   if (!res.ok) {
@@ -14201,9 +14306,12 @@ if (levelCardsContainer) {
   function updateCardsTransform() {
     const container = document.getElementById('level-cards');
     if (!container) return;
+    // 流畅度优化：两阶段批处理——先一次性读完所有卡片位置（单次布局计算），
+    // 再统一写样式，避免"读→写→读"交错造成每帧 20 次强制同步布局
     const containerRect = container.getBoundingClientRect();
     const centerX = containerRect.left + containerRect.width / 2;
     const maxDist = containerRect.width * 0.6;
+    const items = [];
     let closestIdx = -1;
     let closestDist = Infinity;
     for (let i = 0; i < 20; i++) {
@@ -14212,10 +14320,12 @@ if (levelCardsContainer) {
       const cardRect = card.getBoundingClientRect();
       const cardCenterX = cardRect.left + cardRect.width / 2;
       const dist = Math.abs(cardCenterX - centerX);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closestIdx = i;
-      }
+      if (dist < closestDist) { closestDist = dist; closestIdx = i; }
+      items.push({ card, dist });
+    }
+    for (let k = 0; k < items.length; k++) {
+      const card = items[k].card;
+      const dist = items[k].dist;
       // 基于距离计算平滑的缩放和透明度
       const t = Math.min(1, dist / maxDist);
       const ease = 1 - t * t; // ease-out quad
