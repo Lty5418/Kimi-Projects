@@ -4791,9 +4791,29 @@ function buildRestUrl(table, params) {
   });
   return url;
 }
+// 共享网络请求：网络层失败重试一次并给出可操作提示（个别用户网络拦截 supabase 域名时报裸 Failed to fetch）
+async function sbNetFetch(url, options) {
+  var res = null, netErr = null;
+  for (var attempt = 0; attempt < 2; attempt++) {
+    try {
+      res = await fetch(url, options);
+      netErr = null;
+      break;
+    } catch (e) {
+      netErr = e;
+      if (attempt === 0) await new Promise(function (r) { setTimeout(r, 800); });
+    }
+  }
+  if (netErr) {
+    throw new Error('网络无法连接服务器（Failed to fetch）。可能原因与对策：①当前网络拦截了 ' +
+      SUPABASE_URL + ' 域名（尝试切换 WiFi/流量，或开启代理）②广告拦截/隐私插件拦截（关闭后重试）' +
+      '③系统 WebView 过旧（更新 Android System WebView / iOS 系统）④完全断网');
+  }
+  return res;
+}
 async function supabaseGet(table, params = {}) {
   const url = buildRestUrl(table, params);
-  const res = await fetch(url, {
+  const res = await sbNetFetch(url, {
     method: 'GET', mode: 'cors', credentials: 'omit',
     headers: { apikey: SUPABASE_KEY }
   });
@@ -4804,7 +4824,7 @@ async function supabaseGet(table, params = {}) {
   return res.json();
 }
 async function supabasePost(table, data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+  const res = await sbNetFetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST', mode: 'cors', credentials: 'omit',
     headers: {
       apikey: SUPABASE_KEY,
@@ -4953,12 +4973,12 @@ async function sbAuthEnsureSession() {
 async function sbAuthFetchWithAuth(url, options) {
   options = options || {};
   options.headers = Object.assign({}, options.headers, sbAuthGetHeaders());
-  var res = await fetch(url, options);
+  var res = await sbNetFetch(url, options);
   if (res.status === 401) {
     sbAuthSession = null;
     await sbAuthEnsureSession(true);
     options.headers = Object.assign({}, options.headers, sbAuthGetHeaders());
-    res = await fetch(url, options);
+    res = await sbNetFetch(url, options);
   }
   return res;
 }
@@ -15055,7 +15075,7 @@ async function deleteMyLevelConfirmed(source, localIndex, cloudId) {
   try {
     if (cloudId) {
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${cloudId}`, {
+        await sbNetFetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${cloudId}`, {
           method: 'DELETE', mode: 'cors', credentials: 'omit',
           headers: { apikey: SUPABASE_KEY }
         });
@@ -15085,7 +15105,7 @@ window.toggleLike = async function(levelId, btn) {
     });
     const isLiked = existing && existing.length > 0;
     if (isLiked) {
-      await fetch(`${SUPABASE_URL}/rest/v1/user_likes?user_id=eq.${uid}&level_id=eq.${lid}`, {
+      await sbNetFetch(`${SUPABASE_URL}/rest/v1/user_likes?user_id=eq.${uid}&level_id=eq.${lid}`, {
         method: 'DELETE', mode: 'cors', credentials: 'omit', headers: { apikey: SUPABASE_KEY }
       });
     } else {
@@ -15461,7 +15481,7 @@ var ext_detailLevelIdCache = null;
 // ---------- 2. Supabase 辅助函数 ----------
 async function ext_supabaseDelete(table, conditions) {
   var url = SUPABASE_URL + '/rest/v1/' + table + '?' + conditions;
-  var res = await fetch(url, {
+  var res = await sbNetFetch(url, {
     method: 'DELETE', mode: 'cors', credentials: 'omit',
     headers: { apikey: SUPABASE_KEY }
   });
