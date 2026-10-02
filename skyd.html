@@ -37,6 +37,16 @@ html, body {
   border-color: #00F6FF;
   box-shadow: 0 0 14px rgba(0,246,255,0.15);
 }
+.btn.bg-choice-active {
+  border-color: #00F6FF !important;
+  background: linear-gradient(135deg, rgba(0,246,255,0.22), rgba(0,120,255,0.16)) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 1px rgba(0,246,255,0.35), 0 0 18px rgba(0,246,255,0.22);
+}
+#settings-bg-color.bg-choice-active {
+  outline: 2px solid rgba(0,246,255,.9);
+  box-shadow: 0 0 0 2px rgba(0,246,255,.18), 0 0 16px rgba(0,246,255,.18);
+}
 .btn:active {
   transform: scale(0.9);
   filter: brightness(0.82);
@@ -87,6 +97,44 @@ html, body {
   transition: opacity 0.5s;
   overflow: hidden;
 }
+/* 可交互 WebGL 黑洞背景：独立 iframe 承载，父页面加暗色蒙版，避免抢占主视野 */
+#blackhole-bg-frame {
+  display: none;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0; background: #000;
+  z-index: 0 !important;
+  pointer-events: auto;
+}
+#start-screen.blackhole-bg #blackhole-bg-frame { display: block; }
+#start-screen.blackhole-bg::before {
+  background: #000 !important;
+  background-image: none !important;
+}
+#start-screen.blackhole-bg::after {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.18) 48%, rgba(0,0,0,0.38) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.14) 38%, rgba(0,0,0,0.22) 72%, rgba(0,0,0,0.55));
+}
+#start-screen.blackhole-bg .start-content { pointer-events: none; }
+#start-screen.blackhole-bg .start-content > * { pointer-events: auto; }
+#start-screen.blackhole-bg > *:not(#blackhole-bg-frame) { z-index: 2; }
+
+/* 图片黑洞背景：不使用 WebGL，静态黑洞渐变图，避免 iframe 加载失败时纯黑 */
+#start-screen.blackhole-image-bg::before {
+  background:
+    radial-gradient(circle at 50% 46%, #000 0 4.5%, rgba(255,255,255,.92) 4.8% 5.5%, rgba(115,205,255,.62) 6.0% 8.5%, rgba(255,210,130,.42) 10.5% 14%, rgba(90,140,255,.22) 17% 25%, rgba(0,0,0,.1) 34% 100%),
+    radial-gradient(circle at 50% 46%, transparent 0 18%, rgba(0,0,0,.72) 48%, #000 78%) !important;
+  background-blend-mode: screen, normal;
+  filter: saturate(1.2) contrast(1.08) brightness(.9);
+}
+#start-screen.blackhole-image-bg #blackhole-bg-frame { display: none; }
+#start-screen.blackhole-image-bg::after {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.20) 48%, rgba(0,0,0,0.42) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,0.32), rgba(0,0,0,0.14) 38%, rgba(0,0,0,0.22) 72%, rgba(0,0,0,0.55));
+}
+
 /* 背景：黑洞图 + 渐变暗角遮罩 */
 /* 自定义背景：激活时覆盖默认首页背景（恢复默认=移除 custom-bg 类） */
 #start-screen.custom-bg::before {
@@ -591,7 +639,7 @@ html, body {
   color: #00F6FF;
   border-bottom-color: #00F6FF;
 }
-/* 联合作战占位 */
+/* 大厅占位内容 */
 .coop-placeholder {
   flex: 1;
   display: flex;
@@ -2324,11 +2372,153 @@ html, body {
 }
 #btn-open-manual:active { transform: scale(0.95); }
 /* ===== 操作手册浮层（开始界面全量版，不可拖动）===== */
+.online-room-overlay {
+  position: fixed; inset: 0; z-index: 240; display: none;
+  align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 0%, rgba(0,161,255,.12), transparent 30%), rgba(3,6,12,.82);
+  backdrop-filter: blur(5px);
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+.online-room-overlay.open { display: flex; animation: helpOverlayOpen .28s ease-out; }
+.online-room-panel {
+  width: min(980px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  border: 1px solid rgba(0,161,255,.34);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(18,24,36,.98), rgba(9,13,22,.98));
+  box-shadow: 0 22px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  color: #eef3f8;
+}
+.online-room-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 18px; border-bottom: 1px solid rgba(124,199,255,.14);
+}
+.online-room-kicker { font-size: 11px; color: #7cc7ff; letter-spacing: .18em; }
+.online-room-title { font-size: 20px; font-weight: 800; margin-top: 4px; }
+.online-room-close {
+  width: 34px; height: 34px; border-radius: 9px; border: 1px solid #2b3545;
+  background: #10141c; color: #d8e2ec; cursor: pointer;
+}
+.online-room-body { display: grid; grid-template-columns: 1fr 1fr; min-height: 420px; }
+.online-room-map { padding: 18px; border-right: 1px solid rgba(124,199,255,.12); }
+.online-room-side { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.online-room-section-title { font-size: 13px; color: #7cc7ff; font-weight: 700; margin-bottom: 10px; }
+.online-room-map-name { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+.online-room-map-desc { font-size: 13px; line-height: 1.7; color: #c8d4e2; white-space: pre-wrap; }
+.online-room-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.online-room-meta span {
+  border: 1px solid #263143; border-radius: 999px; padding: 5px 9px;
+  background: rgba(0,161,255,.06); font-size: 12px; color: #cfe6ff;
+}
+.online-chat-box {
+  margin-top: 14px; border: 1px solid rgba(124,199,255,.14); border-radius: 12px;
+  background: rgba(7,10,16,.62); overflow: hidden;
+}
+.online-chat-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 9px 10px; border-bottom: 1px solid rgba(124,199,255,.12);
+  color: #9fb1c7; font-size: 12px;
+}
+.online-chat-status { color: #7cc7ff; }
+.online-chat-log {
+  height: 132px; overflow-y: auto; padding: 10px;
+  display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin;
+}
+.online-chat-msg { font-size: 12px; line-height: 1.5; color: #d9e5f2; word-break: break-word; }
+.online-chat-msg.mine { color: #b8f7ff; }
+.online-chat-msg.sys { color: #8798ad; }
+.online-chat-row {
+  display: flex; gap: 8px; padding: 10px;
+  border-top: 1px solid rgba(124,199,255,.12);
+}
+.online-chat-row input {
+  flex: 1; min-width: 0; border: 1px solid #263143;
+  background: rgba(16,20,28,.92); color: #fff;
+  border-radius: 8px; padding: 9px 10px; outline: none;
+}
+.online-chat-row input:focus { border-color: #00a1ff; box-shadow: 0 0 0 2px rgba(0,161,255,.12); }
+.online-chat-row .btn { padding: 8px 12px; letter-spacing: 0; }
+#btn-online-mic.active { border-color: #36e28a; color: #36e28a; }
+.online-room-players { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.online-player-card {
+  border: 1px solid #263143; border-radius: 10px; padding: 10px 12px;
+  background: rgba(16,20,28,.92); display: flex; justify-content: space-between; align-items: center;
+}
+.online-player-card.empty { opacity: .52; border-style: dashed; }
+.online-player-name { font-size: 13px; font-weight: 700; }
+.online-player-state { font-size: 12px; color: #7cc7ff; }
+.online-room-status { font-size: 12px; color: #9fb1c7; }
+.online-room-actions { display: flex; gap: 10px; margin-top: auto; }
+.online-room-actions .btn { flex: 1; }
+.online-room-note { font-size: 12px; color: #8798ad; line-height: 1.6; }
+@media (max-width: 760px) {
+  .online-room-body { grid-template-columns: 1fr; }
+  .online-room-map { border-right: 0; border-bottom: 1px solid rgba(124,199,255,.12); }
+}
+
+.app-alert-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.58); backdrop-filter: blur(4px);
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+.app-alert-overlay.open { display: flex; animation: helpOverlayOpen .22s ease-out; }
+.app-alert-box {
+  width: min(360px, calc(100vw - 32px));
+  border: 1px solid rgba(0,161,255,.38);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #151922, #0e1118);
+  box-shadow: 0 18px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  padding: 18px;
+  color: #eef3f8;
+}
+.app-alert-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: #7cc7ff; }
+.app-alert-message { font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; color: #d8e2ec; }
+.app-alert-btn {
+  margin-top: 16px; width: 100%; border: 0; border-radius: 8px; padding: 10px 12px;
+  background: linear-gradient(135deg, #00a1ff, #0066ff); color: #fff; font-weight: 700; cursor: pointer;
+}
+.app-alert-btn:hover { filter: brightness(1.08); }
+
+/* 统一下拉、数字、复选框，降低浏览器原生控件感 */
+select, input[type="number"], input[type="text"], input[type="password"], textarea {
+  appearance: none; -webkit-appearance: none;
+  border: 1px solid #2b3545; background: #10141c; color: #eef3f8;
+  border-radius: 6px; outline: none;
+}
+select {
+  min-height: 26px; padding: 3px 26px 3px 8px;
+  background-image: linear-gradient(45deg, transparent 50%, #7cc7ff 50%), linear-gradient(135deg, #7cc7ff 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+input[type="number"] { padding: 4px 6px; }
+input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none; width: 15px; height: 15px;
+  border: 1px solid #2b3545; border-radius: 3px; background: #10141c;
+  display: inline-block; vertical-align: -2px; position: relative; cursor: pointer;
+}
+input[type="checkbox"]:checked { background: #00a1ff; border-color: #00a1ff; }
+input[type="checkbox"]:checked::after {
+  content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+
 #help-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0; inset: 0; z-index: 150;
   display: none; flex-direction: column;
   background: radial-gradient(circle at 50% 0%, rgba(0,161,255,0.10), transparent 34%), rgba(10,10,12,0.985);
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+#help-overlay.open {
+  display: flex;
+  animation: helpOverlayOpen 0.38s cubic-bezier(.2,.85,.25,1.08);
+}
+@keyframes helpOverlayOpen {
+  from { opacity: 0; transform: translateY(14px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .help-shell {
   width: 100%; max-width: 920px; margin: 0 auto;
@@ -2597,6 +2787,16 @@ html, body {
 .settings-row.face-sub-disabled { opacity: .38; filter: saturate(.35); }
 .settings-row.face-sub-disabled .settings-switch { pointer-events: none; }
 .settings-row.face-sub-disabled .settings-switch input { cursor: not-allowed; }
+
+/* ===== 选项卡划片控件（背景四选项切换） ===== */
+.seg { position: relative; display: flex; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 3px; }
+.seg-pill { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 8px;
+  background: rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+  transition: transform .25s cubic-bezier(.4,0,.2,1); pointer-events: none; }
+.seg[data-active="glass"] .seg-pill { transform: translateX(100%); }
+.seg-opt { position: relative; z-index: 1; flex: 1; border: 0; background: transparent; color: rgba(255,255,255,.6);
+  font-size: 11px; padding: 6px 12px; cursor: pointer; border-radius: 8px; white-space: nowrap; font-weight: 500; }
+.seg-opt.on { color: #fff; }
 .settings-switch input:checked + .track::before {
   transform: translateX(24px);
   background: linear-gradient(180deg, #DFFCFF, #7DEFFF);
@@ -2986,6 +3186,7 @@ input, textarea {
 <div id="game-container">
   <!-- ========== 开始界面 ========== -->
   <div id="start-screen">
+    <iframe id="blackhole-bg-frame" src="blackhole_bg.html" title="黑洞背景" aria-hidden="true"></iframe>
     <div class="start-content">
       <div class="start-titles">
         <div class="title">时空跃动</div>
@@ -3000,6 +3201,15 @@ input, textarea {
       <span class="changelog-info" id="changelog-info">更新日志</span>
     </div>
   </div>
+  <!-- ========== 统一样式弹窗：替代浏览器原生 alert ========== -->
+  <div id="app-alert-overlay" class="app-alert-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="app-alert-box">
+      <div class="app-alert-title">提示</div>
+      <div id="app-alert-message" class="app-alert-message"></div>
+      <button id="app-alert-ok" class="app-alert-btn" type="button">确定</button>
+    </div>
+  </div>
+
   <!-- ========== 操作手册浮层（开始界面全量版，不可拖动） ========== -->
   <div id="help-overlay" aria-label="操作手册">
     <div class="help-shell">
@@ -3134,6 +3344,7 @@ input, textarea {
           </label>
         </div>
       </div>
+
       <div class="settings-row">
         <div class="settings-copy">
           <div class="settings-label">表情眼睛</div>
@@ -3172,23 +3383,21 @@ input, textarea {
       </div>
       <div class="settings-row">
         <div class="settings-copy">
-          <div class="settings-label">跳跃力度</div>
-          <div class="settings-desc">调整跳跃初速度（60% ~ 160%，默认 100%）</div>
+          <div class="settings-label">背景</div>
+          <div class="settings-desc">4 种背景模式：上传背景 / 更改颜色 / 可交互黑洞 / 图片黑洞</div>
         </div>
-        <div class="settings-control" style="display:flex;align-items:center;gap:8px">
-          <input type="range" id="settings-jump-power" min="60" max="160" value="100" style="width:110px;accent-color:#6ee7a8">
-          <b id="v-jump-power" style="font-size:11px;min-width:36px;text-align:right;font-variant-numeric:tabular-nums">100%</b>
-        </div>
-      </div>
-      <div class="settings-row">
-        <div class="settings-copy">
-          <div class="settings-label">自定义背景</div>
-          <div class="settings-desc">选颜色或上传图片（仅本机保存）；恢复默认还原首页背景图</div>
-        </div>
-        <div class="settings-control" style="display:flex;align-items:center;gap:8px">
-          <input type="color" id="settings-bg-color" value="#1b2430" style="width:34px;height:26px;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:transparent;padding:2px;cursor:pointer">
-          <button class="btn" id="settings-bg-upload" style="font-size:11px;padding:6px 10px">上传图片</button>
-          <button class="btn" id="settings-bg-clear" style="font-size:11px;padding:6px 10px">恢复默认</button>
+        <div class="settings-control" style="display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:280px">
+          <div class="seg bg-mode-seg" id="bg-mode-seg" data-active="blackhole" style="--seg-n:4;width:100%;max-width:420px">
+            <span class="seg-pill"></span>
+            <button class="seg-opt" type="button" data-bg="image">上传背景</button>
+            <button class="seg-opt" type="button" data-bg="color">更改颜色</button>
+            <button class="seg-opt" type="button" data-bg="blackhole">可交互黑洞</button>
+            <button class="seg-opt" type="button" data-bg="blackhole-image">图片黑洞</button>
+          </div>
+          <div id="bg-color-row" style="display:none;align-items:center;gap:8px">
+            <span style="font-size:11px;color:#8b949e">颜色</span>
+            <input type="color" id="settings-bg-color" value="#1b2430" style="width:42px;height:28px;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:transparent;padding:2px;cursor:pointer">
+          </div>
           <input type="file" id="settings-bg-file" accept="image/*" style="display:none">
         </div>
       </div>
@@ -3205,15 +3414,15 @@ input, textarea {
     <div id="layout-drag-overlay" aria-label="Direct layout editor">
       <div class="layout-drag-title">调整键位 · 全屏模拟</div>
       <div class="layout-drag-hint">这里与真实游玩界面 1:1 对应：拖动控件到任意位置；点选控件后用 ＋ / － 调整大小；点上方"确认生效"才会真正写入游戏，"退出保留草稿"则不改动。</div>
-      <div class="layout-drag-item" id="layout-drag-attack" data-control-key="attack">攻击</div>
-      <div class="layout-drag-item" id="layout-drag-jump" data-control-key="jump">跳跃</div>
+      <div class="layout-drag-item" id="layout-drag-attack" data-control-key="attack">斩</div>
+      <div class="layout-drag-item" id="layout-drag-jump" data-control-key="jump">跃</div>
       <div class="layout-drag-item" id="layout-drag-joystick" data-control-key="joystick">
         <div class="layout-drag-joystick-thumb"></div>
       </div>
       <div class="layout-drag-item" id="layout-drag-world" data-control-key="world">切换世界</div>
       <div class="layout-drag-toolbar">
         <button type="button" id="layout-drag-smaller" aria-label="Smaller">-</button>
-        <span id="layout-drag-selected-label">攻击</span>
+        <span id="layout-drag-selected-label">斩</span>
         <button type="button" id="layout-drag-larger" aria-label="Larger">+</button>
         <button type="button" id="layout-drag-exit">退出保留草稿</button>
         <button type="button" id="layout-drag-confirm">确认生效</button>
@@ -3275,12 +3484,7 @@ input, textarea {
         <div class="hub-card-name">关卡大厅</div>
         <div class="hub-card-desc">游玩玩家分享的自定义关卡</div>
       </div>
-      <div class="hub-card" id="hub-card-coop">
-        <div class="hub-card-badge">即将推出</div>
-        <div class="hub-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5 L13.8 13.3"/><path d="M11.1 13.8 L14.3 10.6"/><path d="M13.9 13.4 L16.3 15.8"/><path d="M19 4.5 L10.2 13.3"/><path d="M9.7 10.6 L12.9 13.8"/><path d="M10.1 13.4 L7.7 15.8"/></svg></div>
-        <div class="hub-card-name">联合作战</div>
-        <div class="hub-card-desc">多人协作挑战（开发中）</div>
-      </div>
+
     </div>
   </div>
   <!-- ========== 时空中枢界面 ========== -->
@@ -3290,10 +3494,9 @@ input, textarea {
       <h2>时空中枢</h2>
       <span id="user-display">未登录</span>
     </div>
-    <!-- 外层选项卡：小世界大厅 / 联合作战 -->
+    <!-- 外层选项卡：小世界大厅 -->
     <div class="lobby-tabs" id="lobby-main-tabs">
       <div class="lobby-tab active" data-tab="hall">小世界大厅</div>
-      <div class="lobby-tab" data-tab="coop">联合作战</div>
     </div>
     <!-- 小世界大厅内容 -->
     <div class="lobby-content" id="lobby-hall">
@@ -3333,15 +3536,6 @@ input, textarea {
         </div>
       </div>
     </div>
-    <!-- 联合作战内容 -->
-    <div class="lobby-content hidden" id="lobby-coop">
-      <div class="coop-placeholder">
-        <div class="coop-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="9" r="3"/><circle cx="15.8" cy="9.6" r="2.5"/><path d="M3.5 19.5 a5 5 0 0 1 10 0"/><path d="M13.8 19.8 a4.2 4.2 0 0 1 7 0"/></svg></div>
-        <div class="coop-title">联合作战</div>
-        <div class="coop-desc">多人协作挑战模式</div>
-        <div class="coop-status">开发中，敬请期待...</div>
-      </div>
-    </div>
     <div style="margin-top:auto; padding-top:12px; display:flex; gap:10px; justify-content:center; flex-shrink:0;">
       <button class="btn btn-small btn-danger" id="btn-lobby-logout">退出登录</button>
     </div>
@@ -3361,7 +3555,8 @@ input, textarea {
     </div>
     <div class="detail-actions">
       <button class="btn" id="btn-detail-play" style="flex:1;">开始培训</button>
-      <button class="btn btn-small" id="btn-detail-copy" style="border-color:#8D9390;color:#8D9390;">复制编码</button>
+      <button class="btn" id="btn-detail-copy" style="border-color:#8D9390;color:#8D9390;">复制编码</button>
+      <button class="btn" id="btn-detail-online" style="display:none;flex:1;border-color:#00a1ff;color:#7cc7ff;">快速进入</button>
       <button class="detail-like-btn" id="btn-detail-like">
         <span class="like-icon"></span>
         <span class="like-count">0</span>
@@ -3369,6 +3564,70 @@ input, textarea {
     </div>
   </div>
 <!-- ========== 关卡编辑器 ========== -->
+  <!-- ========== MQTT 联机房间面板（统一游戏 UI 风格） ========== -->
+  <div id="online-room-overlay" class="online-room-overlay" aria-hidden="true">
+    <div class="online-room-panel">
+      <div class="online-room-head">
+        <div>
+          <div class="online-room-kicker">MQTT 联机大厅</div>
+          <div id="online-room-title" class="online-room-title">房间</div>
+        </div>
+        <button id="btn-online-room-close" class="online-room-close" type="button">✕</button>
+      </div>
+      <div class="online-room-body">
+        <div class="online-room-map">
+          <div class="online-room-section-title">地图简介</div>
+          <div id="online-room-map-name" class="online-room-map-name">-</div>
+          <div id="online-room-map-desc" class="online-room-map-desc">-</div>
+          <div class="online-room-meta">
+            <span id="online-room-limit">限时：-</span>
+            <span id="online-room-range">人数：-</span>
+            <span id="online-room-mode">模式：MQTT</span>
+          </div>
+          <div class="online-chat-box" aria-label="房间聊天">
+            <div class="online-chat-head">
+              <span>房间消息</span>
+              <span id="online-chat-status" class="online-chat-status">P2P 未连接 · 语音关闭</span>
+            </div>
+            <div id="online-chat-log" class="online-chat-log"></div>
+            <div class="online-chat-row">
+              <input id="online-chat-input" type="text" maxlength="140" placeholder="输入房间消息，回车发送">
+              <button id="btn-online-send-chat" class="btn btn-small" type="button">发送</button>
+              <button id="btn-online-mic" class="btn btn-small" type="button">开麦</button>
+            </div>
+          </div>
+          <div id="online-voice-sink" style="display:none"></div>
+        </div>
+        <div class="online-room-side">
+          <div class="online-room-section-title">房间成员</div>
+          <div id="online-room-players" class="online-room-players"></div>
+          <div id="online-room-status" class="online-room-status">正在初始化房间状态...</div>
+          <div class="online-room-actions">
+            <button id="btn-online-ready" class="btn" type="button">准备</button>
+            <button id="btn-online-start" class="btn btn-primary" type="button" disabled>开始游戏</button>
+          </div>
+          <div class="online-room-note">
+            <div id="mqtt-config-status">MQTT broker 尚未配置；当前为房间界面与状态骨架。</div>
+            <button id="btn-toggle-mqtt-config" class="btn btn-small" type="button" style="margin-top:8px;">配置 MQTT</button>
+            <div id="mqtt-config-panel" style="display:none; margin-top:10px; padding:10px; border:1px solid #263143; border-radius:10px; background:rgba(10,14,20,.85);">
+              <input id="mqtt-host" type="text" placeholder="host，例如 xxx.emqxcloud.cn" style="width:100%; margin-bottom:8px; padding:8px;">
+              <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <input id="mqtt-port" type="number" placeholder="端口，例如 8084" style="flex:1; padding:8px;">
+                <input id="mqtt-path" type="text" placeholder="/mqtt" style="flex:1; padding:8px;">
+              </div>
+              <input id="mqtt-username" type="text" placeholder="username" style="width:100%; margin-bottom:8px; padding:8px;">
+              <input id="mqtt-password" type="password" placeholder="password / token" style="width:100%; margin-bottom:8px; padding:8px;">
+              <div style="display:flex; gap:8px;">
+                <button id="btn-save-mqtt-config" class="btn" type="button">保存配置</button>
+                <button id="btn-clear-mqtt-config" class="btn btn-small" type="button">清除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="editor-screen">
     <!-- 左侧侧边栏 -->
     <div class="editor-sidebar" id="editor-sidebar">
@@ -3416,6 +3675,23 @@ input, textarea {
                 <div class="mode-seg-btn active" data-mode="clear">通关</div>
                 <div class="mode-seg-btn" data-mode="survival">生存</div>
               </div>
+            </div>
+            <div class="sidebar-setting">
+              <label><input type="checkbox" id="opt-online-enabled">多人联机</label>
+            </div>
+            <div class="sidebar-setting">
+              <span>联机模式</span>
+              <select id="opt-online-transport" style="background:#121212;border:1px solid #2a2a2a;color:#fff;font-size:11px;border-radius:3px;">
+                <option value="mqtt">普通 MQTT</option>
+              </select>
+            </div>
+            <div class="sidebar-setting">
+              <span>多人下限</span>
+              <input type="number" id="opt-online-min-players" value="1" min="1" max="10" style="width:40px;background:#121212;border:1px solid #2a2a2a;color:#fff;padding:2px 4px;font-size:11px;border-radius:3px;">
+            </div>
+            <div class="sidebar-setting">
+              <span>多人上限</span>
+              <input type="number" id="opt-online-max-players" value="1" min="1" max="10" style="width:40px;background:#121212;border:1px solid #2a2a2a;color:#fff;padding:2px 4px;font-size:11px;border-radius:3px;">
             </div>
             <div class="sidebar-setting" id="opt-time-limit-wrap">
               <label><input type="checkbox" id="opt-time-limit">限时</label>
@@ -3482,8 +3758,8 @@ input, textarea {
     <div id="joystick-thumb"></div>
   </div>
   <!-- ========== 跳跃按钮 ========== -->
-  <div id="attack-btn">攻击</div>
-  <div id="jump-btn">跳跃</div>
+  <div id="attack-btn">斩</div>
+  <div id="jump-btn">跃</div>
   <div id="switch-world-btn" style="display:none;">切换世界</div>
   <!-- ========== 桌面提示 ========== -->
   <div id="desktop-hint">WASD / 方向键移动 &middot; 空格 / 上键跳跃</div>
@@ -3491,6 +3767,7 @@ input, textarea {
   <div id="game-ui">
     <div id="player-hp-wrap"><div id="player-hp-fill"></div></div>
     <div class="top-bar">
+      <div class="ui-btn" id="btn-game-settings">设置</div>
       <div class="ui-btn" id="btn-restart">重新开始</div>
       <div class="ui-btn" id="btn-exit">退出</div>
     </div>
@@ -3611,6 +3888,7 @@ input, textarea {
       </div>
     </div>
   </div>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
 /* ===== 老安卓/iOS 兼容垫片（目标 iOS 11+ / Android 7+ / Chrome 64+） ===== */
 if (!String.prototype.padStart) String.prototype.padStart = function(n, c) { c = c || ' '; n = n - this.length; return n > 0 ? c.repeat(Math.ceil(n / c.length)).slice(0, n) + String(this) : String(this); };
@@ -3638,7 +3916,7 @@ const I18N = {
     '游玩玩家分享的自定义关卡': 'Play custom levels shared by players',
     '多人协作挑战（开发中）': 'Co-op challenge (in development)',
     '即将推出': 'Coming Soon',
-    '联合作战功能开发中，敬请期待！现在先进入关卡大厅。': 'Co-op is under development! Entering the Level Hall for now.',
+
     '开发人员': 'Developers',
     '更新日志': 'Changelog',
     '设置': 'Settings',
@@ -4095,29 +4373,49 @@ function setFaceStyle(style) {
   applyFaceExpressionSetting();
 }
 // 跳跃力度（默认 100%，存 localStorage）
+// 跳跃力度不再向普通玩家开放；固定为 1，避免设置页改数值作弊。
 var JUMP_POWER_SCALE = 1;
-try { var _jp = parseFloat(localStorage.getItem('st_jump_power')); if (_jp >= 0.6 && _jp <= 1.6) JUMP_POWER_SCALE = _jp; } catch (e) {}
-function setJumpPower(v) {
-  JUMP_POWER_SCALE = Math.max(0.6, Math.min(1.6, v || 1));
-  try { localStorage.setItem('st_jump_power', String(JUMP_POWER_SCALE)); } catch (e) {}
-  applyJumpPowerSetting();
-}
-function applyJumpPowerSetting() {
-  var s = document.getElementById('settings-jump-power');
-  var v = document.getElementById('v-jump-power');
-  if (s) s.value = Math.round(JUMP_POWER_SCALE * 100);
-  if (v) v.textContent = Math.round(JUMP_POWER_SCALE * 100) + '%';
-}
-// 自定义背景（仅本机保存：颜色或图片）
-var CUSTOM_BG = { mode: 'default', color: '#1b2430', image: '' };
+try { localStorage.removeItem('st_jump_power'); } catch (e) {}
+function setJumpPower(v) { JUMP_POWER_SCALE = 1; }
+function applyJumpPowerSetting() {}
+// 自定义背景（仅本机保存：黑洞 / 颜色 / 图片）
+var CUSTOM_BG = { mode: 'blackhole', color: '#1b2430', image: '' };
 try {
-  CUSTOM_BG.mode = localStorage.getItem('st_bg_mode') || 'default';
+  CUSTOM_BG.mode = localStorage.getItem('st_bg_mode') || 'blackhole';
+  if (CUSTOM_BG.mode === 'default') CUSTOM_BG.mode = 'blackhole';
   CUSTOM_BG.color = localStorage.getItem('st_bg_color') || '#1b2430';
   CUSTOM_BG.image = localStorage.getItem('st_bg_image') || '';
 } catch (e) {}
+function updateBgChoiceButtons() {
+  var seg = document.getElementById('bg-mode-seg');
+  if (seg) {
+    seg.dataset.active = CUSTOM_BG.mode;
+    var opts = seg.querySelectorAll('.seg-opt');
+    for (var i = 0; i < opts.length; i++) {
+      opts[i].classList.toggle('on', opts[i].dataset.bg === CUSTOM_BG.mode);
+      opts[i].setAttribute('aria-selected', opts[i].dataset.bg === CUSTOM_BG.mode ? 'true' : 'false');
+    }
+  }
+  var colorRow = document.getElementById('bg-color-row');
+  if (colorRow) colorRow.style.display = CUSTOM_BG.mode === 'color' ? 'flex' : 'none';
+}
 function applyCustomBg() {
   var ss = document.getElementById('start-screen');
   if (!ss) return;
+  updateBgChoiceButtons();
+  if (CUSTOM_BG.mode === 'blackhole') {
+    ss.classList.add('blackhole-bg');
+    ss.classList.remove('blackhole-image-bg', 'custom-bg');
+    ss.style.removeProperty('--custom-bg-img');
+    return;
+  }
+  if (CUSTOM_BG.mode === 'blackhole-image') {
+    ss.classList.add('blackhole-image-bg');
+    ss.classList.remove('blackhole-bg', 'custom-bg');
+    ss.style.removeProperty('--custom-bg-img');
+    return;
+  }
+  ss.classList.remove('blackhole-bg', 'blackhole-image-bg');
   if (CUSTOM_BG.mode === 'color') {
     ss.classList.add('custom-bg');
     ss.style.setProperty('--custom-bg-img', 'linear-gradient(' + CUSTOM_BG.color + ',' + CUSTOM_BG.color + ')');
@@ -4136,6 +4434,8 @@ function saveCustomBg() {
     localStorage.setItem('st_bg_image', CUSTOM_BG.image);
   } catch (e) { alert('本机存储空间不足，背景保存失败'); }
 }
+// 已移除“液态玻璃”第二套界面；保留单一经典 UI。
+try { localStorage.removeItem('st_ui_style'); } catch (e) {}
 function applyFaceExpressionSetting() {
   var tg = document.getElementById('settings-face-expression');
   if (tg) tg.checked = FACE_EXPRESSION;
@@ -4402,7 +4702,7 @@ function setSwitchWorldDraft(layout) { WORLD_BTN_DRAFT = normalizeAttackLayout(l
 function confirmSwitchWorldDraft() { const c = cloneAttackLayout(normalizeAttackLayout(WORLD_BTN_DRAFT, WORLD_DEFAULT_LAYOUT)); writeAttackLayout(WORLD_CFG_KEY, c); applySwitchWorldLayout(c); }
 
 function syncLayoutDragItems() {
-  const names = { attack: '攻击', jump: '跳跃', joystick: '摇杆', world: '切换世界' };
+  const names = { attack: '斩', jump: '跃', joystick: '摇杆', world: '切换世界' };
   Object.keys(LAYOUT_DRAG_CONTROLS).forEach(function(key) {
     const item = document.getElementById('layout-drag-' + key);
     if (!item) return;
@@ -4604,7 +4904,12 @@ function bindSettingsScreen() {
   var backBtn = document.getElementById('btn-settings-back');
   if (backBtn) {
     backBtn.addEventListener('click', function() {
-      showScreen('start-screen');
+      // 从游戏中打开设置时，返回游戏；从主界面打开时，返回主界面
+      if (gameState === 'playing' || gameState === 'paused') {
+        screen.style.display = 'none';
+      } else {
+        showScreen('start-screen');
+      }
     });
   }
   var zhBtn = document.getElementById('settings-lang-zh');
@@ -4667,14 +4972,7 @@ syncSettingsUi();
   var vtTg = document.getElementById('settings-face-vertical');
   if (sqTg) sqTg.addEventListener('change', function () { setFaceStyle(this.checked ? 'square' : 'vertical'); });
   if (vtTg) vtTg.addEventListener('change', function () { setFaceStyle(this.checked ? 'vertical' : 'square'); });
-  // 跳跃力度滑杆
-  var jp = document.getElementById('settings-jump-power');
-  if (jp) jp.addEventListener('input', function () {
-    var pv = document.getElementById('v-jump-power');
-    if (pv) pv.textContent = this.value + '%';
-  });
-  if (jp) jp.addEventListener('change', function () { setJumpPower(parseInt(this.value, 10) / 100); });
-  // 自定义背景
+  // 背景四选一滑块：上传背景 / 更改颜色 / 可交互黑洞 / 图片黑洞
   var bgColor = document.getElementById('settings-bg-color');
   if (bgColor) {
     bgColor.value = CUSTOM_BG.color;
@@ -4684,8 +4982,6 @@ syncSettingsUi();
     });
   }
   var bgFile = document.getElementById('settings-bg-file');
-  var bgUpload = document.getElementById('settings-bg-upload');
-  if (bgUpload && bgFile) bgUpload.addEventListener('click', function () { bgFile.click(); });
   if (bgFile) bgFile.addEventListener('change', function () {
     var f = this.files && this.files[0];
     if (!f) return;
@@ -4708,11 +5004,18 @@ syncSettingsUi();
     reader.readAsDataURL(f);
     this.value = '';
   });
-  var bgClear = document.getElementById('settings-bg-clear');
-  if (bgClear) bgClear.addEventListener('click', function () {
-    CUSTOM_BG.mode = 'default'; CUSTOM_BG.image = '';
-    saveCustomBg(); applyCustomBg();
-  });
+  var bgSeg = document.getElementById('bg-mode-seg');
+  if (bgSeg) {
+    var bgOpts = bgSeg.querySelectorAll('.seg-opt');
+    for (var bi = 0; bi < bgOpts.length; bi++) {
+      bgOpts[bi].addEventListener('click', function () {
+        var mode = this.dataset.bg;
+        if (mode === 'image') { if (bgFile) bgFile.click(); return; }
+        CUSTOM_BG.mode = mode;
+        saveCustomBg(); applyCustomBg();
+      });
+    }
+  }
   applyCustomBg();   // 启动即还原本机背景
 })();
 applyI18n();
@@ -4810,6 +5113,23 @@ async function sbNetFetch(url, options) {
       '③系统 WebView 过旧（更新 Android System WebView / iOS 系统）④完全断网');
   }
   return res;
+}
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+// 写操作保底：失败后间隔一小会儿重试，最多重试 3 次；仍失败则弹错误。
+// 只用于上传/点赞/评论/排行榜等写路径，避免对普通读操作造成额外压力。
+const WRITE_RETRY_DELAYS = [1200, 2400, 3600];
+async function withWriteRetry(label, task) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= WRITE_RETRY_DELAYS.length; attempt++) {
+    try {
+      return await task();
+    } catch (e) {
+      lastError = e;
+      if (attempt < WRITE_RETRY_DELAYS.length) await sleep(WRITE_RETRY_DELAYS[attempt]);
+    }
+  }
+  alert(`${label}失败，已重试 3 次，请稍后再试`);
+  throw lastError;
 }
 async function supabaseGet(table, params = {}) {
   const url = buildRestUrl(table, params);
@@ -5376,6 +5696,11 @@ function parseLevel(levelData) {
     enemySpawners: levelData.enemySpawners || [],
     showIndicator: levelData.showIndicator !== false,
     showMinimap: levelData.showMinimap !== false,
+    onlineEnabled: levelData.onlineEnabled === true,
+    onlineTransport: normalizeOnlineTransport(levelData.onlineTransport),
+    onlineMaxMinutes: clampInteger(levelData.onlineMaxMinutes, 1, ONLINE_MAX_MINUTES_LIMIT, ONLINE_DEFAULT_MAX_MINUTES),
+    onlineMinPlayers: clampInteger(levelData.onlineMinPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS),
+    onlineMaxPlayers: clampInteger(levelData.onlineMaxPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS),
     dualEnabled: levelData.dualEnabled || false,
     gravity: levelData.gravity || 0,
     spawnerProps: {}
@@ -5642,6 +5967,11 @@ function loadCustomLevel(levelData) {
       spawn: levelData.spawn,
       showIndicator: levelData.showIndicator,
       showMinimap: levelData.showMinimap,
+      onlineEnabled: levelData.onlineEnabled === true,
+      onlineTransport: normalizeOnlineTransport(levelData.onlineTransport),
+      onlineMaxMinutes: clampInteger(levelData.onlineMaxMinutes, 1, ONLINE_MAX_MINUTES_LIMIT, ONLINE_DEFAULT_MAX_MINUTES),
+      onlineMinPlayers: clampInteger(levelData.onlineMinPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS),
+      onlineMaxPlayers: clampInteger(levelData.onlineMaxPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS),
       dualEnabled: true
     };
     worldAData = {
@@ -8457,6 +8787,50 @@ function drawPortalIndicator() {
 // 强制统一所有设备上的移速、跳跃、下落等物理行为
 const FIXED_FPS = 60;
 const FIXED_DT = 1000 / FIXED_FPS; // ~16.67ms 每帧
+
+// 联机参数预留（普通房 MQTT over WebSocket，排位以后切 Durable Objects）
+const ONLINE_PROTOCOL_VERSION = 1;
+const ONLINE_INPUT_RATE_HZ = 10;
+const ONLINE_DEFAULT_MAX_MINUTES = 25;
+const ONLINE_MAX_MINUTES_LIMIT = 60;
+const ONLINE_DEFAULT_MIN_PLAYERS = 1;
+const ONLINE_DEFAULT_MAX_PLAYERS = 1;
+const ONLINE_MAX_PLAYERS_LIMIT = 10;
+const ONLINE_TRANSPORT_MQTT = 'mqtt';
+const ONLINE_TRANSPORT_DO = 'durable-object';
+const ONLINE_TRANSPORT_MODES = [ONLINE_TRANSPORT_MQTT, ONLINE_TRANSPORT_DO];
+
+function clampInteger(value, min, max, fallback) {
+  const n = Number.parseInt(value, 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+function normalizeOnlineTransport(value) {
+  return ONLINE_TRANSPORT_MODES.includes(value) ? value : ONLINE_TRANSPORT_MQTT;
+}
+
+// 统一样式弹窗：接管浏览器原生 alert，避免弹出系统窗口
+function showAppAlert(message) {
+  const overlay = document.getElementById('app-alert-overlay');
+  const msg = document.getElementById('app-alert-message');
+  const ok = document.getElementById('app-alert-ok');
+  if (!overlay || !msg || !ok) return;
+  msg.textContent = String(message ?? '');
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+  overlay.setAttribute('aria-hidden', 'false');
+  ok.focus();
+}
+window.alert = showAppAlert;
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'app-alert-ok') {
+    const overlay = document.getElementById('app-alert-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+});
 var frame = 0;
 var gameLoopId = null; // 兼容保留（旧 setInterval 循环已移除）
 
@@ -8496,6 +8870,8 @@ function gameLoopRAF(now) {
               killPlayer('timeout');
             }
           }
+          // 联机超时不再单独维护“联机保护时长”；统一沿用上面的关卡 timeLimit。
+          // 时间到后统一 killPlayer('timeout')，后续联机房间可直接按该结果踢出/结算。
         }
       }
       frame++;
@@ -8556,6 +8932,11 @@ let editorTimeLimit = 60; // 限时通关秒数
 let editorSurvivalTime = 60; // 生存模式秒数
 let editorTileProps = new Map(); // 方块自定义属性："x,y" -> {hp,dmg,ranged}（刷怪笼）
 let editorGravityCustom = 0;      // 自定义重力（0 = 默认 0.35）
+let editorOnlineEnabled = false;
+let editorOnlineTransport = ONLINE_TRANSPORT_MQTT;
+let editorOnlineMaxMinutes = ONLINE_DEFAULT_MAX_MINUTES;
+let editorOnlineMinPlayers = ONLINE_DEFAULT_MIN_PLAYERS;
+let editorOnlineMaxPlayers = ONLINE_DEFAULT_MAX_PLAYERS;
 let editorCurrentLand = null;
 let editorPendingCell = null;
 let isDrawing = false;
@@ -8602,7 +8983,12 @@ function doEditorAutoSave() {
       timeLimit: editorTimeLimit,
       survivalTime: editorSurvivalTime,
       tileProps: Array.from(editorTileProps),
-      gravityCustom: editorGravityCustom
+      gravityCustom: editorGravityCustom,
+      onlineEnabled: editorOnlineEnabled,
+      onlineTransport: editorOnlineTransport,
+      onlineMaxMinutes: editorOnlineMaxMinutes,
+      onlineMinPlayers: editorOnlineMinPlayers,
+      onlineMaxPlayers: editorOnlineMaxPlayers
     };
     localStorage.setItem('editor_autosave', JSON.stringify(data));
   } catch(e) { console.error('自动保存失败:', e); }
@@ -8661,6 +9047,23 @@ function loadEditorAutoSave() {
     if (data.gravityCustom) editorGravityCustom = data.gravityCustom;
     var _gi = document.getElementById('input-gravity-custom');
     if (_gi) _gi.value = editorGravityCustom || '';
+    // 联机参数（兼容旧版自动保存）
+    if (data.onlineEnabled !== undefined) editorOnlineEnabled = data.onlineEnabled === true;
+    editorOnlineTransport = normalizeOnlineTransport(data.onlineTransport);
+    editorOnlineMaxMinutes = clampInteger(data.onlineMaxMinutes, 1, ONLINE_MAX_MINUTES_LIMIT, ONLINE_DEFAULT_MAX_MINUTES);
+    editorOnlineMinPlayers = clampInteger(data.onlineMinPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS);
+    editorOnlineMaxPlayers = clampInteger(data.onlineMaxPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS);
+    if (editorOnlineMinPlayers > editorOnlineMaxPlayers) editorOnlineMaxPlayers = editorOnlineMinPlayers;
+    let onlineEnabledEl = document.getElementById('opt-online-enabled');
+    if (onlineEnabledEl) onlineEnabledEl.checked = editorOnlineEnabled;
+    let onlineTransportEl = document.getElementById('opt-online-transport');
+    if (onlineTransportEl) onlineTransportEl.value = editorOnlineTransport;
+    let onlineMaxMinutesEl = document.getElementById('opt-online-max-minutes');
+    if (onlineMaxMinutesEl) onlineMaxMinutesEl.value = editorOnlineMaxMinutes;
+    let onlineMinPlayersEl = document.getElementById('opt-online-min-players');
+    if (onlineMinPlayersEl) onlineMinPlayersEl.value = editorOnlineMinPlayers;
+    let onlineMaxPlayersEl = document.getElementById('opt-online-max-players');
+    if (onlineMaxPlayersEl) onlineMaxPlayersEl.value = editorOnlineMaxPlayers;
     // 同步模式选择UI
     document.querySelectorAll('.mode-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === editorLevelMode));
     let timeLimitWrap = document.getElementById('opt-time-limit-wrap');
@@ -8701,8 +9104,23 @@ function initEditor() {
     editorSurvivalTime = 60;
     editorTileProps = new Map();
     editorGravityCustom = 0;
+    editorOnlineEnabled = false;
+    editorOnlineTransport = ONLINE_TRANSPORT_MQTT;
+    editorOnlineMaxMinutes = ONLINE_DEFAULT_MAX_MINUTES;
+    editorOnlineMinPlayers = ONLINE_DEFAULT_MIN_PLAYERS;
+    editorOnlineMaxPlayers = ONLINE_DEFAULT_MAX_PLAYERS;
   }
   // 这些状态每次进入编辑器都要重置
+  let onlineEnabledEl = document.getElementById('opt-online-enabled');
+  if (onlineEnabledEl) onlineEnabledEl.checked = editorOnlineEnabled;
+  let onlineTransportEl = document.getElementById('opt-online-transport');
+  if (onlineTransportEl) onlineTransportEl.value = editorOnlineTransport;
+  let onlineMaxMinutesEl = document.getElementById('opt-online-max-minutes');
+  if (onlineMaxMinutesEl) onlineMaxMinutesEl.value = editorOnlineMaxMinutes;
+  let onlineMinPlayersEl = document.getElementById('opt-online-min-players');
+  if (onlineMinPlayersEl) onlineMinPlayersEl.value = editorOnlineMinPlayers;
+  let onlineMaxPlayersEl = document.getElementById('opt-online-max-players');
+  if (onlineMaxPlayersEl) onlineMaxPlayersEl.value = editorOnlineMaxPlayers;
   isPanning = false; isDrawing = false;
   isMultiSelectMode = false;
   isSelecting = false;
@@ -10964,6 +11382,38 @@ function setupEditorToolbar() {
       editorAutoSavePending = true;
     });
   }
+  var onlineEnabledEl = document.getElementById('opt-online-enabled');
+  if (onlineEnabledEl) onlineEnabledEl.addEventListener('change', (e) => { editorOnlineEnabled = e.target.checked; editorAutoSavePending = true; });
+  var onlineTransportEl = document.getElementById('opt-online-transport');
+  if (onlineTransportEl) onlineTransportEl.addEventListener('change', (e) => { editorOnlineTransport = normalizeOnlineTransport(e.target.value); editorAutoSavePending = true; });
+  var onlineMaxMinutesEl = document.getElementById('opt-online-max-minutes');
+  if (onlineMaxMinutesEl) onlineMaxMinutesEl.addEventListener('input', (e) => {
+    editorOnlineMaxMinutes = clampInteger(e.target.value, 1, ONLINE_MAX_MINUTES_LIMIT, ONLINE_DEFAULT_MAX_MINUTES);
+    e.target.value = editorOnlineMaxMinutes;
+    editorAutoSavePending = true;
+  });
+  var onlineMinPlayersEl = document.getElementById('opt-online-min-players');
+  if (onlineMinPlayersEl) onlineMinPlayersEl.addEventListener('input', (e) => {
+    editorOnlineMinPlayers = clampInteger(e.target.value, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS);
+    if (editorOnlineMinPlayers > editorOnlineMaxPlayers) {
+      editorOnlineMaxPlayers = editorOnlineMinPlayers;
+      var maxEl = document.getElementById('opt-online-max-players');
+      if (maxEl) maxEl.value = editorOnlineMaxPlayers;
+    }
+    e.target.value = editorOnlineMinPlayers;
+    editorAutoSavePending = true;
+  });
+  var onlineMaxPlayersEl = document.getElementById('opt-online-max-players');
+  if (onlineMaxPlayersEl) onlineMaxPlayersEl.addEventListener('input', (e) => {
+    editorOnlineMaxPlayers = clampInteger(e.target.value, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS);
+    if (editorOnlineMaxPlayers < editorOnlineMinPlayers) {
+      editorOnlineMinPlayers = editorOnlineMaxPlayers;
+      var minEl = document.getElementById('opt-online-min-players');
+      if (minEl) minEl.value = editorOnlineMinPlayers;
+    }
+    e.target.value = editorOnlineMaxPlayers;
+    editorAutoSavePending = true;
+  });
   // 切换世界按钮事件
   document.getElementById('btn-switch-world').addEventListener('click', () => {
     editorCurrentWorld = editorCurrentWorld === 'A' ? 'B' : 'A';
@@ -11149,7 +11599,7 @@ const MH_MAIN = [
       '<h4>关卡详情页</h4>',
       '<ul><li>顶部是 <b>地图全貌预览</b>（作者关闭小地图时显示"地图预览已屏蔽"）。</li><li>下方显示关卡名、作者与简介（过长可点 <b>展开简介</b>）。</li><li><b>开始培训</b> 进入游戏；<b>复制编码</b> 复制关卡编码用于分享；<b>点赞</b> 支持作者。</li></ul>',
       '<h4>编辑器入口</h4><p>大厅右下角 <b>＋</b> 按钮进入关卡编辑器（详见"编辑器与发布"章节，或编辑器内的可拖动手册）。</p>',
-      '<figure class="help-figure"><img src="' + MH_IMG_HUB + '" alt="时空中枢" style="border-radius:8px;max-width:100%"><figcaption>实拍：时空中枢入口（关卡大厅 / 联合作战）</figcaption></figure>',
+      '<figure class="help-figure"><img src="' + MH_IMG_HUB + '" alt="时空中枢" style="border-radius:8px;max-width:100%"><figcaption>实拍：时空中枢入口（关卡大厅）</figcaption></figure>',
       '<div class="help-note">卡片上的 <b>旧版</b> 徽章表示该关卡由旧版本编辑器发布，仍可正常游玩。</div>'
     ],
     en: [
@@ -11469,12 +11919,22 @@ function mhInit() {
   var overlay = document.getElementById('help-overlay');
   var openBtn = document.getElementById('btn-open-manual');
   if (openBtn && overlay) {
-    openBtn.addEventListener('click', function() { mhRenderMain(); overlay.style.display = 'flex'; });
+    openBtn.addEventListener('click', function() {
+      mhRenderMain();
+      overlay.classList.add('open');
+      overlay.style.display = 'flex';
+    });
   }
   var closeBtn = document.getElementById('help-close');
-  if (closeBtn && overlay) closeBtn.addEventListener('click', function() { overlay.style.display = 'none'; });
+  if (closeBtn && overlay) closeBtn.addEventListener('click', function() {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  });
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && overlay && overlay.style.display === 'flex') overlay.style.display = 'none';
+    if (e.key === 'Escape' && overlay && overlay.style.display === 'flex') {
+      overlay.classList.remove('open');
+      overlay.style.display = 'none';
+    }
   });
   // 目录跳转：阻止默认锚点导航（避免地址栏跳 blob:），改为容器内平滑滚动
   var tocEl = document.getElementById('help-toc');
@@ -12189,8 +12649,16 @@ function encodeLevelV8(customName) {
       eo = wI16x(ex, eo, e.x2); eo = wI16x(ex, eo, e.y2);
       eo = wU16x(ex, eo, e.times);
     }
-    const merged = new Uint8Array(bytes.length + ex.length);
-    merged.set(bytes); merged.set(ex, bytes.length);
+    // ---- V8.5 扩展段：联机参数（旧版解码器会忽略尾部未知字节）----
+    const onlineExt = new Uint8Array([
+      editorOnlineTransport === ONLINE_TRANSPORT_DO ? 1 : 0,
+      editorOnlineEnabled ? 1 : 0,
+      clampInteger(editorOnlineMaxMinutes, 1, ONLINE_MAX_MINUTES_LIMIT, ONLINE_DEFAULT_MAX_MINUTES),
+      clampInteger(editorOnlineMinPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS),
+      clampInteger(editorOnlineMaxPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS)
+    ]);
+    const merged = new Uint8Array(bytes.length + ex.length + onlineExt.length);
+    merged.set(bytes); merged.set(ex, bytes.length); merged.set(onlineExt, bytes.length + ex.length);
     bytes = merged;
   }
   return '8.' + uint8ToBase64url(bytes);
@@ -12753,6 +13221,20 @@ function decodeLevelV8(code) {
           x1: ex1, y1: ey1, x2: ex2, y2: ey2, times });
       }
     }
+    // ---- V8.5 扩展段：联机参数（旧编码没有该段时自动使用默认值）----
+    let onlineEnabled = false;
+    let onlineTransport = ONLINE_TRANSPORT_MQTT;
+    let onlineMaxMinutes = ONLINE_DEFAULT_MAX_MINUTES;
+    let onlineMinPlayers = ONLINE_DEFAULT_MIN_PLAYERS;
+    let onlineMaxPlayers = ONLINE_DEFAULT_MAX_PLAYERS;
+    if (offset + 5 <= bytes.length) {
+      onlineTransport = bytes[offset++] === 1 ? ONLINE_TRANSPORT_DO : ONLINE_TRANSPORT_MQTT;
+      onlineEnabled = bytes[offset++] === 1;
+      onlineMaxMinutes = clampInteger(bytes[offset++], 1, ONLINE_MAX_MINUTES_LIMIT, ONLINE_DEFAULT_MAX_MINUTES);
+      onlineMinPlayers = clampInteger(bytes[offset++], 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS);
+      onlineMaxPlayers = clampInteger(bytes[offset++], 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS);
+      if (onlineMinPlayers > onlineMaxPlayers) onlineMaxPlayers = onlineMinPlayers;
+    }
     let landRects = [];
     if (landSet.size > 0) {
       let landGrid = new Map();
@@ -12787,6 +13269,7 @@ function decodeLevelV8(code) {
       iceTiles, stickyWalls,
       tileFx, cellEvents,
       gravity: gravity || 0,
+      onlineEnabled, onlineTransport, onlineMaxMinutes, onlineMinPlayers, onlineMaxPlayers,
       levelMode: isSurvival ? 'survival' : 'clear',
       timeLimit: (!isSurvival && hasTimeLimit) ? timeValue : 0,
       survivalTime: isSurvival ? timeValue : 0
@@ -13037,6 +13520,12 @@ function encodeLevelV9(customName) {
   } else if (editorTimeLimitEnabled) {
     flags += '|M:clear|L:1|t:' + editorTimeLimit;
   }
+  flags += '|O:' +
+    (editorOnlineTransport === ONLINE_TRANSPORT_DO ? 1 : 0) + ',' +
+    (editorOnlineEnabled ? 1 : 0) + ',' +
+    clampInteger(editorOnlineMaxMinutes, 1, ONLINE_MAX_MINUTES_LIMIT, ONLINE_DEFAULT_MAX_MINUTES) + ',' +
+    clampInteger(editorOnlineMinPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS) + ',' +
+    clampInteger(editorOnlineMaxPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS);
   let worldA = encodeWorld(buildWorldDataFromEditor(editorCells));
   let worldB = encodeWorld(buildWorldDataFromEditor(editorCellsB));
   let raw = `9.${name}.${flags}.${worldA}.${worldB}`;
@@ -13263,12 +13752,26 @@ function decodeLevelV9(code) {
     let flagParts = flagsRaw.split('|');
     let flags = flagParts[0];
     let levelMode = 'clear', timeLimit = 0, survivalTime = 0;
+    let onlineEnabled = false;
+    let onlineTransport = ONLINE_TRANSPORT_MQTT;
+    let onlineMaxMinutes = ONLINE_DEFAULT_MAX_MINUTES;
+    let onlineMinPlayers = ONLINE_DEFAULT_MIN_PLAYERS;
+    let onlineMaxPlayers = ONLINE_DEFAULT_MAX_PLAYERS;
     for (let fp of flagParts.slice(1)) {
       if (fp.startsWith('M:')) levelMode = fp.substring(2);
       else if (fp.startsWith('t:')) {
         let tv = parseInt(fp.substring(2)) || 0;
         if (levelMode === 'survival') survivalTime = tv;
         else timeLimit = tv;
+      }
+      else if (fp.startsWith('O:')) {
+        const op = fp.substring(2).split(',');
+        onlineTransport = op[0] === '1' ? ONLINE_TRANSPORT_DO : ONLINE_TRANSPORT_MQTT;
+        onlineEnabled = op[1] === '1';
+        onlineMaxMinutes = clampInteger(op[2], 1, ONLINE_MAX_MINUTES_LIMIT, ONLINE_DEFAULT_MAX_MINUTES);
+        onlineMinPlayers = clampInteger(op[3], 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS);
+        onlineMaxPlayers = clampInteger(op[4], 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS);
+        if (onlineMinPlayers > onlineMaxPlayers) onlineMaxPlayers = onlineMinPlayers;
       }
     }
     let worldA = decodeWorld(parts[3] || 'N');
@@ -13284,6 +13787,7 @@ function decodeLevelV9(code) {
       movingPlatforms: worldA.movingPlatforms, enemySpawners: worldA.enemySpawners,
       showIndicator: flags[0] === '1', showMinimap: flags[1] === '1',
       dualEnabled: flags[2] === '1',
+      onlineEnabled, onlineTransport, onlineMaxMinutes, onlineMinPlayers, onlineMaxPlayers,
       levelMode, timeLimit, survivalTime,
       worldA, worldB
     };
@@ -13626,6 +14130,13 @@ function buildLevelFromEditor(cells) {
       showIndicator: showInd !== false, showMinimap: showMap !== false,
       healthPacks: [], shrines: [], customEggs: [],
       gravity: editorGravityCustom || 0,
+      onlineEnabled: editorOnlineEnabled,
+      onlineTransport: editorOnlineTransport,
+      onlineMaxMinutes: editorOnlineMaxMinutes,
+      onlineMinPlayers: editorOnlineMinPlayers,
+      onlineMaxPlayers: editorOnlineMaxPlayers,
+      onlineProtocolVersion: ONLINE_PROTOCOL_VERSION,
+      onlineInputRateHz: ONLINE_INPUT_RATE_HZ,
       dualEnabled: true,
       tileFx: worldA.tileFx, cellEvents: worldA.cellEvents,
       worldA, worldB
@@ -13649,6 +14160,13 @@ function buildLevelFromEditor(cells) {
       healthPacks: [], shrines: [], customEggs: [],
       oneWayPlatforms: worldData.oneWayPlatforms,
       gravity: editorGravityCustom || 0,
+      onlineEnabled: editorOnlineEnabled,
+      onlineTransport: editorOnlineTransport,
+      onlineMaxMinutes: editorOnlineMaxMinutes,
+      onlineMinPlayers: editorOnlineMinPlayers,
+      onlineMaxPlayers: editorOnlineMaxPlayers,
+      onlineProtocolVersion: ONLINE_PROTOCOL_VERSION,
+      onlineInputRateHz: ONLINE_INPUT_RATE_HZ,
       dualEnabled: false
     };
   }
@@ -13752,14 +14270,14 @@ async function shareLevelToLobby(levelData, code) {
   try {
     const existing = await supabaseGet('levels', { code: `eq.${code}`, select: '*', limit: 1 });
     if (existing && existing.length > 0) throw new Error('该关卡已存在于时空中枢中');
-    const result = await supabasePost('levels', {
+    const result = await withWriteRetry('上传关卡', () => supabasePost('levels', {
       name: levelData.name || '未命名关卡',
       description: levelData.description || '',
       author: currentUser ? currentUser.username : '匿名',
       code: code,
       likes: 0,
       created_at: new Date().toISOString()
-    });
+    }));
     // FIX: 分享成功后同步到本地
     const newLevel = {
       name: levelData.name || '未命名关卡',
@@ -14423,12 +14941,12 @@ document.getElementById('hub-card-hall').addEventListener('click', () => {
   showScreen('lobby-screen');
   setTimeout(() => refreshLobby(), 350);
 });
-document.getElementById('hub-card-coop').addEventListener('click', () => {
-  alert(t('联合作战功能开发中，敬请期待！现在先进入关卡大厅。'));
-  showScreen('lobby-screen');
-  refreshLobby();
-});
+
 // ==================== 游戏内按钮 ====================
+document.getElementById('btn-game-settings').addEventListener('click', () => {
+  // 游戏中打开设置页；背景设置是全局的，会直接作用于当前游戏界面
+  showScreen('settings-screen');
+});
 document.getElementById('btn-restart').addEventListener('click', () => { resetPlayer(false); });
 document.getElementById('btn-exit').addEventListener('click', () => { exitGame(); });
 document.getElementById('switch-world-btn').addEventListener('click', () => { switchWorld(); });
@@ -14824,6 +15342,16 @@ function openDetailPage(card) {
   const likes = parseInt(card.dataset.likes || '0');
   detailLevelData = code;
   detailLevelId = levelId;
+  const onlineBtn = document.getElementById('btn-detail-online');
+  if (onlineBtn) {
+    onlineBtn.style.display = 'none';
+    try {
+      const previewLevel = decodeLevel(code);
+      if (previewLevel && previewLevel.onlineEnabled && (previewLevel.onlineMaxPlayers || 1) > 1) {
+        onlineBtn.style.display = 'flex';
+      }
+    } catch (e) {}
+  }
   ext_incrementView(levelId); // 打开即算一次浏览（只走 level_views 表）
   detailLevelLiked = liked;
   document.getElementById('detail-name').textContent = name || t('未命名关卡');
@@ -15075,10 +15603,10 @@ async function deleteMyLevelConfirmed(source, localIndex, cloudId) {
   try {
     if (cloudId) {
       try {
-        await sbNetFetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${cloudId}`, {
+        await withWriteRetry('删除云端关卡', () => sbNetFetch(`${SUPABASE_URL}/rest/v1/levels?id=eq.${cloudId}`, {
           method: 'DELETE', mode: 'cors', credentials: 'omit',
           headers: { apikey: SUPABASE_KEY }
-        });
+        }));
       } catch (e) { console.error('删除云端关卡失败:', e); }
     }
     if (source === 'local' && localIndex !== null && localIndex >= 0 && localIndex < localLevels.length) {
@@ -15105,11 +15633,11 @@ window.toggleLike = async function(levelId, btn) {
     });
     const isLiked = existing && existing.length > 0;
     if (isLiked) {
-      await sbNetFetch(`${SUPABASE_URL}/rest/v1/user_likes?user_id=eq.${uid}&level_id=eq.${lid}`, {
+      await withWriteRetry('取消点赞', () => sbNetFetch(`${SUPABASE_URL}/rest/v1/user_likes?user_id=eq.${uid}&level_id=eq.${lid}`, {
         method: 'DELETE', mode: 'cors', credentials: 'omit', headers: { apikey: SUPABASE_KEY }
-      });
+      }));
     } else {
-      await supabasePost('user_likes', { user_id: uid, level_id: lid });
+      await withWriteRetry('点赞', () => supabasePost('user_likes', { user_id: uid, level_id: lid }));
     }
     // 从 user_likes 实时统计当前关卡真实点赞数（不走 levels.likes——该表无 UPDATE 策略）
     const likesNow = await supabaseGet('user_likes', { level_id: `eq.${lid}`, select: 'id' });
@@ -15167,31 +15695,7 @@ document.getElementById('lobby-editor-btn').addEventListener('click', () => {
   document.getElementById('editor-screen').style.display = 'flex';
   initEditor();
 });
-// 2. 标签页切换（外层：小世界大厅 / 联合作战）
-document.querySelectorAll('#lobby-main-tabs .lobby-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('#lobby-main-tabs .lobby-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('#lobby-screen > .lobby-content').forEach(c => c.classList.add('hidden'));
-    const tabName = tab.dataset.tab;
-    if (tabName === 'coop') {
-      alert('联合作战模式开发中，敬请期待！');
-      // 切回小世界大厅
-      document.querySelectorAll('#lobby-main-tabs .lobby-tab').forEach(t => t.classList.remove('active'));
-      document.querySelector('#lobby-main-tabs .lobby-tab[data-tab="hall"]').classList.add('active');
-      document.getElementById('lobby-hall').classList.remove('hidden');
-      return;
-    }
-    const contentEl = document.getElementById('lobby-' + tabName);
-    if (contentEl) {
-      contentEl.classList.remove('hidden');
-      contentEl.classList.remove('tab-enter');
-      void contentEl.offsetWidth;
-      contentEl.classList.add('tab-enter');
-      setTimeout(function() { contentEl.classList.remove('tab-enter'); }, 340);
-    }
-  });
-});
+// 2. 外层页签目前仅保留“小世界大厅”，不再提供开发中占位页签
 // 2.5 子标签页切换（小世界大厅内部：公开关卡 / 我的关卡 / 导入关卡）
 document.querySelectorAll('#lobby-sub-tabs .lobby-sub-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -15280,6 +15784,625 @@ document.getElementById('btn-detail-back').addEventListener('click', () => {
     detailEl.classList.remove('screen-exit-anim');
   }, 300);
 });
+// MQTT / DO 分层混合房间状态：普通房默认 MQTT，强竞技仲裁预留 DO。
+const DEFAULT_MQTT_CONFIG = {
+  host: 'v171019b.ala.cn-hangzhou.emqxsl.cn',
+  port: 8084,
+  path: '/mqtt',
+  username: 'lty',
+  password: 'Lty114514'
+};
+const MQTT_STORAGE_KEY = 'sjyw_mqtt_config_v1';
+const MQTT_QUOTA_ERROR_TEXT = '额度不够（作者没钱），等段时间再来玩吧';
+let currentOnlineRoom = null;
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+function getMqttConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(MQTT_STORAGE_KEY) || 'null');
+    if (saved && saved.host) return { ...DEFAULT_MQTT_CONFIG, ...saved };
+  } catch (e) {}
+  return { ...DEFAULT_MQTT_CONFIG };
+}
+function saveMqttConfig(config) {
+  localStorage.setItem(MQTT_STORAGE_KEY, JSON.stringify(config));
+}
+function loadMqttConfigPanel() {
+  const cfg = getMqttConfig();
+  const fields = { host: 'mqtt-host', port: 'mqtt-port', path: 'mqtt-path', username: 'mqtt-username', password: 'mqtt-password' };
+  Object.keys(fields).forEach(k => {
+    const el = document.getElementById(fields[k]);
+    if (el) el.value = cfg[k] ?? '';
+  });
+  const status = document.getElementById('mqtt-config-status');
+  if (status) status.textContent = `MQTT 配置：${cfg.host}:${cfg.port}${cfg.path || '/mqtt'}`;
+}
+function hashRoomId(text) {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+function roomTopic(room) {
+  return `sjyw/rooms/${room.roomId}`;
+}
+// WebRTC P2P：房间消息/语音优先走 DataChannel 与音频轨道；MQTT 只负责信令和兜底聊天。
+const P2P_STUN_SERVERS = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }];
+const P2P_CHAT_MAX_LEN = 140;
+function makeRoomMsgId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+function isP2PSupported() {
+  return typeof RTCPeerConnection !== 'undefined';
+}
+function p2pSignalTopic(room) {
+  return `${roomTopic(room)}/webrtc`;
+}
+function p2pChatTopic(room) {
+  return `${roomTopic(room)}/chat`;
+}
+function publishP2PSignal(room, msg) {
+  if (!room.client || !room.connected) return;
+  room.client.publish(p2pSignalTopic(room), JSON.stringify({ ...msg, from: room.localPlayerId, ts: Date.now() }));
+}
+function resetRoomChatUI(room) {
+  const log = document.getElementById('online-chat-log');
+  const input = document.getElementById('online-chat-input');
+  const sink = document.getElementById('online-voice-sink');
+  if (log) log.innerHTML = '';
+  if (input) input.value = '';
+  if (sink) sink.innerHTML = '';
+  updateP2PStatus(room);
+}
+function appendRoomChat(room, msg) {
+  const log = document.getElementById('online-chat-log');
+  if (!log || !msg) return;
+  const row = document.createElement('div');
+  row.className = 'online-chat-msg' + (msg.from === room.localPlayerId ? ' mine' : '');
+  row.textContent = `${msg.name || '玩家'}：${msg.text}`;
+  log.appendChild(row);
+  while (log.children.length > 80) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+function appendRoomSystemChat(room, text) {
+  const log = document.getElementById('online-chat-log');
+  if (!log) return;
+  const row = document.createElement('div');
+  row.className = 'online-chat-msg sys';
+  row.textContent = text;
+  log.appendChild(row);
+  while (log.children.length > 80) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+function handleRoomChat(room, msg) {
+  if (!room || !msg || msg.kind !== 'chat' || !msg.id || !msg.text) return;
+  if (room.chatSeen.has(msg.id)) return;
+  room.chatSeen.add(msg.id);
+  if (room.chatSeen.size > 300) {
+    const first = room.chatSeen.values().next().value;
+    room.chatSeen.delete(first);
+  }
+  appendRoomChat(room, msg);
+}
+function sendRoomChat() {
+  const room = currentOnlineRoom;
+  const input = document.getElementById('online-chat-input');
+  if (!room || !input) return;
+  const text = input.value.trim().slice(0, P2P_CHAT_MAX_LEN);
+  if (!text) return;
+  const msg = {
+    kind: 'chat',
+    id: makeRoomMsgId('chat'),
+    from: room.localPlayerId,
+    name: room.localPlayer.name,
+    text,
+    ts: Date.now()
+  };
+  room.chatSeen.add(msg.id);
+  appendRoomChat(room, msg);
+  input.value = '';
+  const payload = JSON.stringify(msg);
+  const others = sortedRoomPlayers(room).filter(p => !p.left && p.id !== room.localPlayerId);
+  let sentByP2P = 0;
+  room.peers.forEach(peer => {
+    if (peer.channel && peer.channel.readyState === 'open') {
+      try {
+        peer.channel.send(payload);
+        sentByP2P += 1;
+      } catch (e) {
+        peer.connected = false;
+      }
+    }
+  });
+  // 只要有成员还没建立 DataChannel，就同步走 MQTT 兜底；接收端按 msg.id 去重。
+  if (sentByP2P < others.length && room.client && room.connected) {
+    room.client.publish(p2pChatTopic(room), payload);
+  }
+  updateP2PStatus(room);
+}
+function setupRoomDataChannel(room, peer, channel) {
+  peer.channel = channel;
+  channel.onopen = () => {
+    peer.connected = true;
+    if (room.localStream) addLocalStreamToPeer(room, peer);
+    updateP2PStatus(room);
+  };
+  channel.onclose = () => {
+    peer.connected = false;
+    updateP2PStatus(room);
+  };
+  channel.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg && msg.kind === 'chat') handleRoomChat(room, msg);
+    } catch (e) {}
+  };
+}
+function attachRemoteRoomAudio(room, peer, stream) {
+  const sink = document.getElementById('online-voice-sink');
+  if (!sink || peer.audioEl) return;
+  const audio = document.createElement('audio');
+  audio.autoplay = true;
+  audio.playsInline = true;
+  audio.dataset.peerId = peer.id;
+  audio.srcObject = stream;
+  sink.appendChild(audio);
+  peer.audioEl = audio;
+  stream.getAudioTracks().forEach(track => {
+    track.addEventListener('ended', () => removeRemoteRoomAudio(peer));
+  });
+}
+function removeRemoteRoomAudio(peer) {
+  if (!peer) return;
+  if (peer.audioEl && peer.audioEl.parentNode) peer.audioEl.parentNode.removeChild(peer.audioEl);
+  peer.audioEl = null;
+}
+function addLocalStreamToPeer(room, peer) {
+  if (!room.localStream || !peer.pc) return;
+  const hasAudioSender = peer.pc.getSenders().some(sender => sender.track && sender.track.kind === 'audio');
+  if (hasAudioSender) return;
+  room.localStream.getAudioTracks().forEach(track => peer.pc.addTrack(track, room.localStream));
+}
+// 注：offer 只由 createP2PPeer 内 createDataChannel 触发的 onnegotiationneeded 发出，
+// 不另设主动 offer 路径，避免与 negotiationneeded 时序交错产生重复 offer。
+function createP2PPeer(room, remoteId) {
+  if (!isP2PSupported() || !remoteId || remoteId === room.localPlayerId) return null;
+  const existing = room.peers.get(remoteId);
+  if (existing) return existing;
+  const peer = {
+    id: remoteId,
+    pc: new RTCPeerConnection({ iceServers: P2P_STUN_SERVERS }),
+    channel: null,
+    makingOffer: false,
+    polite: room.localPlayerId > remoteId,
+    connected: false,
+    audioEl: null
+  };
+  room.peers.set(remoteId, peer);
+  peer.pc.onnegotiationneeded = async () => {
+    try {
+      peer.makingOffer = true;
+      await peer.pc.setLocalDescription();
+      publishP2PSignal(room, { to: remoteId, desc: peer.pc.localDescription });
+    } catch (e) {} finally {
+      peer.makingOffer = false;
+    }
+  };
+  peer.pc.onicecandidate = (event) => {
+    if (event.candidate) publishP2PSignal(room, { to: remoteId, candidate: event.candidate });
+  };
+  peer.pc.ontrack = (event) => {
+    const stream = event.streams && event.streams[0];
+    if (stream) attachRemoteRoomAudio(room, peer, stream);
+  };
+  peer.pc.ondatachannel = (event) => setupRoomDataChannel(room, peer, event.channel);
+  peer.pc.onconnectionstatechange = () => {
+    if (peer.pc.connectionState === 'connected') peer.connected = true;
+    if (['disconnected', 'failed', 'closed'].includes(peer.pc.connectionState)) peer.connected = false;
+    updateP2PStatus(room);
+  };
+  setupRoomDataChannel(room, peer, peer.pc.createDataChannel('chat', { ordered: true }));
+  if (room.localStream) addLocalStreamToPeer(room, peer);
+  return peer;
+}
+function maybeInitiateP2P(room, player) {
+  if (!room || !player || player.left || player.id === room.localPlayerId || !isP2PSupported()) return;
+  // 用玩家 id 的字典序固定“小号向大号发 offer”，避免双向同时 offer 的信令冲突。
+  if (room.localPlayerId < player.id && !room.peers.has(player.id)) {
+    const peer = createP2PPeer(room, player.id);
+    if (peer) publishP2PSignal(room, { type: 'hello', to: player.id });
+  }
+}
+async function handleP2PSignal(room, msg) {
+  if (!room || !msg || !msg.from || msg.from === room.localPlayerId) return;
+  if (msg.to && msg.to !== room.localPlayerId) return;
+  if (!isP2PSupported()) return;
+  let peer = room.peers.get(msg.from) || null;
+  if ((msg.type === 'hello' || msg.type === 'offer' || msg.type === 'answer') && !peer) {
+    peer = createP2PPeer(room, msg.from);
+  }
+  if (!peer) return;
+  try {
+    if (msg.type === 'hello') return;
+    if (msg.type === 'offer' || msg.type === 'answer') {
+      const offerCollision = msg.type === 'offer' && (peer.makingOffer || peer.pc.signalingState !== 'stable');
+      if (!peer.polite && offerCollision) return;
+      await peer.pc.setRemoteDescription(msg.desc);
+      if (msg.type === 'offer') {
+        await peer.pc.setLocalDescription();
+        publishP2PSignal(room, { to: peer.id, desc: peer.pc.localDescription });
+      }
+      return;
+    }
+    if (msg.type === 'candidate' && msg.candidate) {
+      try {
+        await peer.pc.addIceCandidate(msg.candidate);
+      } catch (e) {
+        if (!peer.polite) throw e;
+      }
+    }
+  } catch (e) {
+    appendRoomSystemChat(room, 'P2P 信令失败，消息已自动走 MQTT 兜底。');
+  } finally {
+    updateP2PStatus(room);
+  }
+}
+function closeRoomPeer(room, peerId, notify = true) {
+  const peer = room.peers.get(peerId);
+  if (!peer) return;
+  removeRemoteRoomAudio(peer);
+  try { if (peer.channel) peer.channel.close(); } catch (e) {}
+  try { peer.pc.close(); } catch (e) {}
+  room.peers.delete(peerId);
+  if (notify) updateP2PStatus(room);
+}
+function destroyP2P(room) {
+  if (!room) return;
+  Array.from(room.peers.keys()).forEach(peerId => closeRoomPeer(room, peerId, false));
+  room.peers.clear();
+  if (room.localStream) {
+    room.localStream.getAudioTracks().forEach(track => {
+      try { track.stop(); } catch (e) {}
+    });
+  }
+  room.localStream = null;
+  room.micOn = false;
+  room.p2pOpenCount = 0;
+  const log = document.getElementById('online-chat-log');
+  const input = document.getElementById('online-chat-input');
+  const sink = document.getElementById('online-voice-sink');
+  if (log) log.innerHTML = '';
+  if (input) input.value = '';
+  if (sink) sink.innerHTML = '';
+  room.chatSeen.clear();
+}
+async function toggleRoomMic() {
+  const room = currentOnlineRoom;
+  if (!room) return;
+  if (room.micOn) {
+    room.peers.forEach(peer => {
+      if (!peer.pc) return;
+      peer.pc.getSenders().forEach(sender => {
+        if (sender.track && sender.track.kind === 'audio') {
+          try { peer.pc.removeTrack(sender); } catch (e) {}
+        }
+      });
+    });
+    if (room.localStream) room.localStream.getAudioTracks().forEach(track => { try { track.stop(); } catch (e) {} });
+    room.localStream = null;
+    room.micOn = false;
+    updateP2PStatus(room);
+    return;
+  }
+  if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+    alert('当前浏览器不支持麦克风，或页面不在安全上下文中。');
+    return;
+  }
+  try {
+    room.localStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+    room.micOn = true;
+    room.peers.forEach(peer => addLocalStreamToPeer(room, peer));
+    updateP2PStatus(room);
+  } catch (e) {
+    alert('无法打开麦克风，请检查浏览器权限。');
+  }
+}
+function updateP2PStatus(room) {
+  if (!room) return;
+  const otherCount = sortedRoomPlayers(room).filter(p => !p.left && p.id !== room.localPlayerId).length;
+  room.p2pOpenCount = Array.from(room.peers.values()).filter(peer => peer.channel && peer.channel.readyState === 'open').length;
+  const status = document.getElementById('online-chat-status');
+  if (status) {
+    const p2pText = isP2PSupported() ? `P2P ${room.p2pOpenCount}/${otherCount}` : 'P2P 不可用';
+    status.textContent = `${p2pText} · ${room.micOn ? '语音已开' : '语音关闭'}`;
+  }
+  const micBtn = document.getElementById('btn-online-mic');
+  if (micBtn) {
+    micBtn.textContent = room.micOn ? '关麦' : '开麦';
+    micBtn.classList.toggle('active', !!room.micOn);
+  }
+  renderOnlineRoom();
+}
+function mqttUrl(cfg) {
+  const path = cfg.path || '/mqtt';
+  return `wss://${cfg.host}:${cfg.port}${path.startsWith('/') ? path : '/' + path}`;
+}
+function sortedRoomPlayers(room) {
+  return Array.from(room.players.values()).sort((a, b) => a.joinOrder - b.joinOrder);
+}
+function getRoomHost(room) {
+  return sortedRoomPlayers(room)[0] || null;
+}
+function roomCanStart(room) {
+  const players = sortedRoomPlayers(room).filter(p => !p.left);
+  if (players.length < room.minPlayers || players.length > room.maxPlayers) return false;
+  return players.every(p => p.id === room.hostId || p.ready === true);
+}
+function renderOnlineRoom() {
+  const room = currentOnlineRoom;
+  const playersEl = document.getElementById('online-room-players');
+  const startBtn = document.getElementById('btn-online-start');
+  const readyBtn = document.getElementById('btn-online-ready');
+  if (!room || !playersEl || !startBtn || !readyBtn) return;
+  const players = sortedRoomPlayers(room).filter(p => !p.left);
+  const host = getRoomHost(room);
+  room.hostId = host ? host.id : null;
+  const cards = players.map(p => {
+    const state = p.id === room.hostId ? '房主' : (p.ready ? '已准备' : '未准备');
+    return `
+      <div class="online-player-card">
+        <div class="online-player-name">${escapeHtml(p.name)}${p.id === room.localPlayerId ? '（我）' : ''}</div>
+        <div class="online-player-state">${escapeHtml(state)}</div>
+      </div>
+    `;
+  });
+  for (let i = players.length; i < room.maxPlayers; i++) {
+    cards.push(`<div class="online-player-card empty"><div class="online-player-name">等待加入</div><div class="online-player-state">空位</div></div>`);
+  }
+  playersEl.innerHTML = cards.join('');
+  const connText = room.quotaError ? MQTT_QUOTA_ERROR_TEXT : (room.connected ? 'MQTT 已连接' : 'MQTT 未连接');
+  const p2pText = isP2PSupported() ? `P2P ${room.p2pOpenCount || 0}/${Math.max(0, players.length - 1)}` : 'P2P 不可用';
+  document.getElementById('online-room-status').textContent = `${connText} · ${p2pText} · 语音${room.micOn ? '开' : '关'} · 当前 ${players.length}/${room.maxPlayers} 人 · ${room.minPlayers} 人可开始`;
+  const isHost = room.localPlayerId === room.hostId;
+  readyBtn.style.display = room.quotaError ? 'none' : (isHost ? 'none' : 'flex');
+  startBtn.textContent = room.quotaError ? '暂时无法进入' : (isHost ? '开始游戏' : '等待房主开始');
+  startBtn.disabled = room.quotaError || !isHost || !roomCanStart(room);
+}
+function addRoomPlayer(room, data) {
+  if (!data || !data.id) return;
+  if (!room.players.has(data.id)) {
+    room.joinSeq += 1;
+    room.players.set(data.id, {
+      id: data.id,
+      name: data.name || '玩家',
+      ready: false,
+      joinOrder: room.joinSeq,
+      lastSeen: Date.now(),
+      left: false
+    });
+  } else {
+    const p = room.players.get(data.id);
+    p.name = data.name || p.name;
+    p.lastSeen = Date.now();
+    p.left = false;
+  }
+}
+function handleRoomMessage(room, topicName, payload) {
+  try {
+    const msg = JSON.parse(payload.toString());
+    // P2P 信令与兜底聊天走独立 topic，不进房间状态机。
+    if (topicName === p2pSignalTopic(room)) { handleP2PSignal(room, msg); return; }
+    if (topicName === p2pChatTopic(room)) { handleRoomChat(room, msg); return; }
+    if (!msg || !msg.type) return;
+    if (msg.type === 'join') {
+      addRoomPlayer(room, msg.player);
+      maybeInitiateP2P(room, room.players.get(msg.player && msg.player.id));
+    }
+    if (msg.type === 'heartbeat' && msg.player) {
+      const isNew = !room.players.has(msg.player.id);
+      addRoomPlayer(room, msg.player);
+      const p = room.players.get(msg.player.id);
+      if (p) p.lastSeen = Date.now();
+      if (isNew) maybeInitiateP2P(room, p);
+    }
+    if (msg.type === 'ready' && msg.player) {
+      addRoomPlayer(room, msg.player);
+      const p = room.players.get(msg.player.id);
+      if (p) p.ready = !!msg.ready;
+    }
+    if (msg.type === 'leave' && msg.playerId) {
+      const p = room.players.get(msg.playerId);
+      if (p) p.left = true;
+      closeRoomPeer(room, msg.playerId);
+    }
+    if (msg.type === 'start' && msg.code) {
+      startOnlineMatch(room, msg.code);
+    }
+    renderOnlineRoom();
+  } catch (e) {}
+}
+function connectOnlineRoom(room) {
+  const cfg = getMqttConfig();
+  if (typeof mqtt === 'undefined') {
+    document.getElementById('online-room-status').textContent = 'MQTT.js 加载失败，请检查网络。';
+    return;
+  }
+  const url = mqttUrl(cfg);
+  const client = mqtt.connect(url, {
+    username: cfg.username,
+    password: cfg.password,
+    clientId: `sjyw_${Math.random().toString(36).slice(2, 10)}`,
+    protocolVersion: 4,
+    reconnectPeriod: 3000,
+    connectTimeout: 10000
+  });
+  room.client = client;
+  client.on('connect', () => {
+    room.connected = true;
+    room.quotaError = false;
+    const topic = roomTopic(room);
+    client.subscribe(`${topic}/presence`, { qos: 0 });
+    client.subscribe(`${topic}/control`, { qos: 0 });
+    client.subscribe(p2pSignalTopic(room), { qos: 0 });
+    client.subscribe(p2pChatTopic(room), { qos: 0 });
+    client.publish(`${topic}/presence`, JSON.stringify({ type: 'join', player: room.localPlayer }));
+    renderOnlineRoom();
+  });
+  client.on('message', (topicName, payload) => handleRoomMessage(room, topicName, payload));
+  client.on('close', () => { room.connected = false; renderOnlineRoom(); });
+  client.on('error', (err) => {
+    room.connected = false;
+    const rawCode = err && (err.code ?? (String(err.message || '').match(/(\d+)/) || [])[1]);
+    const code = Number(rawCode);
+    // MQTT 3.1.1 ConnAck：3=服务器不可用，4=用户名密码错误，5=未授权。
+    // 免费额度/连接数耗尽时，不同 broker 可能返回 3/4/5 或直接断开，这里做统一兜底提示。
+    if ([3, 4, 5].includes(code) || /quota|limit|unavailable|refused/i.test(String(err && (err.message || err)))) {
+      room.quotaError = true;
+      try { client.end(true); } catch (e) {}
+      alert(MQTT_QUOTA_ERROR_TEXT);
+    }
+    renderOnlineRoom();
+  });
+  room.heartbeatTimer = setInterval(() => {
+    if (!room.client || !room.connected) return;
+    room.client.publish(`${roomTopic(room)}/presence`, JSON.stringify({ type: 'heartbeat', player: room.localPlayer }));
+    const now = Date.now();
+    room.players.forEach(p => {
+      if (!p.left && now - p.lastSeen > 12000) { p.left = true; closeRoomPeer(room, p.id); }
+    });
+    renderOnlineRoom();
+  }, 3000);
+}
+function startOnlineMatch(room, code) {
+  const level = room.level;
+  closeOnlineRoom();
+  closeDetailPage();
+  loadCustomLevel(level);
+  lastLobbyLevelCode = code;
+  isEditorTest = false;
+  isFromLobby = true;
+  startGame();
+}
+function openOnlineRoom(level, fullCode) {
+  if (!level.onlineEnabled) { closeDetailPage(); loadCustomLevel(level); startGame(); return; }
+  if ((level.onlineMaxPlayers || 1) <= 1) { closeDetailPage(); loadCustomLevel(level); startGame(); return; }
+  const localId = `p_${Math.random().toString(36).slice(2, 10)}`;
+  const localName = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : '我';
+  currentOnlineRoom = {
+    level,
+    fullCode,
+    roomId: hashRoomId(fullCode),
+    transport: level.onlineTransport === ONLINE_TRANSPORT_DO ? ONLINE_TRANSPORT_DO : ONLINE_TRANSPORT_MQTT,
+    minPlayers: Math.max(1, level.onlineMinPlayers || 1),
+    maxPlayers: Math.max(1, level.onlineMaxPlayers || 1),
+    localPlayerId: localId,
+    localPlayer: { id: localId, name: localName },
+    players: new Map(),
+    joinSeq: 0,
+    connected: false,
+    client: null,
+    heartbeatTimer: null,
+    peers: new Map(),
+    chatSeen: new Set(),
+    micOn: false,
+    localStream: null,
+    p2pOpenCount: 0
+  };
+  addRoomPlayer(currentOnlineRoom, currentOnlineRoom.localPlayer);
+  resetRoomChatUI(currentOnlineRoom);
+  document.getElementById('online-room-title').textContent = `${level.name || '联机关卡'} · 房间`;
+  document.getElementById('online-room-map-name').textContent = level.name || '未命名关卡';
+  document.getElementById('online-room-map-desc').textContent = level.description || '这个关卡还没有简介。';
+  const seconds = Math.max(0, level.timeLimit || 0);
+  document.getElementById('online-room-limit').textContent = seconds > 0 ? `限时：${Math.floor(seconds / 60)}分${seconds % 60}秒` : '限时：不限';
+  document.getElementById('online-room-range').textContent = `人数：${currentOnlineRoom.minPlayers}-${currentOnlineRoom.maxPlayers}`;
+  document.getElementById('online-room-mode').textContent = currentOnlineRoom.transport === ONLINE_TRANSPORT_DO ? '模式：DO 强竞技' : '模式：MQTT 休闲';
+  loadMqttConfigPanel();
+  renderOnlineRoom();
+  connectOnlineRoom(currentOnlineRoom);
+  const overlay = document.getElementById('online-room-overlay');
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+  overlay.setAttribute('aria-hidden', 'false');
+}
+function closeOnlineRoom() {
+  const room = currentOnlineRoom;
+  const overlay = document.getElementById('online-room-overlay');
+  if (room) {
+    if (room.client && room.connected) {
+      try { room.client.publish(`${roomTopic(room)}/presence`, JSON.stringify({ type: 'leave', playerId: room.localPlayerId })); } catch (e) {}
+      try { room.client.end(true); } catch (e) {}
+    }
+    if (room.heartbeatTimer) clearInterval(room.heartbeatTimer);
+    destroyP2P(room);
+  }
+  currentOnlineRoom = null;
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  overlay.style.display = 'none';
+  overlay.setAttribute('aria-hidden', 'true');
+}
+document.getElementById('btn-detail-online').addEventListener('click', async () => {
+  if (!detailLevelData) return;
+  const decodedCode = detailLevelData.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const fullCode = await resolveLevelCode(decodedCode);
+  let level = null;
+  try { level = decodeLevel(fullCode); } catch (e) { level = null; }
+  if (!level) { alert('无法解析关卡联机信息'); return; }
+  openOnlineRoom(level, fullCode);
+});
+document.getElementById('btn-online-room-close').addEventListener('click', closeOnlineRoom);
+document.getElementById('btn-online-ready').addEventListener('click', () => {
+  const room = currentOnlineRoom;
+  if (!room || !room.client || !room.connected) return;
+  const me = room.players.get(room.localPlayerId);
+  if (!me) return;
+  me.ready = !me.ready;
+  room.client.publish(`${roomTopic(room)}/control`, JSON.stringify({ type: 'ready', player: room.localPlayer, ready: me.ready }));
+  renderOnlineRoom();
+});
+document.getElementById('btn-online-start').addEventListener('click', async () => {
+  const room = currentOnlineRoom;
+  if (!room || room.localPlayerId !== room.hostId || !roomCanStart(room)) return;
+  if (room.client && room.connected) {
+    room.client.publish(`${roomTopic(room)}/control`, JSON.stringify({ type: 'start', code: room.fullCode }));
+  }
+  startOnlineMatch(room, room.fullCode);
+});
+document.getElementById('btn-toggle-mqtt-config').addEventListener('click', () => {
+  const panel = document.getElementById('mqtt-config-panel');
+  if (!panel) return;
+  loadMqttConfigPanel();
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('btn-save-mqtt-config').addEventListener('click', () => {
+  const cfg = {
+    host: document.getElementById('mqtt-host').value.trim(),
+    port: Number(document.getElementById('mqtt-port').value || 8084),
+    path: document.getElementById('mqtt-path').value.trim() || '/mqtt',
+    username: document.getElementById('mqtt-username').value.trim(),
+    password: document.getElementById('mqtt-password').value
+  };
+  if (!cfg.host || !cfg.username || !cfg.password) { alert('请完整填写 MQTT host、username、password'); return; }
+  saveMqttConfig(cfg);
+  loadMqttConfigPanel();
+  alert('MQTT 配置已保存，重新打开房间后生效。');
+});
+document.getElementById('btn-clear-mqtt-config').addEventListener('click', () => {
+  localStorage.removeItem(MQTT_STORAGE_KEY);
+  loadMqttConfigPanel();
+});
+document.getElementById('btn-online-send-chat').addEventListener('click', sendRoomChat);
+document.getElementById('online-chat-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); sendRoomChat(); }
+});
+document.getElementById('btn-online-mic').addEventListener('click', toggleRoomMic);
+
 // 8. 详情页开始培训按钮
 document.getElementById('btn-detail-play').addEventListener('click', async () => {
   if (!detailLevelData) return;
@@ -15494,9 +16617,9 @@ async function ext_incrementView(levelId) {
   try {
     var existing = await supabaseGet('level_views', { level_id: 'eq.' + levelId, select: 'id,view_count', limit: 1 });
     if (existing && existing.length > 0) {
-      await supabasePatch('level_views', existing[0].id, { view_count: (existing[0].view_count || 0) + 1 });
+      await withWriteRetry('更新浏览量', () => supabasePatch('level_views', existing[0].id, { view_count: (existing[0].view_count || 0) + 1 }));
     } else {
-      await supabasePost('level_views', { level_id: levelId, view_count: 1 });
+      await withWriteRetry('记录浏览量', () => supabasePost('level_views', { level_id: levelId, view_count: 1 }));
     }
   } catch (e) { console.log('level_views write fail', e); }
 }
@@ -15510,7 +16633,7 @@ async function ext_getComments(levelId) {
 async function ext_postComment(levelId, content, authorName) {
   if (!levelId || !content || !content.trim()) return false;
   try {
-    await supabasePost('level_comments', { level_id: Number(levelId), content: content.trim(), author_name: authorName || '匿名' });
+    await withWriteRetry('发表评论', () => supabasePost('level_comments', { level_id: Number(levelId), content: content.trim(), author_name: authorName || '匿名' }));
     return true;
   } catch (e) { return false; }
 }
@@ -15535,14 +16658,14 @@ async function ext_submitRecord(levelId, playerName, clearTimeMs) {
       return false;
     }
     if (mine && mine.length > 0) {
-      await ext_supabaseDelete('level_leaderboard', 'id=eq.' + mine[0].id);
+      await withWriteRetry('删除旧成绩', () => ext_supabaseDelete('level_leaderboard', 'id=eq.' + mine[0].id));
     }
-    await supabasePost('level_leaderboard', {
+    await withWriteRetry('提交排行榜成绩', () => supabasePost('level_leaderboard', {
       level_id: Number(levelId),
       player_name: name,
       clear_time_ms: clearTimeMs,
       trajectory_data: null
-    });
+    }));
     return true;
   } catch (e) { console.log('leaderboard err', e); return false; }
 }
