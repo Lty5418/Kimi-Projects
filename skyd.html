@@ -123,10 +123,11 @@ html, body {
 /* 图片黑洞背景：不使用 WebGL，静态黑洞渐变图，避免 iframe 加载失败时纯黑 */
 #start-screen.blackhole-image-bg::before {
   background:
-    radial-gradient(circle at 50% 46%, #000 0 4.5%, rgba(255,255,255,.92) 4.8% 5.5%, rgba(115,205,255,.62) 6.0% 8.5%, rgba(255,210,130,.42) 10.5% 14%, rgba(90,140,255,.22) 17% 25%, rgba(0,0,0,.1) 34% 100%),
-    radial-gradient(circle at 50% 46%, transparent 0 18%, rgba(0,0,0,.72) 48%, #000 78%) !important;
-  background-blend-mode: screen, normal;
-  filter: saturate(1.2) contrast(1.08) brightness(.9);
+    radial-gradient(circle at 50% 46%, transparent 0 16%, rgba(0,0,0,.45) 55%, #000 82%),
+    url('https://raw.githubusercontent.com/Lty5418/some/main/1789197892315.png') center / cover no-repeat,
+    radial-gradient(circle at 50% 46%, #000 0 4.5%, rgba(255,255,255,.92) 4.8% 5.5%, rgba(115,205,255,.62) 6.0% 8.5%, rgba(255,210,130,.42) 10.5% 14%, rgba(90,140,255,.22) 17% 25%, rgba(0,0,0,.1) 34% 100%) #000 !important;
+  background-blend-mode: multiply, normal, screen;
+  filter: saturate(1.1) contrast(1.05) brightness(.95);
 }
 #start-screen.blackhole-image-bg #blackhole-bg-frame { display: none; }
 #start-screen.blackhole-image-bg::after {
@@ -766,6 +767,22 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.lobby-room-row {
+  display: flex; align-items: stretch; gap: 0; position: relative;
+  height: 72px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px;
+  overflow: hidden; margin-bottom: 10px;
+}
+.lobby-room-row .lc-info { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 8px 12px; min-width: 0; }
+.lobby-room-row .lc-name { font-size: 14px; font-weight: 700; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.lobby-room-row .lc-desc { font-size: 12px; color: #8D9390; }
+.lobby-room-row .lobby-room-join { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+.lc-del-btn {
+  position: absolute; top: 6px; left: 6px; z-index: 5;
+  width: 22px; height: 22px; line-height: 20px; text-align: center;
+  background: rgba(18,18,18,0.85); border: 1px solid rgba(255,68,68,0.5);
+  color: #FF6666; font-size: 12px; border-radius: 5px; cursor: pointer; padding: 0;
+}
+.lc-del-btn:hover { background: rgba(255,68,68,0.2); color: #FF9999; }
 .level-card-square .lc-likes {
   position: absolute;
   bottom: 6px;
@@ -3186,7 +3203,510 @@ input, textarea {
 <div id="game-container">
   <!-- ========== 开始界面 ========== -->
   <div id="start-screen">
-    <iframe id="blackhole-bg-frame" src="blackhole_bg.html" title="黑洞背景" aria-hidden="true"></iframe>
+    <iframe id="blackhole-bg-frame" title="黑洞背景" aria-hidden="true" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover&quot;&gt;
+&lt;title&gt;黑洞背景&lt;/title&gt;
+&lt;style&gt;
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    overflow: hidden; background: #000;
+    touch-action: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  canvas#c {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    display: block; touch-action: none;
+    cursor: pointer;
+    background: #000;
+  }
+  #ui, #fps, #tunerToggle, #tuner { display: none !important; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;
+
+&lt;script&gt;
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl', {
+  antialias: false,
+  powerPreference: 'high-performance',
+  preserveDrawingBuffer: false
+});
+if (!gl) {
+  document.body.style.background = '#000';
+  throw new Error();
+}
+
+const VS = `
+attribute vec2 aPos;
+varying vec2 vUv;
+void main() {
+  vUv = aPos * 0.5 + 0.5;
+  gl_Position = vec4(aPos, 0.0, 1.0);
+}
+`;
+
+const FS_MAIN = `
+precision highp float;
+
+uniform vec2  uRes;
+uniform float uTime;
+uniform vec3  uCamPos;
+uniform float uFov;
+uniform float uExposure;
+uniform vec3 uColOuter;
+uniform vec3 uColMid;
+uniform vec3 uColInner;
+
+const float PI        = 3.14159265359;
+const float RS        = 1.0;
+const float R_IN      = 3.0 * RS;
+const float R_OUT     = 18.0 * RS;
+const float R_VISIBLE = 10.5 * RS;
+const float ESCAPE_R  = 90.0;
+const float T_MAX     = 11000.0;
+
+float hash13(vec3 p) {
+  p = fract(p * 0.1031);
+  p += dot(p, p.zyx + 31.32);
+  return fract((p.x + p.y) * p.z);
+}
+float hash31(vec3 p) {
+  return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+}
+float hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 345.45));
+  p += dot(p, p + 34.345);
+  return fract(p.x * p.y);
+}
+float noise3(vec3 p) {
+  vec3 i = floor(p);
+  vec3 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float n000 = hash13(i);
+  float n100 = hash13(i + vec3(1., 0., 0.));
+  float n010 = hash13(i + vec3(0., 1., 0.));
+  float n110 = hash13(i + vec3(1., 1., 0.));
+  float n001 = hash13(i + vec3(0., 0., 1.));
+  float n101 = hash13(i + vec3(1., 0., 1.));
+  float n011 = hash13(i + vec3(0., 1., 1.));
+  float n111 = hash13(i + vec3(1., 1., 1.));
+  return mix(
+    mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y),
+    mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y),
+    f.z
+  );
+}
+float fbm3(vec3 p) {
+  float v = 0.0, a = 0.5;
+  for (int i = 0; i &lt; 4; i++) {
+    v += a * noise3(p);
+    p = p * 2.07 + vec3(11.3, 7.7, 5.1);
+    a *= 0.5;
+  }
+  return v;
+}
+float ridged3(vec3 p) {
+  return 1.0 - abs(noise3(p) * 2.0 - 1.0);
+}
+float ridgedFbm3(vec3 p) {
+  float v = 0.0, a = 0.55;
+  for (int i = 0; i &lt; 4; i++) {
+    v += a * ridged3(p);
+    p = p * 2.17 + vec3(9.2, 4.3, 6.1);
+    a *= 0.5;
+  }
+  return v;
+}
+vec3 domainWarp(vec3 q, float t, float strength) {
+  float w1 = fbm3(q * 0.85 + vec3(0.0, 0.0, t * 0.35));
+  float w2 = fbm3(q * 1.7  + vec3(4.3, 2.1, t * 0.6));
+  return q + vec3(w1 * 0.9 + w2 * 0.35) * strength;
+}
+vec3 kelvinToRGB(float k) {
+  k = clamp(k, 1000.0, 40000.0) / 100.0;
+  float r, g, b;
+  if (k &lt;= 66.0) r = 255.0;
+  else r = 329.698727446 * pow(max(k - 60.0, 1e-3), -0.1332047592);
+  if (k &lt;= 66.0) g = 99.4708025861 * log(max(k, 1.0)) - 161.1195681661;
+  else g = 288.1221695283 * pow(max(k - 60.0, 1e-3), -0.0755148492);
+  if (k &gt;= 66.0) b = 255.0;
+  else if (k &lt;= 19.0) b = 0.0;
+  else b = 138.5177312231 * log(max(k - 10.0, 1e-3)) - 305.0447927307;
+  return clamp(vec3(r, g, b) / 255.0, 0.0, 1.0);
+}
+vec3 aces(vec3 x) {
+  const float a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;
+  return clamp((x*(a*x + b)) / (x*(c*x + d) + e), 0.0, 1.0);
+}
+float noise2(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f*f*(3.0 - 2.0*f);
+  float a = hash21(i);
+  float b = hash21(i + vec2(1.,0.));
+  float c = hash21(i + vec2(0.,1.));
+  float d = hash21(i + vec2(1.,1.));
+  return mix(mix(a,b,u.x), mix(c,d,u.x), u.y);
+}
+float fbm2(vec2 p) {
+  float v = 0.0, a = 0.5;
+  for (int i = 0; i &lt; 4; i++) {
+    v += a * noise2(p);
+    p = p * 2.07 + vec2(11.3, 7.7);
+    a *= 0.5;
+  }
+  return v;
+}
+vec3 starField(vec3 dir) {
+  vec3 col = vec3(0.0);
+  for (int i = 0; i &lt; 3; i++) {
+    float scale = 90.0 * pow(2.15, float(i));
+    vec3 p = dir * scale;
+    vec3 id = floor(p);
+    vec3 f  = fract(p) - 0.5;
+    float h = hash31(id + float(i) * 17.3);
+    if (h &gt; 0.968) {
+      float d = length(f);
+      float bright = smoothstep(0.42, 0.0, d);
+      float temp = 2600.0 + 24000.0 * hash31(id.yzx + 3.7);
+      float mag = (h - 0.968) / 0.032;
+      col += kelvinToRGB(temp) * bright * mag * mag * (1.7 / (1.0 + float(i)));
+    }
+  }
+  vec3 galN = normalize(vec3(0.32, 0.80, 0.50));
+  float band = exp(-pow(dot(dir, galN) * 3.0, 2.0));
+  float n1 = fbm2(dir.xy * 6.0 + dir.z * 2.5);
+  float n2 = fbm2(dir.xz * 11.0 + dir.y * 5.0);
+  col += (vec3(0.15,0.19,0.33)*n1 + vec3(0.28,0.17,0.21)*n2*0.5) * band * 0.26;
+  col += vec3(0.0035, 0.0045, 0.009);
+  return col;
+}
+vec3 geoAccel(vec3 p, float h2) {
+  float r2 = dot(p, p);
+  float r5 = r2 * r2 * sqrt(r2);
+  return -1.5 * RS * h2 * p / max(r5, 1e-6);
+}
+vec3 diskPalette(float t) {
+  if (t &lt; 0.5) return mix(uColOuter, uColMid, t * 2.0);
+  return mix(uColMid, uColInner, (t - 0.5) * 2.0);
+}
+vec3 diskShade(vec3 hit, vec3 rayDir, float time, out float outAlpha) {
+  float r = length(hit.xz);
+  r = max(r, 1e-4);
+
+  float v = min(sqrt(0.5 * RS / r), 0.94);
+  vec3  orbitDir = vec3(-hit.z, 0.0, hit.x) / r;
+  vec3  toObs    = -rayDir;
+  float gamma   = 1.0 / sqrt(max(1.0 - v * v, 1e-4));
+  float doppler = 1.0 / (gamma * (1.0 - v * dot(orbitDir, toObs)));
+  doppler = clamp(doppler, 0.2, 3.6);
+
+  float phi = atan(hit.z, hit.x);
+  float lr  = log(r);
+
+  float wrapT = 1.0 - exp(-time * 0.06);
+  float omega = pow(R_IN / r, 1.5);
+  float wrapAmount = wrapT * 4.5;
+
+  float a1 = 3.0  * phi - omega * wrapAmount;
+  float a2 = 8.0  * phi - omega * wrapAmount * 1.3;
+  float a3 = 18.0 * phi - omega * wrapAmount * 2.0;
+
+  vec3 q1 = vec3(cos(a1), sin(a1), lr * 4.5);
+  vec3 q1w = domainWarp(q1, time, 0.9);
+  float turb = ridgedFbm3(q1w);
+
+  vec3 q2 = vec3(cos(a2), sin(a2), lr * 9.0);
+  vec3 q2w = domainWarp(q2, time * 1.2, 0.55);
+  float fil = ridgedFbm3(q2w);
+
+  vec3 q3 = vec3(cos(a3), sin(a3), lr * 20.0);
+  float grain = fbm3(q3);
+
+  float swirl = turb * 0.60 + fil * 0.32 + grain * 0.10;
+  swirl = clamp(swirl * 0.9 + 0.08, 0.0, 1.6);
+  swirl = pow(swirl, 1.5);
+
+  float tOut = clamp((r - R_IN) / (R_VISIBLE - R_IN), 0.0, 1.0);
+
+  float cutoff = 1.0 - smoothstep(0.82, 1.0, tOut);
+  if (cutoff &lt;= 0.0) { outAlpha = 0.0; return vec3(0.0); }
+
+  float radialFade = pow(max(1.0 - tOut, 0.0), 1.35);
+
+  float ringT = 1.0 - exp(-time * 0.04);
+  float ringNoise = fbm3(vec3(cos(phi), sin(phi), lr * 1.6 + ringT * 2.0));
+  float bands = 0.55 + 0.45 * sin(lr * 5.5 + ringNoise * 5.0);
+  float bandMask = smoothstep(0.30, 0.75, tOut);
+  bands = mix(1.0, bands, bandMask);
+
+  float fineT = 1.0 - exp(-time * 0.05);
+  float fine = fbm3(vec3(cos(3.0*phi), sin(3.0*phi), lr * 7.0 + fineT * 3.0));
+  fine = 0.70 + fine * 0.45;
+
+  float layeredFade = radialFade * bands * fine;
+  layeredFade = max(layeredFade, radialFade * 0.18);
+  layeredFade *= cutoff;
+
+  float dIn = 1.0 - tOut;
+
+  float halo  = pow(smoothstep(0.90, 1.00, dIn), 2.5);
+  float core  = pow(smoothstep(0.96, 1.00, dIn), 2.5);
+  float point = pow(smoothstep(0.98, 1.00, dIn), 2.0);
+
+  float innerBoost = halo * 2.0 + core * 5.0 + point * 12.0;
+  float innerGlow  = clamp(core * 0.40 + point * 0.90, 0.0, 1.0);
+  float innerAlpha = clamp(halo * 0.30 + core * 0.65 + point * 1.00, 0.0, 1.0);
+
+  float radial = smoothstep(R_IN, R_IN * 1.15, r);
+  float density = swirl * radial;
+
+  outAlpha = clamp(
+    density * (0.08 + layeredFade * 1.05 + innerAlpha * 1.4) * cutoff,
+    0.0, 1.0
+  );
+
+  float rNorm = pow(max(1.0 - tOut, 0.0), 0.8);
+  float dShift = (doppler - 1.0) * 0.35;
+  vec3 col = diskPalette(clamp(rNorm + dShift, 0.0, 1.0));
+
+  float bright = 0.03;
+  bright += layeredFade * 0.55;
+  bright *= (0.15 + pow(swirl, 1.8) * 1.2);
+  bright += innerBoost;
+  bright *= pow(doppler, 1.8);
+  bright *= (0.30 + layeredFade * 0.85);
+  bright *= cutoff;
+
+  col *= bright;
+  col = mix(col, vec3(1.0), innerGlow * 0.85);
+
+  float shift = clamp(doppler - 1.0, -0.9, 2.0);
+  col = mix(col, col * vec3(0.90, 1.05, 1.10), clamp( shift, 0.0, 1.0) * 0.35);
+  col = mix(col, col * vec3(0.80, 0.85, 1.05), clamp(-shift, 0.0, 1.0) * 0.30);
+
+  return col;
+}
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  vec3 forward = normalize(-uCamPos);
+  vec3 worldUp = vec3(0.0, 1.0, 0.0);
+  if (abs(dot(forward, worldUp)) &gt; 0.999) worldUp = vec3(0.0, 0.0, 1.0);
+  vec3 right = normalize(cross(worldUp, forward));
+  vec3 up    = cross(forward, right);
+  vec3 rd = normalize(forward + uv.x * uFov * right + uv.y * uFov * up);
+  vec3 pos = uCamPos;
+  vec3 vel = rd;
+  vec3 hVec = cross(pos, vel);
+  float h2  = dot(hVec, hVec);
+  vec3  color = vec3(0.0);
+  float trans = 1.0;
+  for (int i = 0; i &lt; 300; i++) {
+    float r = length(pos);
+    if (r &lt; RS) break;
+    if (r &gt; ESCAPE_R &amp;&amp; dot(pos, vel) &gt; 0.0) {
+      color += trans * starField(normalize(vel));
+      break;
+    }
+    float dt = clamp(r * 0.05, 0.015, 1.5);
+    if (r &lt; 5.0) dt = clamp(r * 0.022, 0.008, 0.2);
+    if (r &lt; 1.8) dt = clamp(r * 0.012, 0.004, 0.06);
+    vec3 prevPos = pos;
+    vec3 k1p = vel;
+    vec3 k1v = geoAccel(pos, h2);
+    vec3 k2p = vel + 0.5 * dt * k1v;
+    vec3 k2v = geoAccel(pos + 0.5 * dt * k1p, h2);
+    vec3 k3p = vel + 0.5 * dt * k2v;
+    vec3 k3v = geoAccel(pos + 0.5 * dt * k2p, h2);
+    vec3 k4p = vel + dt * k3v;
+    vec3 k4v = geoAccel(pos + dt * k3p, h2);
+    pos += dt * (k1p + 2.0*k2p + 2.0*k3p + k4p) / 6.0;
+    vel += dt * (k1v + 2.0*k2v + 2.0*k3v + k4v) / 6.0;
+    if (prevPos.y * pos.y &lt; 0.0) {
+      float t = prevPos.y / (prevPos.y - pos.y);
+      vec3  hit = mix(prevPos, pos, t);
+      float hr  = length(hit.xz);
+      if (hr &gt; R_IN &amp;&amp; hr &lt; R_OUT) {
+        vec3  vDir = normalize(vel);
+        float alpha;
+        vec3  dc = diskShade(hit, vDir, uTime, alpha);
+        float cosA = abs(vDir.y);
+        float pathBoost = clamp(1.0 / max(cosA, 0.15), 1.0, 3.5);
+        alpha = 1.0 - exp(-alpha * pathBoost * 4.0);
+        color += trans * dc * alpha;
+        trans *= (1.0 - alpha * 0.94);
+        if (trans &lt; 0.005) break;
+      }
+    }
+  }
+  color *= pow(2.0, uExposure);
+  color = aces(color);
+  color = pow(color, vec3(1.0 / 2.2));
+  vec2 q = gl_FragCoord.xy / uRes;
+  float vig = 1.0 - 0.5 * pow(length(q - 0.5) * 1.4, 2.2);
+  color *= vig;
+  gl_FragColor = vec4(color, 1.0);
+}
+`;
+
+function compile(type, src) {
+  const sh = gl.createShader(type);
+  gl.shaderSource(sh, src);
+  gl.compileShader(sh);
+  if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+    console.error(gl.getShaderInfoLog(sh));
+    throw new Error('Shader compile error');
+  }
+  return sh;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS_MAIN));
+gl.linkProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+
+const loc = {
+  aPos: gl.getAttribLocation(prog, 'aPos'),
+  uRes: gl.getUniformLocation(prog, 'uRes'),
+  uTime: gl.getUniformLocation(prog, 'uTime'),
+  uCamPos: gl.getUniformLocation(prog, 'uCamPos'),
+  uFov: gl.getUniformLocation(prog, 'uFov'),
+  uExposure: gl.getUniformLocation(prog, 'uExposure'),
+  uColOuter: gl.getUniformLocation(prog, 'uColOuter'),
+  uColMid: gl.getUniformLocation(prog, 'uColMid'),
+  uColInner: gl.getUniformLocation(prog, 'uColInner'),
+};
+
+const quadBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+function drawQuad() {
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+  gl.enableVertexAttribArray(loc.aPos);
+  gl.vertexAttribPointer(loc.aPos, 2, gl.FLOAT, false, 0, 0);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+
+let W = 2, H = 2;
+// 用户要求：黑洞清晰度固定 0.05，避免抢占性能和主视野
+let renderScale = 0.05;
+let exposure = 0.55;
+const DEFAULTS = {
+  o: [0.10, 0.20, 0.55],
+  m: [0.30, 0.68, 1.00],
+  i: [0.80, 1.00, 1.00],
+};
+const colorState = {
+  o: DEFAULTS.o.slice(),
+  m: DEFAULTS.m.slice(),
+  i: DEFAULTS.i.slice(),
+};
+let spinVelocity = 0;
+let colorTransition = null;
+function cloneColorTriplet() {
+  return {
+    o: colorState.o.slice(),
+    m: colorState.m.slice(),
+    i: colorState.i.slice()
+  };
+}
+function makeRandomColorTriplet() {
+  const next = {};
+  ['o', 'm', 'i'].forEach(k =&gt; {
+    next[k] = [0.08 + Math.random() * 0.9, 0.08 + Math.random() * 0.9, 0.08 + Math.random() * 0.9];
+  });
+  return next;
+}
+function startBlackholeTransition() {
+  // 点击后：黑洞开始旋转，随后慢慢停下；颜色同时缓慢过渡到新的随机颜色。
+  spinVelocity = 2.4;
+  colorTransition = {
+    from: cloneColorTriplet(),
+    to: makeRandomColorTriplet(),
+    start: performance.now(),
+    duration: 2600
+  };
+}
+canvas.addEventListener('click', startBlackholeTransition);
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  const w = Math.max(2, Math.floor(window.innerWidth * dpr * renderScale));
+  const h = Math.max(2, Math.floor(window.innerHeight * dpr * renderScale));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w; canvas.height = h;
+    gl.viewport(0, 0, w, h);
+    W = w; H = h;
+  }
+}
+window.addEventListener('resize', resize);
+
+const cam = { theta: 0.55, phi: 0.13, dist: 22, thetaT: 0.55, phiT: 0.13, distT: 22 };
+const MIN_DIST = 3.3, MAX_DIST = 90;
+function updateCam() {
+  const k = 0.14;
+  cam.theta += (cam.thetaT - cam.theta) * k;
+  cam.phi   += (cam.phiT   - cam.phi  ) * k;
+  cam.dist  += (cam.distT  - cam.dist ) * k;
+  const cp = Math.cos(cam.phi);
+  return [cam.dist * cp * Math.sin(cam.theta), cam.dist * Math.sin(cam.phi), cam.dist * cp * Math.cos(cam.theta)];
+}
+
+// 用户不能手动旋转黑洞；只有点击触发一次“旋转减速 + 颜色渐变”。
+let lastFrameTime = performance.now();
+function updateBlackholeInteraction(now) {
+  const dt = Math.min(0.05, Math.max(0.001, (now - lastFrameTime) / 1000));
+  lastFrameTime = now;
+  if (spinVelocity &gt; 0.0005) {
+    cam.thetaT += spinVelocity * dt;
+    cam.theta += spinVelocity * dt * 0.72;
+    spinVelocity *= Math.exp(-2.15 * dt); // 慢慢停下
+  } else {
+    spinVelocity = 0;
+  }
+  if (colorTransition) {
+    const p = Math.min(1, (now - colorTransition.start) / colorTransition.duration);
+    const e = 1 - Math.pow(1 - p, 3);
+    ['o', 'm', 'i'].forEach(k =&gt; {
+      for (let c = 0; c &lt; 3; c++) {
+        colorState[k][c] = colorTransition.from[k][c] + (colorTransition.to[k][c] - colorTransition.from[k][c]) * e;
+      }
+    });
+    if (p &gt;= 1) colorTransition = null;
+  }
+}
+
+resize();
+const t0 = performance.now();
+function frame(now) {
+  const t = (now - t0) * 0.001;
+  updateBlackholeInteraction(now);
+  const cp = updateCam();
+  gl.viewport(0, 0, W, H);
+  gl.useProgram(prog);
+  gl.uniform2f(loc.uRes, W, H);
+  gl.uniform1f(loc.uTime, t);
+  gl.uniform3f(loc.uCamPos, cp[0], cp[1], cp[2]);
+  gl.uniform1f(loc.uFov, 0.85);
+  gl.uniform1f(loc.uExposure, exposure);
+  gl.uniform3fv(loc.uColOuter, colorState.o);
+  gl.uniform3fv(loc.uColMid, colorState.m);
+  gl.uniform3fv(loc.uColInner, colorState.i);
+  drawQuad();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
     <div class="start-content">
       <div class="start-titles">
         <div class="title">时空跃动</div>
@@ -3505,18 +4025,20 @@ input, textarea {
         <div class="lobby-sub-tab active" data-subtab="public">公开关卡</div>
         <div class="lobby-sub-tab" data-subtab="my">我的关卡</div>
         <div class="lobby-sub-tab" data-subtab="upload">导入关卡</div>
+        <div class="lobby-sub-tab" data-subtab="rooms">联机房间</div>
       </div>
       <div class="lobby-sub-content" id="lobby-sub-public">
         <div class="search-box">
           <input type="text" id="public-search-input" placeholder="搜索关卡名称或作者...">
           <button class="btn btn-small" id="btn-public-search">搜索</button>
           <button class="btn btn-small" id="btn-public-refresh" title="刷新">刷新</button>
-          <select id="public-sort-select" class="btn btn-small" title="排序方式" style="appearance:auto;-webkit-appearance:auto;">
-            <option value="time_desc">时间·最新</option>
-            <option value="time_asc">时间·最旧</option>
-            <option value="heat_desc">热度·高到低</option>
-            <option value="heat_asc">热度·低到高</option>
-          </select>
+          <input type="hidden" id="public-sort-select" value="time_desc">
+          <div class="mode-seg" id="public-sort-seg" title="排序方式" style="flex-wrap:nowrap;">
+            <div class="mode-seg-btn active" data-sort="time_desc">最新</div>
+            <div class="mode-seg-btn" data-sort="time_asc">最旧</div>
+            <div class="mode-seg-btn" data-sort="heat_desc">热门</div>
+            <div class="mode-seg-btn" data-sort="heat_asc">冷门</div>
+          </div>
         </div>
         <div id="public-levels-list" class="levels-stack"></div>
       </div>
@@ -3527,6 +4049,9 @@ input, textarea {
           <button class="btn btn-small" id="btn-my-refresh" title="刷新">刷新</button>
         </div>
         <div id="my-levels-list" class="levels-grid"></div>
+      </div>
+      <div class="lobby-sub-content hidden" id="lobby-sub-rooms">
+        <div id="lobby-rooms-list" class="levels-stack"></div>
       </div>
       <div class="lobby-sub-content hidden" id="lobby-sub-upload">
         <div class="upload-area">
@@ -3681,16 +4206,15 @@ input, textarea {
             </div>
             <div class="sidebar-setting">
               <span>联机模式</span>
-              <select id="opt-online-transport" style="background:#121212;border:1px solid #2a2a2a;color:#fff;font-size:11px;border-radius:3px;">
-                <option value="mqtt">普通 MQTT</option>
-              </select>
+              <input type="hidden" id="opt-online-transport" value="mqtt">
+              <span style="font-size:11px;color:#C3C3C3;">普通 MQTT</span>
             </div>
             <div class="sidebar-setting">
-              <span>多人下限</span>
+              <span>推荐·最低人数</span>
               <input type="number" id="opt-online-min-players" value="1" min="1" max="10" style="width:40px;background:#121212;border:1px solid #2a2a2a;color:#fff;padding:2px 4px;font-size:11px;border-radius:3px;">
             </div>
             <div class="sidebar-setting">
-              <span>多人上限</span>
+              <span>推荐·最高人数</span>
               <input type="number" id="opt-online-max-players" value="1" min="1" max="10" style="width:40px;background:#121212;border:1px solid #2a2a2a;color:#fff;padding:2px 4px;font-size:11px;border-radius:3px;">
             </div>
             <div class="sidebar-setting" id="opt-time-limit-wrap">
@@ -3767,7 +4291,6 @@ input, textarea {
   <div id="game-ui">
     <div id="player-hp-wrap"><div id="player-hp-fill"></div></div>
     <div class="top-bar">
-      <div class="ui-btn" id="btn-game-settings">设置</div>
       <div class="ui-btn" id="btn-restart">重新开始</div>
       <div class="ui-btn" id="btn-exit">退出</div>
     </div>
@@ -5078,7 +5601,10 @@ window.alert = function(msg) { uiDialog({ title: t('提示'), message: String(ms
 
 
 // ==================== Supabase 客户端 ====================
-const SUPABASE_URL = 'https://cfwkkexvbxpbtxnrgzqg.supabase.co';
+// Supabase 线路切换：默认直连官方域名；部署 Cloudflare Worker（/sb 透传）后，
+// 在该设备执行 localStorage.setItem('st_sb_proxy','https://你的worker.workers.dev/sb') 即可切反代线，
+// 解决部分运营商 DNS 污染/SNI 阻断 supabase.co 导致的登录失败（改一处，三处拼接自动跟随）。
+const SUPABASE_URL = (function(){ try { return localStorage.getItem('st_sb_proxy') || 'https://cfwkkexvbxpbtxnrgzqg.supabase.co'; } catch(e) { return 'https://cfwkkexvbxpbtxnrgzqg.supabase.co'; } })();
 // FIX v9: API key 加密存储 - 分段 Base64 解码
 const _s = [
   'c2Jf','cHVibGlz','aGFibG','VfSzFtN','jJBQ','0ZYNnRmN',
@@ -6693,7 +7219,8 @@ function cellFxNoCollision(lvl, gx, gy) {
   const fx = lvl && lvl.cellFx ? lvl.cellFx[gx + ',' + gy] : null;
   if (!fx) return false;
   const st = lvl.fxState[gx + ',' + gy];
-  return fx.phantom || fx.background || (st && st.broken) || false;
+  // 事件触发隐藏无碰撞；编辑器静态隐藏保持有碰撞
+  return fx.phantom || fx.background || (st && st.broken) || (st && st.hidden && !fx.hidden) || false;
 }
 // 刀光/攻击矩形击碎可击碎方块
 function fxBreakAtRect(lvl, x, y, w, h) {
@@ -9734,6 +10261,12 @@ function setEditorCell(gx, gy, tool) {
     if (getEditorCells().has(key)) changed = true;
     getEditorCells().delete(key);
     editorTileProps.delete(key);
+    for (const g of editorTriggerGroups) { g.cells.delete(key); }
+    editorTriggerGroups = editorTriggerGroups.filter(g => g.cells.size > 0);
+    for (const g of editorDualGroups) { g.cells.delete(key); }
+    editorDualGroups = editorDualGroups.filter(g => g.cells.size > 0);
+    for (const mp of editorMovingPlatforms) { mp.cells.delete(key); }
+    editorMovingPlatforms = editorMovingPlatforms.filter(mp => mp.cells.size > 0);
   }
   // FIX: 任何修改都重置测试通关状态，强制重新测试
   if (changed) {
@@ -9915,6 +10448,23 @@ function pasteCells(targetX, targetY) {
 }
 // Editor mouse events
 editorCanvas.addEventListener('mousedown', e => {
+  // 手点选位优先：点击画布回填事件坐标
+  if (window.tppPickTarget && e.button === 0) {
+    const cell = getEditorCell(e.clientX, e.clientY);
+    const evx = cell.x - editorSpawn.x, evy = cell.y - editorSpawn.y;
+    const target = window.tppPickTarget; window.tppPickTarget = null;
+    document.querySelectorAll('.tpp-ev-n').forEach(inp => {
+      if (+inp.dataset.i !== target.i) return;
+      if (target.pair === 'x1y1' && (inp.dataset.f === 'x1' || inp.dataset.f === 'y1')) {
+        inp.value = inp.dataset.f === 'x1' ? evx : evy;
+        inp.dispatchEvent(new Event('change'));
+      } else if (target.pair === 'x2y2' && (inp.dataset.f === 'x2' || inp.dataset.f === 'y2')) {
+        inp.value = inp.dataset.f === 'x2' ? evx : evy;
+        inp.dispatchEvent(new Event('change'));
+      }
+    });
+    e.preventDefault(); return;
+  }
   // 选择模式：点选/框选/平移/移动
   if (editorTool === 'select') {
     handleSelectDown(e.clientX, e.clientY);
@@ -10900,6 +11450,8 @@ function refreshPropsPanel() {
     bindFxCheck('tpp-fx-bkg', 'background');
     syncGlowRow();
 
+    // 手点选位状态：{i, pair}，非空时画布下一次点击回填事件坐标
+    if (typeof window.tppPickTarget === 'undefined') window.tppPickTarget = null;
     // 事件列表：以第一个选中方块的列表为编辑对象；保存时统一写入所有选中方块
     const getEvents = () => (propsOf(keys[0]).events || []).map(ev => Object.assign({}, ev));
     const saveEvents = (list) => { saveFx({ events: list }); };
@@ -10911,15 +11463,17 @@ function refreshPropsPanel() {
       if (list.length === 0) h = '<p class="tpp-intro">暂无事件。</p>';
       list.forEach((ev, i) => {
         h += '<div class="tpp-row"><label>广播</label><input type="text" class="tpp-ev-bcast" data-i="' + i + '" maxlength="20" list="tpp-bcast-list" value="' + String(ev.bcast || '').replace(/"/g, '&quot;') + '" placeholder="任意广播"></div>'
-          + '<div class="tpp-row"><label>动作</label><select class="tpp-ev-action" data-i="' + i + '">'
-          + '<option value="toggle"' + (ev.action === 'toggle' ? ' selected' : '') + '>切换隐藏/显示</option>'
-          + '<option value="move"' + (ev.action === 'move' ? ' selected' : '') + '>移动到固定点</option>'
-          + '<option value="patrol"' + (ev.action === 'patrol' ? ' selected' : '') + '>两点间往返移动</option></select></div>';
+          + '<div class="tpp-row"><label>动作</label><input type="hidden" class="tpp-ev-action" data-i="' + i + '" value="' + (ev.action || 'toggle') + '">'
+          + '<span style="display:inline-flex;gap:4px;">'
+          + '<button type="button" class="btn btn-small tpp-ev-act-btn' + (ev.action === 'toggle' || !ev.action ? ' active' : '') + '" data-i="' + i + '" data-act="toggle">切换隐藏</button>'
+          + '<button type="button" class="btn btn-small tpp-ev-act-btn' + (ev.action === 'move' ? ' active' : '') + '" data-i="' + i + '" data-act="move">移到点</button>'
+          + '<button type="button" class="btn btn-small tpp-ev-act-btn' + (ev.action === 'patrol' ? ' active' : '') + '" data-i="' + i + '" data-act="patrol">两点往返</button>'
+          + '</span></div>';
         if (ev.action === 'move') {
-          h += '<div class="tpp-row"><label>目标 X,Y</label><span><input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="x1" value="' + (ev.x1 || 0) + '" style="width:58px"> <input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="y1" value="' + (ev.y1 || 0) + '" style="width:58px"></span></div>';
+          h += '<div class="tpp-row"><label>目标 X,Y</label><span><input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="x1" value="' + (ev.x1 || 0) + '" style="width:58px"> <input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="y1" value="' + (ev.y1 || 0) + '" style="width:58px"></span><button type="button" class="btn btn-small tpp-ev-pick" data-i="' + i + '" data-pair="x1y1">点选位置</button></div>';
         } else if (ev.action === 'patrol') {
-          h += '<div class="tpp-row"><label>点A X,Y</label><span><input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="x1" value="' + (ev.x1 || 0) + '" style="width:58px"> <input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="y1" value="' + (ev.y1 || 0) + '" style="width:58px"></span></div>'
-            + '<div class="tpp-row"><label>点B X,Y</label><span><input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="x2" value="' + (ev.x2 || 0) + '" style="width:58px"> <input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="y2" value="' + (ev.y2 || 0) + '" style="width:58px"></span></div>'
+          h += '<div class="tpp-row"><label>点A X,Y</label><span><input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="x1" value="' + (ev.x1 || 0) + '" style="width:58px"> <input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="y1" value="' + (ev.y1 || 0) + '" style="width:58px"></span><button type="button" class="btn btn-small tpp-ev-pick" data-i="' + i + '" data-pair="x1y1">点选位置</button></div>'
+            + '<div class="tpp-row"><label>点B X,Y</label><span><input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="x2" value="' + (ev.x2 || 0) + '" style="width:58px"> <input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="y2" value="' + (ev.y2 || 0) + '" style="width:58px"></span><button type="button" class="btn btn-small tpp-ev-pick" data-i="' + i + '" data-pair="x2y2">点选位置</button></div>'
             + '<div class="tpp-row"><label>次数(0=无限)</label><input type="number" class="tpp-ev-n" data-i="' + i + '" data-f="times" min="0" max="99" value="' + (ev.times || 0) + '" style="width:58px"></div>';
         }
         h += '<div class="tpp-row"><button class="btn btn-small btn-danger tpp-ev-del" data-i="' + i + '">删除此事件</button></div>';
@@ -10929,9 +11483,16 @@ function refreshPropsPanel() {
       if (!dl) { dl = document.createElement('datalist'); dl.id = 'tpp-bcast-list'; document.body.appendChild(dl); }
       dl.innerHTML = editorBroadcastNames.map(n => '<option value="' + n + '">').join('');
       wrap.querySelectorAll('.tpp-ev-bcast').forEach(inp => inp.addEventListener('change', () => { const l = getEvents(); l[+inp.dataset.i].bcast = inp.value.trim(); saveEvents(l); }));
-      wrap.querySelectorAll('.tpp-ev-action').forEach(sel => sel.addEventListener('change', () => { const l = getEvents(); l[+sel.dataset.i].action = sel.value; saveEvents(l); renderEvents(); }));
+      wrap.querySelectorAll('.tpp-ev-act-btn').forEach(btn => btn.addEventListener('click', () => {
+        const hid = wrap.querySelector('.tpp-ev-action[data-i="' + btn.dataset.i + '"]');
+        if (hid) hid.value = btn.dataset.act;
+        wrap.querySelectorAll('.tpp-ev-act-btn[data-i="' + btn.dataset.i + '"]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const l = getEvents(); l[+btn.dataset.i].action = btn.dataset.act; saveEvents(l); renderEvents();
+      }));
       wrap.querySelectorAll('.tpp-ev-n').forEach(inp => inp.addEventListener('change', () => { const l = getEvents(); l[+inp.dataset.i][inp.dataset.f] = parseInt(inp.value) || 0; saveEvents(l); }));
       wrap.querySelectorAll('.tpp-ev-del').forEach(btn => btn.addEventListener('click', () => { const l = getEvents(); l.splice(+btn.dataset.i, 1); saveEvents(l); renderEvents(); }));
+      wrap.querySelectorAll('.tpp-ev-pick').forEach(btn => btn.addEventListener('click', () => { window.tppPickTarget = { i: +btn.dataset.i, pair: btn.dataset.pair }; alert('请在画布上点击目标位置'); }));
     };
     renderEvents();
     const addBtn = document.getElementById('tpp-add-event');
@@ -10985,7 +11546,15 @@ function confirmTileMove() {
   if (d.dx || d.dy) {
     const keys = Array.from(selectedCells);
     const entries = keys.map(k => ({ k, t: getEditorCells().get(k), pr: editorTileProps.get(k) }));
-    for (const en of entries) { getEditorCells().delete(en.k); editorTileProps.delete(en.k); }
+    for (const en of entries) {
+      getEditorCells().delete(en.k); editorTileProps.delete(en.k);
+      for (const g of editorTriggerGroups) { g.cells.delete(en.k); }
+      editorTriggerGroups = editorTriggerGroups.filter(g => g.cells.size > 0);
+      for (const g of editorDualGroups) { g.cells.delete(en.k); }
+      editorDualGroups = editorDualGroups.filter(g => g.cells.size > 0);
+      for (const mp of editorMovingPlatforms) { mp.cells.delete(en.k); }
+      editorMovingPlatforms = editorMovingPlatforms.filter(mp => mp.cells.size > 0);
+    }
     const moved = new Set();
     for (const en of entries) {
       const [x, y] = en.k.split(',').map(Number);
@@ -11258,6 +11827,7 @@ function setupEditorToolbar() {
   });
   function clearEditorConfirmed() {
     getEditorCells().clear();
+    editorTileProps.clear();
     editorSpawn = { x: 2, y: 10 };
     editorPortal = { x: 20, y: 10 };
     editorTrajectories = [];
@@ -11393,7 +11963,7 @@ function setupEditorToolbar() {
     editorAutoSavePending = true;
   });
   var onlineMinPlayersEl = document.getElementById('opt-online-min-players');
-  if (onlineMinPlayersEl) onlineMinPlayersEl.addEventListener('input', (e) => {
+  if (onlineMinPlayersEl) onlineMinPlayersEl.addEventListener('change', (e) => {
     editorOnlineMinPlayers = clampInteger(e.target.value, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS);
     if (editorOnlineMinPlayers > editorOnlineMaxPlayers) {
       editorOnlineMaxPlayers = editorOnlineMinPlayers;
@@ -11404,7 +11974,7 @@ function setupEditorToolbar() {
     editorAutoSavePending = true;
   });
   var onlineMaxPlayersEl = document.getElementById('opt-online-max-players');
-  if (onlineMaxPlayersEl) onlineMaxPlayersEl.addEventListener('input', (e) => {
+  if (onlineMaxPlayersEl) onlineMaxPlayersEl.addEventListener('change', (e) => {
     editorOnlineMaxPlayers = clampInteger(e.target.value, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS);
     if (editorOnlineMaxPlayers < editorOnlineMinPlayers) {
       editorOnlineMinPlayers = editorOnlineMaxPlayers;
@@ -14940,13 +15510,10 @@ document.getElementById('hub-card-hall').addEventListener('click', () => {
   // 先播转场动画进入大厅，数据异步到达后无缝填充（避免点击被网络请求阻塞的卡顿感）
   showScreen('lobby-screen');
   setTimeout(() => refreshLobby(), 350);
+    try { ensureLobbyRoomWatcher(); } catch (e) {}
 });
 
 // ==================== 游戏内按钮 ====================
-document.getElementById('btn-game-settings').addEventListener('click', () => {
-  // 游戏中打开设置页；背景设置是全局的，会直接作用于当前游戏界面
-  showScreen('settings-screen');
-});
 document.getElementById('btn-restart').addEventListener('click', () => { resetPlayer(false); });
 document.getElementById('btn-exit').addEventListener('click', () => { exitGame(); });
 document.getElementById('switch-world-btn').addEventListener('click', () => { switchWorld(); });
@@ -15130,6 +15697,11 @@ function getCardMeta(code) {
   }
   return meta;
 }
+// 刷新防连按与刷新结果提示：快照对比（上次数组 → 本次新增/热度变化）
+let _publicSnapshot = null;
+let _mySnapshot = null;
+let _refreshCooldownUntil = 0;
+let _refreshNoticePending = null;
 async function renderPublicLevels(filter = '') {
   const container = document.getElementById('public-levels-list');
   const token = ++_lobbyRenderToken;
@@ -15223,6 +15795,22 @@ async function renderPublicLevels(filter = '') {
     item.grid.insertAdjacentHTML('beforeend', cardHtml(item.l));
     await new Promise(r => requestAnimationFrame(r));
   }
+  // 刷新结果快照与提示（仅手动刷新触发弹窗）
+  const snap = {};
+  levels.forEach(l => { snap[l.id || l.code] = { name: l.name, likes: l.likes || 0, views: l.views || 0 }; });
+  if (_refreshNoticePending === 'public') {
+    _refreshNoticePending = null;
+    if (_publicSnapshot) {
+      const added = levels.filter(l => !_publicSnapshot[l.id || l.code]).map(l => l.name || '未命名关卡');
+      const heat = levels.filter(l => _publicSnapshot[l.id || l.code] && (_publicSnapshot[l.id || l.code].likes !== (l.likes || 0) || _publicSnapshot[l.id || l.code].views !== (l.views || 0))).length;
+      let msg;
+      if (added.length) msg = '新上线关卡：' + added.slice(0, 5).join('、') + (added.length > 5 ? ' 等 ' + added.length + ' 个' : '');
+      else if (heat) msg = '没有新关卡上线，但有 ' + heat + ' 个关卡有了新的点赞或浏览';
+      else msg = '这次没有刷到新内容';
+      uiDialog({ title: '刷新结果', message: msg });
+    }
+  }
+  _publicSnapshot = snap;
 }
 async function renderMyLevels(filter = '') {
   const container = document.getElementById('my-levels-list');
@@ -15290,6 +15878,7 @@ async function renderMyLevels(filter = '') {
     const safeCode = (l.code || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `
     <div class="level-card-square" data-code="${safeCode}" data-id="${l._cloudId || ''}" data-liked="0" data-likes="0" data-name="${(l.name || '').replace(/"/g, '&quot;')}" data-author="${currentUser ? currentUser.username : '匿名'}" data-desc="${(l.description || '').replace(/"/g, '&quot;')}" data-hasportal="${hasPortal ? '1' : '0'}" data-showminimap="${showMinimap ? '1' : '0'}" data-showindicator="${showIndicator ? '1' : '0'}" data-localidx="${l._localIndex !== undefined ? l._localIndex : ''}" data-cloudid="${l._cloudId || ''}" data-source="${l._source}">
+      <button type="button" class="lc-del-btn" title="删除关卡">✕</button>
       ${!hasPortal ? '<span class="lc-no-portal">' + t('无传送门') + '</span>' : ''}
       ${isOldVersion ? '<span class="lc-badge">' + t('旧版') + '</span>' : ''}
       ${isYuedong2 ? '<span class="lc-badge" style="background:#FFDD44;color:#000;">财神爷版</span>' : ''}
@@ -15300,6 +15889,17 @@ async function renderMyLevels(filter = '') {
       </div>
     </div>
   `}).join('');
+  // 刷新结果快照与提示（仅手动刷新触发弹窗）
+  const msnap = {};
+  displayLevels.forEach(l => { msnap[l._id || l.code] = { name: l.name }; });
+  if (_refreshNoticePending === 'my') {
+    _refreshNoticePending = null;
+    if (_mySnapshot) {
+      const madded = displayLevels.filter(l => !_mySnapshot[l._id || l.code]).map(l => l.name || '未命名关卡');
+      uiDialog({ title: '刷新结果', message: madded.length ? ('新出现关卡：' + madded.slice(0, 5).join('、') + (madded.length > 5 ? ' 等 ' + madded.length + ' 个' : '')) : '这次没有刷到新内容' });
+    }
+  }
+  _mySnapshot = msnap;
 }
 // 事件委托：关卡卡片点击统一由容器处理，绑定一次即可，避免每张卡片一个监听器
 (function setupLevelCardDelegation() {
@@ -15342,16 +15942,9 @@ function openDetailPage(card) {
   const likes = parseInt(card.dataset.likes || '0');
   detailLevelData = code;
   detailLevelId = levelId;
+  // 所有关卡均可联机（推荐人数仅用于开局人数确认），详情页常显"快速进入"
   const onlineBtn = document.getElementById('btn-detail-online');
-  if (onlineBtn) {
-    onlineBtn.style.display = 'none';
-    try {
-      const previewLevel = decodeLevel(code);
-      if (previewLevel && previewLevel.onlineEnabled && (previewLevel.onlineMaxPlayers || 1) > 1) {
-        onlineBtn.style.display = 'flex';
-      }
-    } catch (e) {}
-  }
+  if (onlineBtn) onlineBtn.style.display = 'flex';
   ext_incrementView(levelId); // 打开即算一次浏览（只走 level_views 表）
   detailLevelLiked = liked;
   document.getElementById('detail-name').textContent = name || t('未命名关卡');
@@ -15608,6 +16201,14 @@ async function deleteMyLevelConfirmed(source, localIndex, cloudId) {
           headers: { apikey: SUPABASE_KEY }
         }));
       } catch (e) { console.error('删除云端关卡失败:', e); }
+      // 强对应级联：尽力删除该关卡关联数据（DB 若已配 ON DELETE CASCADE，此处重复删除无副作用）
+      for (const tbl of ['user_likes', 'level_comments', 'level_leaderboard', 'level_views']) {
+        try {
+          await sbNetFetch(`${SUPABASE_URL}/rest/v1/${tbl}?level_id=eq.${cloudId}`, {
+            method: 'DELETE', mode: 'cors', credentials: 'omit', headers: { apikey: SUPABASE_KEY }
+          });
+        } catch (e2) { console.error('级联删除 ' + tbl + ' 失败:', e2); }
+      }
     }
     if (source === 'local' && localIndex !== null && localIndex >= 0 && localIndex < localLevels.length) {
       localLevels.splice(localIndex, 1);
@@ -15736,16 +16337,42 @@ document.getElementById('my-search-input').addEventListener('keydown', (e) => {
   }
 });
 // 5. 刷新按钮
-  document.getElementById('btn-public-refresh').addEventListener('click', () => {
-    const filter = document.getElementById('public-search-input').value;
-    renderPublicLevels(filter);
+  document.getElementById('btn-public-refresh').addEventListener('click', async () => {
+    const now = Date.now();
+    if (now < _refreshCooldownUntil) return; // 防连按：3 秒冷却
+    _refreshCooldownUntil = now + 3000;
+    const btn = document.getElementById('btn-public-refresh');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+    _refreshNoticePending = 'public';
+    try { await renderPublicLevels(document.getElementById('public-search-input').value); }
+    finally { setTimeout(() => { if (btn) { btn.disabled = false; btn.style.opacity = ''; } }, 3000); }
   });
-  // 排序方式切换：即时重排公共大厅
-  const sortSel = document.getElementById('public-sort-select');
-  if (sortSel) sortSel.addEventListener('change', () => renderPublicLevels((document.getElementById('public-search-input') || {}).value || ''));
-  document.getElementById('btn-my-refresh').addEventListener('click', () => {
-    const filter = document.getElementById('my-search-input').value;
-    renderMyLevels(filter);
+  // 排序方式切换：即时重排公共大厅（按钮组写入 hidden input 保持读值兼容）
+  document.querySelectorAll('#public-sort-seg .mode-seg-btn').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('#public-sort-seg .mode-seg-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const hid = document.getElementById('public-sort-select');
+    if (hid) hid.value = btn.dataset.sort;
+    renderPublicLevels((document.getElementById('public-search-input') || {}).value || '');
+  }));
+  // 我的关卡卡片删除（capture 阶段拦截，避免误触卡片点开详情）
+  const myListEl = document.getElementById('my-levels-list');
+  if (myListEl) myListEl.addEventListener('click', e => {
+    const delBtn = e.target.closest('.lc-del-btn');
+    if (!delBtn) return;
+    e.stopPropagation();
+    const card = delBtn.closest('.level-card-square');
+    if (card) window.deleteMyLevel(card.dataset.source, card.dataset.localidx === '' ? -1 : +card.dataset.localidx, card.dataset.cloudid || null);
+  }, true);
+  document.getElementById('btn-my-refresh').addEventListener('click', async () => {
+    const now = Date.now();
+    if (now < _refreshCooldownUntil) return; // 防连按：3 秒冷却
+    _refreshCooldownUntil = now + 3000;
+    const btn = document.getElementById('btn-my-refresh');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+    _refreshNoticePending = 'my';
+    try { await renderMyLevels(document.getElementById('my-search-input').value); }
+    finally { setTimeout(() => { if (btn) { btn.disabled = false; btn.style.opacity = ''; } }, 3000); }
   });
 // 6. 导入关卡 - 立即游玩
 document.getElementById('btn-upload-play').addEventListener('click', () => {
@@ -15826,6 +16453,12 @@ function hashRoomId(text) {
   }
   return (h >>> 0).toString(36);
 }
+// ===== 联机房间目录（大厅可见所有在开的房间） =====
+const LOBBY_ROOM_TOPIC = 'sjyw/lobby';
+const LOBBY_AD_TTL = 16000;
+let lobbyRoomAds = new Map();
+let lobbyMqttClient = null;
+let lobbyAdsTimer = null;
 function roomTopic(room) {
   return `sjyw/rooms/${room.roomId}`;
 }
@@ -16139,9 +16772,13 @@ function getRoomHost(room) {
   return sortedRoomPlayers(room)[0] || null;
 }
 function roomCanStart(room) {
+  // 推荐人数不再硬阻止开始，越界时由房主弹确认（见 btn-online-start handler）
   const players = sortedRoomPlayers(room).filter(p => !p.left);
-  if (players.length < room.minPlayers || players.length > room.maxPlayers) return false;
   return players.every(p => p.id === room.hostId || p.ready === true);
+}
+function roomOverRecommended(room) {
+  const n = sortedRoomPlayers(room).filter(p => !p.left).length;
+  return n < room.minPlayers || n > room.maxPlayers;
 }
 function renderOnlineRoom() {
   const room = currentOnlineRoom;
@@ -16247,6 +16884,7 @@ function connectOnlineRoom(room) {
     room.quotaError = false;
     const topic = roomTopic(room);
     client.subscribe(`${topic}/presence`, { qos: 0 });
+    client.subscribe(LOBBY_ROOM_TOPIC, { qos: 0 }); // 房主同时收全局目录（可看到别的房间）
     client.subscribe(`${topic}/control`, { qos: 0 });
     client.subscribe(p2pSignalTopic(room), { qos: 0 });
     client.subscribe(p2pChatTopic(room), { qos: 0 });
@@ -16275,6 +16913,7 @@ function connectOnlineRoom(room) {
     room.players.forEach(p => {
       if (!p.left && now - p.lastSeen > 12000) { p.left = true; closeRoomPeer(room, p.id); }
     });
+    try { publishRoomAd(room); } catch (e) {}
     renderOnlineRoom();
   }, 3000);
 }
@@ -16289,8 +16928,7 @@ function startOnlineMatch(room, code) {
   startGame();
 }
 function openOnlineRoom(level, fullCode) {
-  if (!level.onlineEnabled) { closeDetailPage(); loadCustomLevel(level); startGame(); return; }
-  if ((level.onlineMaxPlayers || 1) <= 1) { closeDetailPage(); loadCustomLevel(level); startGame(); return; }
+  // 全关卡可联机：不再以 onlineEnabled/人数门槛回退单机
   const localId = `p_${Math.random().toString(36).slice(2, 10)}`;
   const localName = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : '我';
   currentOnlineRoom = {
@@ -16330,6 +16968,74 @@ function openOnlineRoom(level, fullCode) {
   overlay.style.display = 'flex';
   overlay.setAttribute('aria-hidden', 'false');
 }
+function publishRoomAd(room) {
+  if (!room || !room.client || !room.connected) return;
+  const players = sortedRoomPlayers(room).filter(p => !p.left).length;
+  room.client.publish(LOBBY_ROOM_TOPIC, JSON.stringify({
+    type: 'room_ad', roomId: room.roomId, code: room.fullCode,
+    name: (room.level && room.level.name) || '未命名关卡',
+    host: (room.localPlayer && room.localPlayer.name) || '匿名',
+    players: players, max: room.maxPlayers, ts: Date.now()
+  }));
+}
+function ensureLobbyRoomWatcher() {
+  if (lobbyMqttClient || typeof mqtt === 'undefined' || !mqtt.connect) return;
+  const cfg = getMqttConfig();
+  if (!cfg.host || !cfg.port) return; // 未配置 MQTT 则目录不可用（进入房间时面板已有配置入口）
+  try {
+    lobbyMqttClient = mqtt.connect(mqttUrl(cfg), {
+      username: cfg.username || undefined,
+      password: cfg.password || undefined,
+      reconnectPeriod: 5000
+    });
+    lobbyMqttClient.on('connect', () => {
+      lobbyMqttClient.subscribe(LOBBY_ROOM_TOPIC, { qos: 0 });
+      renderLobbyRooms();
+    });
+    lobbyMqttClient.on('message', (tpc, payload) => {
+      if (tpc !== LOBBY_ROOM_TOPIC) return;
+      try {
+        const m = JSON.parse(payload.toString());
+        if (m.type === 'room_ad' && m.roomId) lobbyRoomAds.set(m.roomId, m);
+        else if (m.type === 'room_ad_off' && m.roomId) lobbyRoomAds.delete(m.roomId);
+        renderLobbyRooms();
+      } catch (e) {}
+    });
+    lobbyAdsTimer = setInterval(() => {
+      const now = Date.now();
+      let changed = false;
+      for (const [k, ad] of lobbyRoomAds) { if (now - (ad.ts || 0) > LOBBY_AD_TTL) { lobbyRoomAds.delete(k); changed = true; } }
+      if (changed) renderLobbyRooms();
+    }, 5000);
+  } catch (e) { lobbyMqttClient = null; }
+}
+function renderLobbyRooms() {
+  const box = document.getElementById('lobby-rooms-list');
+  if (!box) return;
+  const cfg = getMqttConfig();
+  if (!cfg.host || !cfg.port) { box.innerHTML = '<div class="levels-empty">联机房间目录需要 MQTT 配置；请先在联机房间面板配置。</div>'; return; }
+  const ads = Array.from(lobbyRoomAds.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  if (!ads.length) { box.innerHTML = '<div class="levels-empty">暂无进行中的房间。去任意关卡详情页点"快速进入"创建房间，房间会出现在这里。</div>'; return; }
+  box.innerHTML = ads.map(ad => `
+    <div class="lobby-room-row" data-room="${ad.roomId}">
+      <div class="lc-minimap" style="width:90px;display:flex;align-items:center;justify-content:center;color:#8D9390;font-size:11px;">${ad.roomId}</div>
+      <div class="lc-info">
+        <div class="lc-name">${(ad.name || '未命名关卡').replace(/</g, '&lt;')}</div>
+        <div class="lc-desc">房主 ${(ad.host || '匿名').replace(/</g, '&lt;')} · ${ad.players || 0}/${ad.max || '-'} 人</div>
+      </div>
+      <button type="button" class="btn btn-small lobby-room-join" data-room="${ad.roomId}">加入</button>
+    </div>`).join('');
+  box.querySelectorAll('.lobby-room-join').forEach(btn => btn.addEventListener('click', () => joinLobbyRoom(btn.dataset.room)));
+}
+function joinLobbyRoom(roomId) {
+  const ad = lobbyRoomAds.get(roomId);
+  if (!ad || !ad.code) { alert('房间信息缺失或已关闭'); return; }
+  try {
+    const lvl = decodeLevel(ad.code);
+    if (!lvl) { alert('无法解析房间关卡编码'); return; }
+    openOnlineRoom(lvl, ad.code);
+  } catch (e) { alert('加入房间失败：' + (e && e.message ? e.message : e)); }
+}
 function closeOnlineRoom() {
   const room = currentOnlineRoom;
   const overlay = document.getElementById('online-room-overlay');
@@ -16339,6 +17045,7 @@ function closeOnlineRoom() {
       try { room.client.end(true); } catch (e) {}
     }
     if (room.heartbeatTimer) clearInterval(room.heartbeatTimer);
+    try { if (room.client && room.connected) room.client.publish(LOBBY_ROOM_TOPIC, JSON.stringify({ type: 'room_ad_off', roomId: room.roomId })); } catch (e) {}
     destroyP2P(room);
   }
   currentOnlineRoom = null;
@@ -16366,13 +17073,26 @@ document.getElementById('btn-online-ready').addEventListener('click', () => {
   room.client.publish(`${roomTopic(room)}/control`, JSON.stringify({ type: 'ready', player: room.localPlayer, ready: me.ready }));
   renderOnlineRoom();
 });
-document.getElementById('btn-online-start').addEventListener('click', async () => {
-  const room = currentOnlineRoom;
-  if (!room || room.localPlayerId !== room.hostId || !roomCanStart(room)) return;
+function hostPublishStart(room) {
   if (room.client && room.connected) {
     room.client.publish(`${roomTopic(room)}/control`, JSON.stringify({ type: 'start', code: room.fullCode }));
   }
   startOnlineMatch(room, room.fullCode);
+}
+document.getElementById('btn-online-start').addEventListener('click', async () => {
+  const room = currentOnlineRoom;
+  if (!room || room.localPlayerId !== room.hostId || !roomCanStart(room)) return;
+  if (roomOverRecommended(room)) {
+    const n = sortedRoomPlayers(room).filter(p => !p.left).length;
+    uiDialog({
+      title: '人数超出推荐范围',
+      message: '当前房间 ' + n + ' 人，推荐 ' + room.minPlayers + '-' + room.maxPlayers + ' 人。\n仍要开启游戏吗？',
+      okText: '仍要开启', showCancel: true,
+      onOk: function() { hostPublishStart(room); }
+    });
+    return;
+  }
+  hostPublishStart(room);
 });
 document.getElementById('btn-toggle-mqtt-config').addEventListener('click', () => {
   const panel = document.getElementById('mqtt-config-panel');
