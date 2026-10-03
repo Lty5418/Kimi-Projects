@@ -2411,7 +2411,8 @@ html, body {
 .online-room-panel {
   width: min(980px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
-  overflow: hidden;
+  overflow-y: auto; /* FIX(V10.3): 面板超出视口时允许滚动，准备/开始游戏按钮不再被裁掉 */
+  overflow-x: hidden;
   border: 1px solid rgba(0,161,255,.34);
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(18,24,36,.98), rgba(9,13,22,.98));
@@ -4090,7 +4091,6 @@ requestAnimationFrame(frame);
       <button class="btn btn-small" id="detail-desc-toggle" style="display:none;margin-bottom:16px;">展开简介 ▾</button>
     </div>
     <div class="detail-actions">
-      <button class="btn" id="btn-detail-play" style="flex:1;">开始培训</button>
       <button class="btn" id="btn-detail-copy" style="border-color:#8D9390;color:#8D9390;">复制编码</button>
       <button class="btn" id="btn-detail-online" style="display:none;flex:1;border-color:#00a1ff;color:#7cc7ff;">快速进入</button>
       <button class="detail-like-btn" id="btn-detail-like">
@@ -4142,23 +4142,7 @@ requestAnimationFrame(frame);
             <button id="btn-online-ready" class="btn" type="button">准备</button>
             <button id="btn-online-start" class="btn btn-primary" type="button" disabled>开始游戏</button>
           </div>
-          <div class="online-room-note">
-            <div id="mqtt-config-status">MQTT broker 尚未配置；当前为房间界面与状态骨架。</div>
-            <button id="btn-toggle-mqtt-config" class="btn btn-small" type="button" style="margin-top:8px;">配置 MQTT</button>
-            <div id="mqtt-config-panel" style="display:none; margin-top:10px; padding:10px; border:1px solid #263143; border-radius:10px; background:rgba(10,14,20,.85);">
-              <input id="mqtt-host" type="text" placeholder="host，例如 xxx.emqxcloud.cn" style="width:100%; margin-bottom:8px; padding:8px;">
-              <div style="display:flex; gap:8px; margin-bottom:8px;">
-                <input id="mqtt-port" type="number" placeholder="端口，例如 8084" style="flex:1; padding:8px;">
-                <input id="mqtt-path" type="text" placeholder="/mqtt" style="flex:1; padding:8px;">
-              </div>
-              <input id="mqtt-username" type="text" placeholder="username" style="width:100%; margin-bottom:8px; padding:8px;">
-              <input id="mqtt-password" type="password" placeholder="password / token" style="width:100%; margin-bottom:8px; padding:8px;">
-              <div style="display:flex; gap:8px;">
-                <button id="btn-save-mqtt-config" class="btn" type="button">保存配置</button>
-                <button id="btn-clear-mqtt-config" class="btn btn-small" type="button">清除</button>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -5614,9 +5598,9 @@ const SUPABASE_URL = (function(){
 })();
 
 // V10.2 自动降级：直连被部分运营商封锁时自动切反代线路（双向：反代也不通时切回）。
-// workers.dev 国内可达性因地区而异，故此线路定位是"降级备选"而非主线路；
+// 降级线路现为秒哒中转（国内可达）；主线路仍是直连 supabase.co，正常玩家零影响。
 // 若日后绑了自有域名，只需把 SB_PROXY_BASE 改成 https://sb.你的域名/sb 即可全量受益。
-const SB_PROXY_BASE = 'https://st-sb-proxy.3846759653.workers.dev/sb';
+const SB_PROXY_BASE = 'https://backend.miaoda.online/projects/supabase364748487067217920/functions/v1/sb-proxy/sb';
 let _sbActiveBase = SUPABASE_URL;
 function sbSetActiveBase(base) {
   if (_sbActiveBase === base) return false;
@@ -17158,52 +17142,12 @@ document.getElementById('btn-online-start').addEventListener('click', async () =
   }
   hostPublishStart(room);
 });
-document.getElementById('btn-toggle-mqtt-config').addEventListener('click', () => {
-  const panel = document.getElementById('mqtt-config-panel');
-  if (!panel) return;
-  loadMqttConfigPanel();
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-});
-document.getElementById('btn-save-mqtt-config').addEventListener('click', () => {
-  const cfg = {
-    host: document.getElementById('mqtt-host').value.trim(),
-    port: Number(document.getElementById('mqtt-port').value || 8084),
-    path: document.getElementById('mqtt-path').value.trim() || '/mqtt',
-    username: document.getElementById('mqtt-username').value.trim(),
-    password: document.getElementById('mqtt-password').value
-  };
-  if (!cfg.host || !cfg.username || !cfg.password) { alert('请完整填写 MQTT host、username、password'); return; }
-  saveMqttConfig(cfg);
-  loadMqttConfigPanel();
-  alert('MQTT 配置已保存，重新打开房间后生效。');
-});
-document.getElementById('btn-clear-mqtt-config').addEventListener('click', () => {
-  localStorage.removeItem(MQTT_STORAGE_KEY);
-  loadMqttConfigPanel();
-});
 document.getElementById('btn-online-send-chat').addEventListener('click', sendRoomChat);
 document.getElementById('online-chat-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); sendRoomChat(); }
 });
 document.getElementById('btn-online-mic').addEventListener('click', toggleRoomMic);
 
-// 8. 详情页开始培训按钮
-document.getElementById('btn-detail-play').addEventListener('click', async () => {
-  if (!detailLevelData) return;
-  const decodedCode = detailLevelData.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  const fullCode = await resolveLevelCode(decodedCode);
-  lastLobbyLevelCode = fullCode;
-  isEditorTest = false;
-  isFromLobby = true;
-  const level = decodeLevel(fullCode);
-  if (level) {
-    closeDetailPage();
-    loadCustomLevel(level);
-    startGame();
-  } else {
-    alert(t('关卡编码无效'));
-  }
-});
 // 9. 详情页点赞按钮
 document.getElementById('btn-detail-like').addEventListener('click', async () => {
   if (!detailLevelId || !currentUser || !currentUser.id) {
