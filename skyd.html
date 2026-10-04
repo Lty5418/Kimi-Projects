@@ -106,7 +106,7 @@ html, body {
   z-index: 0 !important;
   pointer-events: auto;
 }
-#start-screen.blackhole-bg #blackhole-bg-frame { display: block; }
+#start-screen.blackhole-bg #blackhole-bg-frame { display: block; filter: blur(2px) saturate(1.05); } /* V10.6: 高斯模糊弥补 WebGL 黑洞清晰度不足（不影响点击交互） */
 #start-screen.blackhole-bg::before {
   background: #000 !important;
   background-image: none !important;
@@ -3245,14 +3245,14 @@ input, textarea {
 &lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;
 
 &lt;script&gt;
-const canvas = document.getElementById('c');
-const gl = canvas.getContext('webgl', {
+const canvas = document.getElementById(&#x27;c&#x27;);
+const gl = canvas.getContext(&#x27;webgl&#x27;, {
   antialias: false,
-  powerPreference: 'high-performance',
+  powerPreference: &#x27;high-performance&#x27;,
   preserveDrawingBuffer: false
 });
 if (!gl) {
-  document.body.style.background = '#000';
+  document.body.style.background = &#x27;#000&#x27;;
   throw new Error();
 }
 
@@ -3574,7 +3574,7 @@ function compile(type, src) {
   gl.compileShader(sh);
   if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
     console.error(gl.getShaderInfoLog(sh));
-    throw new Error('Shader compile error');
+    throw new Error(&#x27;Shader compile error&#x27;);
   }
   return sh;
 }
@@ -3585,15 +3585,15 @@ gl.linkProgram(prog);
 if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
 
 const loc = {
-  aPos: gl.getAttribLocation(prog, 'aPos'),
-  uRes: gl.getUniformLocation(prog, 'uRes'),
-  uTime: gl.getUniformLocation(prog, 'uTime'),
-  uCamPos: gl.getUniformLocation(prog, 'uCamPos'),
-  uFov: gl.getUniformLocation(prog, 'uFov'),
-  uExposure: gl.getUniformLocation(prog, 'uExposure'),
-  uColOuter: gl.getUniformLocation(prog, 'uColOuter'),
-  uColMid: gl.getUniformLocation(prog, 'uColMid'),
-  uColInner: gl.getUniformLocation(prog, 'uColInner'),
+  aPos: gl.getAttribLocation(prog, &#x27;aPos&#x27;),
+  uRes: gl.getUniformLocation(prog, &#x27;uRes&#x27;),
+  uTime: gl.getUniformLocation(prog, &#x27;uTime&#x27;),
+  uCamPos: gl.getUniformLocation(prog, &#x27;uCamPos&#x27;),
+  uFov: gl.getUniformLocation(prog, &#x27;uFov&#x27;),
+  uExposure: gl.getUniformLocation(prog, &#x27;uExposure&#x27;),
+  uColOuter: gl.getUniformLocation(prog, &#x27;uColOuter&#x27;),
+  uColMid: gl.getUniformLocation(prog, &#x27;uColMid&#x27;),
+  uColInner: gl.getUniformLocation(prog, &#x27;uColInner&#x27;),
 };
 
 const quadBuf = gl.createBuffer();
@@ -3621,6 +3621,7 @@ const colorState = {
   i: DEFAULTS.i.slice(),
 };
 let spinVelocity = 0;
+const BASE_SPIN = 0.07; // V10.8: 常态缓慢自转（弧度/秒）
 let colorTransition = null;
 function cloneColorTriplet() {
   return {
@@ -3631,14 +3632,14 @@ function cloneColorTriplet() {
 }
 function makeRandomColorTriplet() {
   const next = {};
-  ['o', 'm', 'i'].forEach(k =&gt; {
+  [&#x27;o&#x27;, &#x27;m&#x27;, &#x27;i&#x27;].forEach(k =&gt; {
     next[k] = [0.08 + Math.random() * 0.9, 0.08 + Math.random() * 0.9, 0.08 + Math.random() * 0.9];
   });
   return next;
 }
 function startBlackholeTransition() {
   // 点击后：黑洞开始旋转，随后慢慢停下；颜色同时缓慢过渡到新的随机颜色。
-  spinVelocity = 2.4;
+  spinVelocity = 3.0; // V10.8: 点击快速旋转
   colorTransition = {
     from: cloneColorTriplet(),
     to: makeRandomColorTriplet(),
@@ -3646,7 +3647,7 @@ function startBlackholeTransition() {
     duration: 2600
   };
 }
-canvas.addEventListener('click', startBlackholeTransition);
+canvas.addEventListener(&#x27;click&#x27;, startBlackholeTransition);
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
@@ -3658,7 +3659,7 @@ function resize() {
     W = w; H = h;
   }
 }
-window.addEventListener('resize', resize);
+window.addEventListener(&#x27;resize&#x27;, resize);
 
 const cam = { theta: 0.55, phi: 0.13, dist: 22, thetaT: 0.55, phiT: 0.13, distT: 22 };
 const MIN_DIST = 3.3, MAX_DIST = 90;
@@ -3671,7 +3672,7 @@ function updateCam() {
   return [cam.dist * cp * Math.sin(cam.theta), cam.dist * Math.sin(cam.phi), cam.dist * cp * Math.cos(cam.theta)];
 }
 
-// 用户不能手动旋转黑洞；只有点击触发一次“旋转减速 + 颜色渐变”。
+// V10.8: 黑洞常态缓慢自转；点击触发一次快速旋转（随后减速）+ 颜色渐变。
 let lastFrameTime = performance.now();
 function updateBlackholeInteraction(now) {
   const dt = Math.min(0.05, Math.max(0.001, (now - lastFrameTime) / 1000));
@@ -3683,10 +3684,13 @@ function updateBlackholeInteraction(now) {
   } else {
     spinVelocity = 0;
   }
+  // V10.8: 常态缓慢自转；点击加速衰减结束后回到此速度
+  cam.thetaT += BASE_SPIN * dt;
+  cam.theta += BASE_SPIN * dt;
   if (colorTransition) {
     const p = Math.min(1, (now - colorTransition.start) / colorTransition.duration);
     const e = 1 - Math.pow(1 - p, 3);
-    ['o', 'm', 'i'].forEach(k =&gt; {
+    [&#x27;o&#x27;, &#x27;m&#x27;, &#x27;i&#x27;].forEach(k =&gt; {
       for (let c = 0; c &lt; 3; c++) {
         colorState[k][c] = colorTransition.from[k][c] + (colorTransition.to[k][c] - colorTransition.from[k][c]) * e;
       }
@@ -7174,6 +7178,7 @@ const CollisionHandlers = {
     }
   },
   [TILE_DOOR_R]: { onCollide(p, tileX, tileY, dx, dy) { if (!isDoorOpen(TILE_DOOR_R)) CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } },
+  [TILE_STICKY_WALL]: { onCollide(p, tileX, tileY, dx, dy) { CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } }, // V10.8 FIX: 粘性墙此前缺少碰撞处理器，玩家可穿墙而过
   [TILE_DOOR_B]: { onCollide(p, tileX, tileY, dx, dy) { if (!isDoorOpen(TILE_DOOR_B)) CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } },
   [TILE_DOOR_G]: { onCollide(p, tileX, tileY, dx, dy) { if (!isDoorOpen(TILE_DOOR_G)) CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } },
   [TILE_DOOR_Y]: { onCollide(p, tileX, tileY, dx, dy) { if (!isDoorOpen(TILE_DOOR_Y)) CollisionHandlers[TILE_LAND].onCollide(p, tileX, tileY, dx, dy); } },
@@ -16865,6 +16870,7 @@ function addRoomPlayer(room, data) {
     room.players.set(data.id, {
       id: data.id,
       name: data.name || '玩家',
+      ts: data.ts || 0, // V10.7: 进房时间戳（老客户端缺省为 0，新设备优先）
       ready: false,
       joinOrder: room.joinSeq,
       lastSeen: Date.now(),
@@ -16873,8 +16879,29 @@ function addRoomPlayer(room, data) {
   } else {
     const p = room.players.get(data.id);
     p.name = data.name || p.name;
+    if (data.ts) p.ts = data.ts; // V10.7: 消息携带较新 ts 时更新（用于排序收敛）
     p.lastSeen = Date.now();
-    p.left = false;
+    p.left = false; // 复活逻辑保留：同一 tick 内会被下方去重重踢，各端收敛一致
+  }
+  // V10.7 同房同账号去重：同名未离开者按 (ts, id) 保留最大，其余标记离开；同 tick 完成，无渲染闪烁。
+  // 排序键全部来自消息体（各端消息到达顺序不同也不影响收敛结果）。
+  const byName = new Map();
+  for (const p of room.players.values()) {
+    if (p.left) continue;
+    if (!byName.has(p.name)) byName.set(p.name, []);
+    byName.get(p.name).push(p);
+  }
+  for (const list of byName.values()) {
+    if (list.length < 2) continue;
+    list.sort((a, b) => ((b.ts || 0) - (a.ts || 0)) || (a.id < b.id ? 1 : (a.id > b.id ? -1 : 0)));
+    for (let i = 1; i < list.length; i++) list[i].left = true;
+  }
+  // 本机被同名新设备顶替 → 自我踢出（收到新 join 广播即执行，无需新增消息类型）
+  const me = room.players.get(room.localPlayerId);
+  if (me && me.left && !room.selfKicked) {
+    room.selfKicked = true;
+    closeOnlineRoom();
+    alert('你的账号已在其他设备进入该房间，本设备已被移出。');
   }
 }
 function handleRoomMessage(room, topicName, payload) {
@@ -16987,7 +17014,7 @@ function openOnlineRoom(level, fullCode) {
     minPlayers: Math.max(1, level.onlineMinPlayers || 1),
     maxPlayers: Math.max(1, level.onlineMaxPlayers || 1),
     localPlayerId: localId,
-    localPlayer: { id: localId, name: localName },
+    localPlayer: { id: localId, name: localName, ts: Date.now() }, // V10.7: ts 用于同房同账号去重的全局排序
     players: new Map(),
     joinSeq: 0,
     connected: false,
@@ -17038,7 +17065,7 @@ function ensureLobbyRoomWatcher() {
     });
     lobbyMqttClient.on('connect', () => {
       lobbyMqttClient.subscribe(LOBBY_ROOM_TOPIC, { qos: 0 });
-      renderLobbyRooms();
+      scheduleRenderLobbyRooms();
     });
     lobbyMqttClient.on('message', (tpc, payload) => {
       if (tpc !== LOBBY_ROOM_TOPIC) return;
@@ -17046,16 +17073,26 @@ function ensureLobbyRoomWatcher() {
         const m = JSON.parse(payload.toString());
         if (m.type === 'room_ad' && m.roomId) lobbyRoomAds.set(m.roomId, m);
         else if (m.type === 'room_ad_off' && m.roomId) lobbyRoomAds.delete(m.roomId);
-        renderLobbyRooms();
+        scheduleRenderLobbyRooms(); // V10.6: 合流重建，替代直接 renderLobbyRooms()
       } catch (e) {}
     });
     lobbyAdsTimer = setInterval(() => {
       const now = Date.now();
       let changed = false;
       for (const [k, ad] of lobbyRoomAds) { if (now - (ad.ts || 0) > LOBBY_AD_TTL) { lobbyRoomAds.delete(k); changed = true; } }
-      if (changed) renderLobbyRooms();
+      if (changed) scheduleRenderLobbyRooms();
     }, 5000);
   } catch (e) { lobbyMqttClient = null; }
+}
+// V10.6 性能修复：每条 room_ad 都触发全量重建会造成卡顿（多房时每 3 秒 N 次）；
+// 合流为 400ms 窗口最多一次重建，广告风暴退化为平滑节流更新。
+var _renderLobbyRoomsTimer = null;
+function scheduleRenderLobbyRooms() {
+  if (_renderLobbyRoomsTimer) return;
+  _renderLobbyRoomsTimer = setTimeout(function () {
+    _renderLobbyRoomsTimer = null;
+    renderLobbyRooms();
+  }, 400);
 }
 function renderLobbyRooms() {
   const box = document.getElementById('lobby-rooms-list');
