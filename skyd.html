@@ -3650,7 +3650,7 @@ function startBlackholeTransition() {
 canvas.addEventListener(&#x27;click&#x27;, startBlackholeTransition);
 
 function resize() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.2); // V10.9 性能：降低渲染分辨率（像素量约降 53%）
   const w = Math.max(2, Math.floor(window.innerWidth * dpr * renderScale));
   const h = Math.max(2, Math.floor(window.innerHeight * dpr * renderScale));
   if (canvas.width !== w || canvas.height !== h) {
@@ -3701,7 +3701,12 @@ function updateBlackholeInteraction(now) {
 
 resize();
 const t0 = performance.now();
+let __lastFrame = 0;
 function frame(now) {
+  // V10.9 性能：后台标签页直接跳过渲染（rAF 在后台被节流，这里再省掉 GL 工作）；前台限帧 30fps
+  if (document.hidden) { requestAnimationFrame(frame); return; }
+  if (now - __lastFrame &lt; 33) { requestAnimationFrame(frame); return; }
+  __lastFrame = now;
   const t = (now - t0) * 0.001;
   updateBlackholeInteraction(now);
   const cp = updateCam();
@@ -16747,12 +16752,16 @@ function closeRoomPeer(room, peerId, notify = true) {
 }
 function destroyP2P(room) {
   if (!room) return;
-  Array.from(room.peers.keys()).forEach(peerId => closeRoomPeer(room, peerId, false));
+  // V10.9 性能：WebRTC 断连会触发同步回调风暴，整体兜底防中断清理
+  try {
+  Array.from(room.peers.keys()).forEach(peerId => { try { closeRoomPeer(room, peerId, false); } catch (e) {} });
   room.peers.clear();
   if (room.localStream) {
+    try {
     room.localStream.getAudioTracks().forEach(track => {
       try { track.stop(); } catch (e) {}
     });
+    } catch (e) {}
   }
   room.localStream = null;
   room.micOn = false;
@@ -16763,7 +16772,8 @@ function destroyP2P(room) {
   if (log) log.innerHTML = '';
   if (input) input.value = '';
   if (sink) sink.innerHTML = '';
-  room.chatSeen.clear();
+  } catch (e) {} // V10.9 兜底关闭
+  try { room.chatSeen.clear(); } catch (e) {}
 }
 async function toggleRoomMic() {
   const room = currentOnlineRoom;
@@ -16901,7 +16911,9 @@ function addRoomPlayer(room, data) {
   if (me && me.left && !room.selfKicked) {
     room.selfKicked = true;
     closeOnlineRoom();
-    alert('你的账号已在其他设备进入该房间，本设备已被移出。');
+    // V10.9 性能/体验：阻塞式 alert 会冻结主线程，改为非阻塞自绘对话框（异常时回退 alert）
+    try { uiDialog({ title: '提示', message: '你的账号已在其他设备进入该房间，本设备已被移出。' }); }
+    catch (e) { alert('你的账号已在其他设备进入该房间，本设备已被移出。'); }
   }
 }
 function handleRoomMessage(room, topicName, payload) {
