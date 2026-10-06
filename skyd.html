@@ -3650,7 +3650,7 @@ function startBlackholeTransition() {
 canvas.addEventListener(&#x27;click&#x27;, startBlackholeTransition);
 
 function resize() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.2); // V10.9 性能：降低渲染分辨率（像素量约降 53%）
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.0); // V10.11 极致性能：逻辑分辨率渲染（再降约 30% 像素量）
   const w = Math.max(2, Math.floor(window.innerWidth * dpr * renderScale));
   const h = Math.max(2, Math.floor(window.innerHeight * dpr * renderScale));
   if (canvas.width !== w || canvas.height !== h) {
@@ -3705,7 +3705,7 @@ let __lastFrame = 0;
 function frame(now) {
   // V10.9 性能：后台标签页直接跳过渲染（rAF 在后台被节流，这里再省掉 GL 工作）；前台限帧 30fps
   if (document.hidden) { requestAnimationFrame(frame); return; }
-  if (now - __lastFrame &lt; 33) { requestAnimationFrame(frame); return; }
+  if (now - __lastFrame &lt; 41) { requestAnimationFrame(frame); return; } // V10.11: 30fps→24fps
   __lastFrame = now;
   const t = (now - t0) * 0.001;
   updateBlackholeInteraction(now);
@@ -4240,6 +4240,30 @@ requestAnimationFrame(frame);
               <span>重力加速度</span>
               <input type="number" id="input-gravity-custom" min="0.05" max="3" step="0.05" placeholder="默认0.35" style="width:52px;background:#121212;border:1px solid #2a2a2a;color:#fff;padding:2px 4px;font-size:11px;border-radius:3px;">
             </div>
+            <div id="story-author-blocks" style="display:none;flex-direction:column;align-items:stretch;">
+            <div class="sidebar-setting" style="flex-direction:column;align-items:stretch;">
+              <span>关卡名（生成编码时写入）</span>
+              <input type="text" id="opt-level-name" placeholder="主线关卡名" oninput="editorLevelName=this.value" style="background:#121212;border:1px solid #2a2a2a;color:#fff;padding:4px;font-size:11px;border-radius:3px;">
+            </div>
+            <div class="sidebar-setting" style="flex-direction:column;align-items:stretch;">
+              <span>开局对话（逐句播放）</span>
+              <div id="ed-intro-lines"></div>
+              <button class="sidebar-action-btn" id="btn-ed-intro-add" style="width:auto;">+ 添加一句</button>
+            </div>
+            <div class="sidebar-setting" style="flex-direction:column;align-items:stretch;">
+              <span>剧情事件（广播触发，弹对话）</span>
+              <div class="hint" style="font-size:10px;color:#667;margin-bottom:4px;">用工具栏「触发」方块放置触发器，其组名就是广播名</div>
+              <button class="sidebar-action-btn" id="btn-ed-ev-pick" style="width:auto;">＋ 添加事件</button>
+              <div id="ed-event-list"></div>
+              <div id="ed-event-editor" style="display:none;margin-top:6px;">
+                <input type="text" id="ed-event-bcast" placeholder="广播名（=触发方块的组名）" oninput="if(window.edSelEventRef)edSelEventRef.bcast=this.value"
+                  style="width:100%;box-sizing:border-box;background:#121212;border:1px solid #2a2a2a;color:#fff;padding:5px;font-size:12px;border-radius:3px;margin-bottom:6px;">
+                <div id="ed-event-lines"></div>
+                <button class="sidebar-action-btn" id="btn-ed-ev-add" style="width:auto;">+ 添加一句</button>
+                <button class="sidebar-action-btn" id="btn-ed-ev-del" style="width:auto;">删除此事件</button>
+              </div>
+            </div>
+            </div>
         </div>
       </div>
       <!-- 常驻操作栏（任何选项卡下都可见，固定在侧栏底部） -->
@@ -4277,7 +4301,6 @@ requestAnimationFrame(frame);
     <div id="editor-select-actions">
       <button type="button" class="tool-btn select-action" id="btn-editor-copy">复制</button>
       <button type="button" class="tool-btn" id="btn-editor-paste">粘贴</button>
-      <button type="button" class="tool-btn select-action" id="btn-create-moving-platform">移动平台</button>
       <button type="button" class="tool-btn select-action" id="btn-cancel-paste">取消</button>
       <button type="button" class="tool-btn select-action" id="btn-confirm-paste">确认</button>
     </div>
@@ -4404,7 +4427,7 @@ requestAnimationFrame(frame);
     <div class="uid-box">
       <div class="uid-title" id="uid-title">提示</div>
       <div class="uid-msg" id="uid-msg"></div>
-      <input type="text" id="uid-input" maxlength="400" placeholder="">
+      <input type="text" id="uid-input" placeholder="">
       <div class="uid-btns">
         <button class="btn btn-small btn-danger" id="uid-cancel">取消</button>
         <button class="btn btn-small" id="uid-ok">确定</button>
@@ -5564,6 +5587,10 @@ document.addEventListener('i18nchange', function() {
 // ==================== 统一样式自定义对话框（替代系统 alert/confirm/prompt）====================
 function uiDialog(opts) {
   // opts: {title, message, input(占位符), value, okText, showCancel, onOk(value), onCancel()}
+  // V10.10 防卡死：相同内容对话框已打开时直接忽略，防止错误循环叠加模态框冻结页面
+  const _sig = (opts.title || '') + '|' + (opts.message || '');
+  if (uiDialog._open === _sig) return;
+  uiDialog._open = _sig;
   const dlg = document.getElementById('ui-dialog');
   document.getElementById('uid-title').textContent = opts.title || t('提示');
   document.getElementById('uid-msg').textContent = opts.message || '';
@@ -5582,6 +5609,7 @@ function uiDialog(opts) {
   const close = (val, which) => {
     dlg.classList.remove('active');
     dlg.onclick = null;
+    uiDialog._open = null; // V10.10: 释放防叠加标记
     if (which === 'ok') { if (opts.onOk) opts.onOk(val); }
     else if (opts.onCancel) opts.onCancel();
   };
@@ -6498,6 +6526,15 @@ function parseLevel(levelData) {
       }
     }
   }
+  // V10.13 剧情统一挂载：编码携带的 story（试玩/导入/内置主线关全经此函数）
+  level.story = levelData.story || null;
+  level.storyEvents = [];
+  level._storyFired = {};
+  if (level.story && level.story.events && level.spawn) {
+    for (const _e of level.story.events) {
+      level.storyEvents.push({ id: _e.id, x: _e.x + level.spawn.x, y: _e.y + level.spawn.y, lines: _e.lines || [] });
+    }
+  }
   return level;
   } catch (err) {
     console.error('[parseLevel] 错误:', err);
@@ -6527,6 +6564,8 @@ function loadLevel(idx) {
   isFromLobby = false;
   editorTestWon = false;
   currentLevel = parseLevel(BUILTIN_LEVELS[idx]);
+  // V10.12/10.13: 挂载剧情数据（内置关卡的本地覆盖剧情）
+  applyStoryToLevel(currentLevel, getStoryFor(idx));
   invalidateChunkCache(); // 静态图层缓存失效
   resetPlayer(true); // 加载新关卡，清空存档点
   document.getElementById('level-name-display').textContent = t(BUILTIN_LEVELS[idx].name);
@@ -6573,10 +6612,13 @@ function loadCustomLevel(levelData) {
       worldBData.level.bouncerDirs = levelData.bouncerDirs;
     }
     currentLevel = worldAData.level;
+    // V10.26: 双世界分支同样挂载剧情（此前只有单世界分支挂载，双世界关卡开局对话丢失）
+    applyStoryToLevel(currentLevel, levelData.story || null);
   } else {
     worldAData = null;
     worldBData = null;
     currentLevel = parseLevel(levelData);
+    applyStoryToLevel(currentLevel, levelData.story || null); // V10.13: 编码内剧情（导入/我烤入的主线关）
     if (levelData.bouncerDirs && currentLevel) {
       currentLevel.bouncerDirs = levelData.bouncerDirs;
     }
@@ -7258,6 +7300,9 @@ function triggerSwitchAt(color) {
   if (switchCooldown[color] > 0) return;
   switchCooldown[color] = 10;
   doorStates[color] = !doorStates[color];
+  // V10.28: 开关同时发出广播（中文色名），剧情事件可监听
+  const _swName = { r: '开关红', b: '开关蓝', g: '开关绿', y: '开关黄' }[color];
+  if (_swName && typeof sendBroadcast === 'function') { try { sendBroadcast(_swName); } catch (e) {} }
 }
 function isTimedPlatformGone(gx, gy) {
   let k = gx + ',' + gy;
@@ -9424,6 +9469,8 @@ const MAX_STEPS_PER_FRAME = 4; // 防跳帧雪崩：单帧最多补 4 步物理
 
 function gameLoopRAF(now) {
   _rAFId = requestAnimationFrame(gameLoopRAF);
+  // V10.11 极致性能：后台标签页整帧短路（不推进模拟、不渲染），回前台自然续跑——顺带防止后台挂机关卡里莫名死亡
+  if (document.hidden) { _loopLast = now; _loopAcc = 0; return; }
   let dt = now - _loopLast;
   if (dt > 200) dt = 200; // 切后台回来不追帧
   _loopLast = now;
@@ -9529,6 +9576,145 @@ const editorCtx = editorCanvas.getContext('2d');
 function getEditorCells() {
   return editorDualEnabled && editorCurrentWorld === 'B' ? editorCellsB : editorCells;
 }
+// V10.13 编辑器剧情数据（开局对话 + 纯对话事件 + 关卡名）
+let editorStory = { intro: [], events: [] };
+let editorLevelName = '';
+function editorStoryHasContent() {
+  return (editorStory.intro && editorStory.intro.some(l => (l.text || '').trim()))
+      || (editorStory.events && editorStory.events.some(e => (e.lines || []).some(l => (l.text || '').trim())));
+}
+// V10.29: 屏幕诊断条已按用户要求移除，仅保留控制台日志
+function storyDiag(msg) {
+  try { console.log('[剧情] ' + msg); } catch (e) {}
+}
+// 「其他」面板 UI 渲染与绑定
+let edSelEvent = null;
+function edRenderLines(elId, lines) {
+  const box = document.getElementById(elId);
+  if (!box) return;
+  box.innerHTML = '';
+  lines.forEach((ln, i) => {
+    // V10.15: 两行布局——[说话人|↑|↓|×] 一行，[对话内容] 独占一行（修复窄侧栏文本框被挤没的问题）
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:6px;padding:4px;background:rgba(255,255,255,.03);border-radius:4px;';
+    const row1 = document.createElement('div');
+    row1.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;align-items:center;';
+    const spk = document.createElement('input');
+    spk.type = 'text'; spk.placeholder = '说话人'; spk.value = ln.speaker || '';
+    spk.style.cssText = 'flex:1;min-width:0;background:#121212;border:1px solid #2a2a2a;color:#fff;padding:4px;font-size:11px;border-radius:3px;';
+    spk.oninput = () => { ln.speaker = spk.value; };
+    const row2 = document.createElement('div');
+    const txt = document.createElement('input');
+    txt.type = 'text'; txt.placeholder = '对话内容'; txt.value = ln.text || '';
+    txt.style.cssText = 'width:100%;box-sizing:border-box;background:#121212;border:1px solid #2a2a2a;color:#fff;padding:5px;font-size:12px;border-radius:3px;';
+    txt.oninput = () => { ln.text = txt.value; };
+    const mk = (label, fn) => { const b = document.createElement('button'); b.textContent = label; b.style.cssText = 'flex:none;width:28px;background:#1a1f3a;border:1px solid #2a2a3a;color:#9fd8ff;font-size:11px;border-radius:3px;padding:4px 0;cursor:pointer;'; b.onclick = fn; return b; };
+    row1.appendChild(spk);
+    row1.appendChild(mk('↑', () => { if (i > 0) { lines.splice(i - 1, 0, lines.splice(i, 1)[0]); storyEditorRender(); } }));
+    row1.appendChild(mk('↓', () => { if (i < lines.length - 1) { lines.splice(i + 1, 0, lines.splice(i, 1)[0]); storyEditorRender(); } }));
+    row1.appendChild(mk('×', () => { lines.splice(i, 1); storyEditorRender(); }));
+    row2.appendChild(txt);
+    wrap.appendChild(row1); wrap.appendChild(row2);
+    box.appendChild(wrap);
+  });
+}
+function storyEditorRender() {
+  edRenderLines('ed-intro-lines', editorStory.intro || []);
+  const list = document.getElementById('ed-event-list');
+  if (list) {
+    list.innerHTML = '';
+    (editorStory.events || []).forEach((ev, i) => {
+      const d = document.createElement('div');
+      d.style.cssText = 'display:flex;justify-content:space-between;padding:4px 6px;background:rgba(255,255,255,.04);border-radius:4px;margin-top:4px;cursor:pointer;font-size:11px;border:1px solid ' + (ev === edSelEvent ? '#00d4ff' : 'transparent') + ';';
+      d.innerHTML = '<span>📻 事件 ' + (i + 1) + '「' + (ev.bcast || '未命名') + '」· ' + (ev.lines || []).length + ' 句</span>';
+      d.onclick = () => { edSelEvent = ev; if (typeof window !== 'undefined') window.edSelEventRef = ev; storyEditorRender(); };
+      list.appendChild(d);
+    });
+  }
+  const ed = document.getElementById('ed-event-editor');
+  if (ed) {
+    ed.style.display = edSelEvent ? 'block' : 'none';
+    if (edSelEvent) {
+      const bt = document.getElementById('ed-event-bcast');
+      if (bt && bt.value !== (edSelEvent.bcast || '')) bt.value = edSelEvent.bcast || '';
+      edRenderLines('ed-event-lines', edSelEvent.lines);
+    }
+  }
+  const nm = document.getElementById('opt-level-name');
+  if (nm && nm.value !== editorLevelName) nm.value = editorLevelName || '';
+}
+function storyEditorBind() {
+  // V10.15: 编剧 UI 仅独立工具（STORY_AUTHOR_MODE）显示；主文件不携带
+  const blocks = document.getElementById('story-author-blocks');
+  if (blocks) blocks.style.display = (typeof window !== 'undefined' && window.STORY_AUTHOR_MODE) ? 'flex' : 'none';
+  const b1 = document.getElementById('btn-ed-intro-add');
+  if (b1) b1.onclick = () => { editorStory.intro.push({ speaker: '系统', text: '' }); storyEditorRender(); };
+  const b2 = document.getElementById('btn-ed-ev-pick');
+  if (b2) b2.onclick = () => {
+    // V10.16: 广播触发——事件=广播名+对话，不再点地图放坐标
+    const ev = { id: 'e' + Date.now().toString(36), bcast: '', lines: [{ speaker: '系统', text: '' }] };
+    editorStory.events.push(ev);
+    edSelEvent = ev;
+    window.edSelEventRef = ev;
+    storyEditorRender();
+  };
+  window.edSelEventRef = null;
+  const b3 = document.getElementById('btn-ed-ev-add');
+  if (b3) b3.onclick = () => { if (edSelEvent) { edSelEvent.lines.push({ speaker: '系统', text: '' }); storyEditorRender(); } };
+  const b4 = document.getElementById('btn-ed-ev-del');
+  if (b4) b4.onclick = () => { if (edSelEvent) { editorStory.events = editorStory.events.filter(x => x !== edSelEvent); edSelEvent = null; storyEditorRender(); } };
+}
+// V10.23 构建时直接从 DOM 读取剧情（对任何输入绑定异常免疫）：
+// 开局对话逐行读输入框现值；事件以 editorStory 为底，选中事件的广播名/对话也从 DOM 刷新
+function collectStoryFromUI() {
+  const intro = [];
+  const ibox = document.getElementById('ed-intro-lines');
+  if (ibox) {
+    // V10.25: 用 children/getElementsByTagName 直取（不依赖选择器引擎），双保险
+    const wraps = ibox.children || [];
+    for (const w of wraps) {
+      const ins = w.getElementsByTagName ? w.getElementsByTagName('input') : [];
+      if (ins.length >= 2) intro.push({ speaker: ins[0].value.trim(), text: ins[1].value });
+    }
+  }
+  // 现场取证：元素在不在、几个子行、第一行输入值长度——直接上屏
+  try {
+    const _w0 = ibox && ibox.children && ibox.children[0];
+    const _i0 = _w0 && _w0.getElementsByTagName ? _w0.getElementsByTagName('input') : [];
+    storyDiag('取证: 元素=' + !!ibox + ' 行数=' + (ibox && ibox.children ? ibox.children.length : -1) + ' 首值长=' + (_i0 && _i0[1] ? _i0[1].value.length : -1));
+  } catch (e) { storyDiag('取证异常: ' + e.message); }
+  const events = [];
+  (editorStory.events || []).forEach(ev => {
+    const e2 = { id: ev.id, bcast: ev.bcast || '', lines: (ev.lines || []).map(l => ({ speaker: l.speaker || '', text: l.text || '' })) };
+    if (window.edSelEventRef === ev) {
+      const b = document.getElementById('ed-event-bcast');
+      if (b) e2.bcast = b.value.trim();
+      const ebox = document.getElementById('ed-event-lines');
+      if (ebox) {
+        e2.lines = [];
+        ebox.querySelectorAll(':scope > div').forEach(w => {
+          const ins = w.querySelectorAll('input');
+          if (ins.length >= 2) e2.lines.push({ speaker: ins[0].value.trim(), text: ins[1].value });
+        });
+      }
+    }
+    events.push(e2);
+  });
+  try { storyDiag('收集 intro=' + intro.length + ' 首句=' + (intro[0] ? intro[0].text.slice(0, 12) : '-')); } catch (e) {}
+  return { intro, events };
+}
+// 把剧情挂到运行时关卡（事件坐标：编码中为出生点相对，此处转绝对）
+function applyStoryToLevel(level, story) {
+  if (!level) return;
+  level.story = story || null;
+  level.storyEvents = [];
+  level._storyFired = {};
+  if (story && story.events) {
+    for (const e of story.events) {
+      level.storyEvents.push({ id: e.id, bcast: e.bcast || '', lines: e.lines || [], fired: false });
+    }
+  }
+}
 function doEditorAutoSave() {
   try {
     let data = {
@@ -9566,7 +9752,9 @@ function doEditorAutoSave() {
       onlineTransport: editorOnlineTransport,
       onlineMaxMinutes: editorOnlineMaxMinutes,
       onlineMinPlayers: editorOnlineMinPlayers,
-      onlineMaxPlayers: editorOnlineMaxPlayers
+      onlineMaxPlayers: editorOnlineMaxPlayers,
+      story: JSON.parse(JSON.stringify(editorStory)),
+      levelName: editorLevelName
     };
     localStorage.setItem('editor_autosave', JSON.stringify(data));
   } catch(e) { console.error('自动保存失败:', e); }
@@ -9632,6 +9820,11 @@ function loadEditorAutoSave() {
     editorOnlineMinPlayers = clampInteger(data.onlineMinPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MIN_PLAYERS);
     editorOnlineMaxPlayers = clampInteger(data.onlineMaxPlayers, 1, ONLINE_MAX_PLAYERS_LIMIT, ONLINE_DEFAULT_MAX_PLAYERS);
     if (editorOnlineMinPlayers > editorOnlineMaxPlayers) editorOnlineMaxPlayers = editorOnlineMinPlayers;
+    editorStory = (data.story && typeof data.story === 'object') ? data.story : { intro: [], events: [] };
+    editorStory.intro = editorStory.intro || [];
+    editorStory.events = (editorStory.events || []).map(e => ({ ...e }));
+    editorLevelName = typeof data.levelName === 'string' ? data.levelName : '';
+    if (typeof storyEditorRender === 'function') storyEditorRender();
     let onlineEnabledEl = document.getElementById('opt-online-enabled');
     if (onlineEnabledEl) onlineEnabledEl.checked = editorOnlineEnabled;
     let onlineTransportEl = document.getElementById('opt-online-transport');
@@ -10336,12 +10529,14 @@ function updateSelectedCells() {
   }
 }
 function updateSelectActionButtons() {
-  const hasSelection = selectedCells.size > 0;
+  // V10.14: 工具条仅多选（>=2）或粘贴预览时出现；"移动平台"已并入多选属性栏
+  const bar = document.getElementById('editor-select-actions');
   const pasteBtn = document.getElementById('btn-editor-paste');
   const cancelPasteBtn = document.getElementById('btn-cancel-paste');
   const confirmPasteBtn = document.getElementById('btn-confirm-paste');
-  // 粘贴预览模式：显示确认/取消按钮，隐藏其他选中操作按钮
+  const activeCount = [...selectedCells].filter(k => getEditorCells().has(k)).length;
   if (isPastePreviewing) {
+    if (bar) bar.style.display = 'flex';
     document.querySelectorAll('.tool-btn.select-action').forEach(btn => {
       btn.classList.remove('visible');
     });
@@ -10350,9 +10545,10 @@ function updateSelectActionButtons() {
     if (confirmPasteBtn) confirmPasteBtn.classList.add('visible');
     return;
   }
-  // 正常模式
+  const multi = activeCount >= 2;
+  if (bar) bar.style.display = multi ? 'flex' : 'none';
   document.querySelectorAll('.tool-btn.select-action').forEach(btn => {
-    btn.classList.toggle('visible', hasSelection);
+    btn.classList.toggle('visible', multi);
   });
   if (pasteBtn) {
     pasteBtn.textContent = '粘贴';
@@ -11315,6 +11511,10 @@ function refreshPropsPanel() {
       } else {
         body += '<p class="tpp-intro">选中了多个组，点选一个组可编辑其广播名称。</p>';
       }
+    } else if (selectedCells.size >= 2) {
+      // V10.14: 多选操作（原顶部工具条的"移动平台"并入此处）
+      body += '<div class="tpp-section-title">多选操作</div>'
+        + '<div class="tpp-row"><button class="btn btn-small" id="tpp-create-platform">🛠 创建移动平台</button></div>';
     }
     if (tileMoveState && tileMoveState.pending) {
       body += '<div class="tpp-section-title">移动方块</div>'
@@ -11369,6 +11569,8 @@ function refreshPropsPanel() {
     platformAdjust = null; tileMoveState = null;
     refreshPropsPanel(); renderEditor();
   });
+  const createPlatBtn = document.getElementById('tpp-create-platform');
+  if (createPlatBtn) createPlatBtn.addEventListener('click', () => { if (typeof startMovingPlatformCreation === 'function') startMovingPlatformCreation(); });
 
   // ==================== 通用属性 + 事件触发 + 移动平台路径点（单选/多选通用） ====================
   (function () {
@@ -11846,6 +12048,7 @@ function setupEditorToolbar() {
       isEditorTest = true;
       editorTestWon = false;
       const levelData = buildLevelFromEditor();
+      try { storyDiag('测试点击 story=' + !!levelData.story + ' intro=' + (levelData.story ? levelData.story.intro.length : 0)); } catch (e) {}
       loadCustomLevel(levelData);
       startGame();
     } catch (err) {
@@ -11855,7 +12058,9 @@ function setupEditorToolbar() {
   });
   // 生成编码 -> 弹窗显示
   document.getElementById('btn-sidebar-generate').addEventListener('click', () => {
-    const code = encodeLevel();
+    // V10.13: 关卡名取自「其他」设置（无则沿用默认）
+    const _nm = (document.getElementById('opt-level-name') || {}).value;
+    const code = encodeLevel(_nm && _nm.trim() ? _nm.trim() : undefined);
     document.getElementById('code-modal-textarea').value = code;
     document.getElementById('code-modal-overlay').classList.add('active');
   });
@@ -12008,6 +12213,9 @@ function setupEditorToolbar() {
   const _saMp = document.getElementById('btn-create-moving-platform');
   if (_saMp) _saMp.addEventListener('click', startMovingPlatformCreation);
   updateSelectActionButtons();
+  // V10.13 剧情编辑器 UI 绑定与初始渲染
+  if (typeof storyEditorBind === 'function') storyEditorBind();
+  if (typeof storyEditorRender === 'function') storyEditorRender();
 }
 // ==================== 广播名称系统 ====================
 setupEditorToolbar();
@@ -13858,7 +14066,9 @@ function decodeLevelOld(code) {
   }
 }
 function encodeLevel(customName) {
-  if (editorDualEnabled) return encodeLevelV9(customName);
+  // V10.30: 一律走 V9（V9 已具备 V8 全部能力 + 无损编码 + 剧情/开关/冰等新特性）；V8d 仅保留给旧码解码
+  return encodeLevelV9(customName);
+  // 以下为旧 V8d 编码（保留备用）
   // 默认生成压缩版 V8 二进制编码（比 cs2 文本小约一个数量级，大地图可发布）
   return encodeLevelV8d(customName); // 默认 8d（LZ4 压缩，长度更短）；旧格式兼容读取
 }
@@ -14009,14 +14219,17 @@ function encodeWorld(worldData) {
   const stickySec = (worldData.stickyWalls || []).map(t => t.x + ',' + t.y).join(';');
   const onewaySec = (worldData.oneWayPlatforms || []).map(t => t.x + ',' + t.y).join(';');
   const spPropSec = (worldData.enemySpawners || []).map(sp => sp.x + ',' + sp.y + ',' + (sp.elite ? 1 : 0) + ',' + (sp.hp || 0) + ',' + (sp.dmg || 0) + ',' + (sp.ranged ? 1 : 0)).join(';');
-  return [portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups, fxSec, evSec, iceSec, stickySec, onewaySec, spPropSec].join('!');
+  // V10.28: 开关/门槽位（此前收集了却未编码，导致导出丢失）
+  const swSec = (worldData.switches || []).map(s => s.x + ',' + s.y + ',' + s.color).join(';');
+  const doorSec = (worldData.doors || []).map(d => d.x + ',' + d.y + ',' + d.color).join(';');
+  return [portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups, fxSec, evSec, iceSec, stickySec, onewaySec, spPropSec, swSec, doorSec].join('!');
 }
 
 function encodeLevelV9(customName) {
   console.log('encodeLevelV9 called, dualEnabled=', editorDualEnabled, 'cellsA=', editorCells.size, 'cellsB=', editorCellsB.size);
   let name = encodeURIComponent(customName || '未命名').replace(/\./g, '%2E'); // FIX: 关卡名含 '.' 会撞坏 wrapper 的 split('.')
   const _optM2 = document.getElementById('opt-show-minimap');
-  let flags = '1' + ((_optM2 ? _optM2.checked : true) !== false ? '1' : '0') + '1';
+  let flags = '1' + ((_optM2 ? _optM2.checked : true) !== false ? '1' : '0') + (editorDualEnabled ? '1' : '0'); // V10.20: 修复双世界标志位此前恒为 '1'（导致所有 V9 码被误判为双世界）
   // 追加关卡模式信息
   if (editorLevelMode === 'survival') {
     flags += '|M:survival|t:' + editorSurvivalTime;
@@ -14033,11 +14246,18 @@ function encodeLevelV9(customName) {
   let worldB = encodeWorld(buildWorldDataFromEditor(editorCellsB));
   // V10: 自定义重力（与 V8 对齐，值为百倍整数）
   if (typeof editorGravityCustom !== 'undefined' && editorGravityCustom && editorGravityCustom !== 1) flags += '|G:' + Math.round(editorGravityCustom * 100);
+  // V10.13 剧情数据（开局对话+纯对话事件），有内容才写入
+  { const _cs = collectStoryFromUI();
+    if (_cs.intro.some(l => l.text.trim()) || _cs.events.some(e => e.lines.some(l => (l.text || '').trim()))) {
+      flags += '|Y:' + encodeURIComponent(JSON.stringify({ intro: _cs.intro, events: _cs.events }));
+    }
+  }
   // V10: 玩家轨迹（复用移动平台编解码；轨迹在编辑器中已是出生点相对坐标）
   const trajSec = encodeMovingPlatforms(editorTrajectories || []);
   let raw = `9.${name}.${flags}.${worldA}.${worldB}.${trajSec}`;
-  let compressed = simpleCompress(raw);
-  return '9z' + uint8ToBase64url(new TextEncoder().encode(compressed));
+  // V10.28: 弃用 simpleCompress（对特定字节序列有损）——纯 base64url 无损
+  // V10.31: 前缀按世界数区分（9z=双世界 / 8s=单世界，同 V9 无损格式），保持"看前缀知单双"的约定
+  return (editorDualEnabled ? '9z' : '8s') + uint8ToBase64url(new TextEncoder().encode(raw));
 }
 
 function buildWorldDataFromEditor(cellMap) {
@@ -14047,6 +14267,7 @@ function buildWorldDataFromEditor(cellMap) {
   let enemySpawners = [];
   let iceTiles = [], stickyWalls = [];
   let oneWayPlatforms = [];
+  let switches = [], doors = []; // V10.28: 开关/门（编码往返必须）
   let portal = null;
   let grid = new Map();
 
@@ -14070,6 +14291,9 @@ function buildWorldDataFromEditor(cellMap) {
     else if (tile === TILE_ICE) iceTiles.push({x: rx, y: ry});
     else if (tile === TILE_STICKY_WALL) stickyWalls.push({x: rx, y: ry});
     else if (tile === TILE_ONE_WAY) oneWayPlatforms.push({x: rx, y: ry});
+    // V10.28: 开关/门收集（此前只被 _buildWorldData 收集，V9 编码路径丢失）
+    else if (tile >= TILE_SWITCH_R && tile <= TILE_SWITCH_Y) switches.push({x: rx, y: ry, color: switchColor(tile)});
+    else if (tile >= TILE_DOOR_R && tile <= TILE_DOOR_Y) doors.push({x: rx, y: ry, color: switchColor(tile)});
   }
   // 收集触发方块组和双重方块组（从全局 editorTriggerGroups / editorDualGroups 筛选属于当前 cellMap 的）
   // FIX: 同时收集 cellMap 中单独放置的（不在任何命名组中的）格子，与 _buildWorldData 保持一致
@@ -14175,14 +14399,21 @@ function buildWorldDataFromEditor(cellMap) {
       }
     }
   }
-  return { portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups, iceTiles, stickyWalls, oneWayPlatforms, tileFx, cellEvents };
+  return { portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups, iceTiles, stickyWalls, oneWayPlatforms, switches, doors, tileFx, cellEvents }; // V10.28
 }
 
 function decodeLevelV9(code) {
   try {
-    if (!code.startsWith('9z')) return null;
-    let compressed = new TextDecoder().decode(base64urlToUint8(code.substring(2)));
-    let raw = simpleDecompress(compressed);
+    if (!code.startsWith('9z') && !code.startsWith('8s')) return null; // V10.31: 8s=单世界同款
+    // V10.28: 新码纯 base64url 直解；旧码（simpleCompress）结果不以 '9.' 开头则回退
+    let raw = null;
+    try {
+      raw = new TextDecoder().decode(base64urlToUint8(code.substring(2)));
+      if (!raw || raw.charAt(0) !== '9' || raw.charAt(1) !== '.') throw new Error('legacy');
+    } catch (e) {
+      const compressed = new TextDecoder().decode(base64urlToUint8(code.substring(2)));
+      raw = simpleDecompress(compressed);
+    }
     let parts = raw.split('.');
     if (parts[0] !== '9') return null;
 
@@ -14211,6 +14442,10 @@ function decodeLevelV9(code) {
   let iceTiles = wp[13] ? wp[13].split(';').filter(s => s).map(s => { const a = s.split(',').map(Number); return { x: a[0], y: a[1] }; }) : [];
   let stickyWalls = wp[14] ? wp[14].split(';').filter(s => s).map(s => { const a = s.split(',').map(Number); return { x: a[0], y: a[1] }; }) : [];
   let oneWayPlatforms = wp[15] ? wp[15].split(';').filter(s => s).map(s => { const a = s.split(',').map(Number); return { x: a[0], y: a[1] }; }) : [];
+  // V10.28: 开关/门解析
+  const _colorOf = (c) => (c === 'r' || c === 'b' || c === 'g' || c === 'y') ? c : 'r';
+  let switches = wp[17] ? wp[17].split(';').filter(s => s).map(s => { const a = s.split(','); return { x: +a[0], y: +a[1], color: _colorOf(a[2]) }; }) : [];
+  let doors = wp[18] ? wp[18].split(';').filter(s => s).map(s => { const a = s.split(','); return { x: +a[0], y: +a[1], color: _colorOf(a[2]) }; }) : [];
       // 解码触发方块组（兼容旧版）
       let triggerGroups = [];
       if (wp[9] && wp[9] !== 'N') {
@@ -14268,7 +14503,7 @@ function decodeLevelV9(code) {
           }
         }
       }
-      return { portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups, tileFx, cellEvents, iceTiles, stickyWalls, oneWayPlatforms };
+      return { portal, lands, spikes, spikeAutos, crates, bouncers, checkpoints, movingPlatforms, enemySpawners, triggerGroups, dualGroups, tileFx, cellEvents, iceTiles, stickyWalls, oneWayPlatforms, switches, doors };
     }
 
     let name = decodeURIComponent(parts[1] || '未命名');
@@ -14283,6 +14518,7 @@ function decodeLevelV9(code) {
     let onlineMaxPlayers = ONLINE_DEFAULT_MAX_PLAYERS;
     let gravity = 0; // V10: 自定义重力（|G: 段，值为百倍整数）
     let trajectories = []; // V10: 玩家轨迹（封装第 6 段，复用移动平台编解码）
+    let story = null; // V10.13: 剧情数据（|Y: 段）
     for (let fp of flagParts.slice(1)) {
       if (fp.startsWith('M:')) levelMode = fp.substring(2);
       else if (fp.startsWith('t:')) {
@@ -14300,6 +14536,7 @@ function decodeLevelV9(code) {
         if (onlineMinPlayers > onlineMaxPlayers) onlineMaxPlayers = onlineMinPlayers;
       }
       else if (fp.startsWith('G:')) gravity = (parseInt(fp.substring(2)) || 0) / 100;
+      else if (fp.startsWith('Y:')) { try { story = JSON.parse(decodeURIComponent(fp.substring(2))); } catch (e) { story = null; } }
     }
     if (parts[5]) { try { trajectories = decodeMovingPlatforms(parts[5]); } catch (e) { trajectories = []; } }
     let worldA = decodeWorld(parts[3] || 'N');
@@ -14318,7 +14555,8 @@ function decodeLevelV9(code) {
       tileFx: worldA.tileFx, cellEvents: worldA.cellEvents,
       // V10: 顶层补全世界 A 的冰/粘墙/单向板 + 全局重力与轨迹
       iceTiles: worldA.iceTiles, stickyWalls: worldA.stickyWalls, oneWayPlatforms: worldA.oneWayPlatforms,
-      gravity, trajectories,
+      switches: worldA.switches, doors: worldA.doors,
+      gravity, trajectories, story,
       showIndicator: flags[0] === '1', showMinimap: flags[1] === '1',
       dualEnabled: flags[2] === '1',
       onlineEnabled, onlineTransport, onlineMaxMinutes, onlineMinPlayers, onlineMaxPlayers,
@@ -14336,7 +14574,8 @@ function decodeLevel(code) {
   if (['9', '10', '11', '12'].includes(ver)) {
     return decodeYuedongLevel(code);
   }
-  if (code.startsWith('9z')) return decodeLevelV9(code);
+  // V10.31: 8s = 单世界 V9 无损格式（与 9z 同格式，前缀表世界数；flags 另有 dualEnabled 字段双保险）
+  if (code.startsWith('9z') || code.startsWith('8s')) return decodeLevelV9(code);
   if (code.startsWith('9d') || code.startsWith('6d')) {
     // 压缩包装格式：解压还原原文本，走原格式解码（9d=双世界文本，6d=旧版纯文本）
     try {
@@ -14650,7 +14889,9 @@ function buildLevelFromEditor(cells) {
     let worldA = _buildWorldData(editorCells);
     let worldB = _buildWorldData(editorCellsB);
     return {
-      name: levelName, w: 100, h: 100,
+      name: levelName,
+      story: (function(){ const _s = collectStoryFromUI(); return (_s.intro.some(l => l.text.trim()) || _s.events.some(e => (e.lines || []).some(l => (l.text || '').trim()))) ? _s : null; })(), // V10.23: DOM 直读
+      w: 100, h: 100,
       spawn: {x: 0, y: 0},
       portal: worldA.portal,
       lands: worldA.lands, spikes: worldA.spikes, spikeAutos: worldA.spikeAutos,
@@ -14679,7 +14920,9 @@ function buildLevelFromEditor(cells) {
     let useCells = cells || editorCells;
     let worldData = _buildWorldData(useCells);
     return {
-      name: levelName, w: 100, h: 100,
+      name: levelName,
+      story: (function(){ const _s = collectStoryFromUI(); return (_s.intro.some(l => l.text.trim()) || _s.events.some(e => (e.lines || []).some(l => (l.text || '').trim()))) ? _s : null; })(), // V10.23: DOM 直读
+      w: 100, h: 100,
       spawn: {x: 0, y: 0},
       portal: worldData.portal,
       lands: worldData.lands, spikes: worldData.spikes, spikeAutos: worldData.spikeAutos,
@@ -14835,7 +15078,7 @@ async function shareLevelToLobby(levelData, code) {
 function isLikelyPlayableCode(code) {
   if (!code || typeof code !== 'string') return false;
   const v = code.split('.')[0];
-  if (v === '8z' || v === '9z') return true;
+  if (v === '8z' || v === '9z' || v === '8s') return true;
   if (v === '8d') return true;
   if (v === '9d' || v === '6d') return true;
   if (v === '9' || v === '10' || v === '11' || v === '12') return true;
@@ -14937,6 +15180,26 @@ function startGame() {
   // 这里再调用一次会导致 initCrates 二次扫描空 grid，crates 被清空
   // resetPlayer(true);
   showTutorialDialog();
+  // V10.20 双保险：下一帧重检——若剧情队列已入列但浮层未激活（真机时序抖动）则重新激活
+  requestAnimationFrame(() => {
+    if (storyDialogQueue && storyDialogQueue.length) {
+      const ov = document.getElementById('tutorial-overlay');
+      if (ov && !ov.classList.contains('active')) {
+        ov.classList.add('active');
+        storyDiag('浮层重检激活');
+      }
+    }
+  });
+  // V10.22 自愈重试：800ms 后检测"有剧情但完全没播"→ 强制重弹（覆盖一切未知时序/调用链异常）
+  setTimeout(() => {
+    const _st = currentLevel && currentLevel.story;
+    const _ov = document.getElementById('tutorial-overlay');
+    const _active = _ov && _ov.classList.contains('active');
+    if (_st && _st.intro && _st.intro.length && !_active && !(storyDialogQueue && storyDialogQueue.length)) {
+      storyDiag('自愈重试触发');
+      playStoryLines(_st.intro);
+    }
+  }, 800);
 }
 // ==================== 新手引导对话框 ====================
 function getTutorialLine(idx) {
@@ -14947,32 +15210,91 @@ function getTutorialLine(idx) {
   };
   return lines[idx];
 }
+// ==================== V10.12 培训剧情编辑器 ====================
+let seLevel = 0, seIntro = [], seEvents = [], seSelEvent = null;
+// ==================== V10.12 培训剧情系统（开局对话 + 地图事件对话框） ====================
+const STORY_STORE_KEY = 'st_story_overrides_v1';
+function getStoryOverrides() { try { return JSON.parse(localStorage.getItem(STORY_STORE_KEY) || '{}'); } catch (e) { return {}; } }
+function getStoryOverride(idx) { const a = getStoryOverrides(); return a['builtin_' + idx] || null; }
+function setStoryOverride(idx, story) {
+  const a = getStoryOverrides();
+  if (story) a['builtin_' + idx] = story; else delete a['builtin_' + idx];
+  try { localStorage.setItem(STORY_STORE_KEY, JSON.stringify(a)); } catch (e) {}
+}
+function getStoryFor(idx) {
+  const o = getStoryOverride(idx);
+  if (o && (o.intro || o.events)) return o;
+  const def = getTutorialLine(idx);
+  return def ? { intro: [{ speaker: '系统', text: def }], events: [] } : null;
+}
+// 链式对话框（复用 tutorial-overlay；点对话框跳下一句，最后一句关闭）
+let storyDialogQueue = [];
+function playStoryLines(lines, onDone) {
+  const dlg = document.getElementById('tutorial-dialog');
+  const txt = document.getElementById('tutorial-text');
+  const overlay = document.getElementById('tutorial-overlay');
+  if (!dlg || !txt || !overlay) { if (onDone) onDone(); return; }
+  const q = (lines && lines.length ? lines.slice() : []);
+  if (!q.length) { if (onDone) onDone(); return; }
+  q._onDone = onDone || null;
+  storyDialogQueue = q;
+  storyDiag('播放 ' + q.length + ' 句');
+  const spk = document.querySelector('#tutorial-dialog .td-speaker');
+  const line = q[0];
+  if (spk) { spk.textContent = line.speaker || ''; spk.style.display = line.speaker ? 'block' : 'none'; }
+  txt.textContent = line.text || '';
+  overlay.classList.add('active');
+}
+function advanceStoryDialog() {
+  if (!storyDialogQueue.length) return;
+  storyDialogQueue.shift();
+  if (storyDialogQueue.length) {
+    const spk = document.querySelector('#tutorial-dialog .td-speaker');
+    const line = storyDialogQueue[0];
+    if (spk) { spk.textContent = line.speaker || ''; spk.style.display = line.speaker ? 'block' : 'none'; }
+    document.getElementById('tutorial-text').textContent = line.text || '';
+    return;
+  }
+  const overlay = document.getElementById('tutorial-overlay');
+  const cb = storyDialogQueue._onDone;
+  storyDialogQueue = [];
+  if (overlay) overlay.classList.remove('active');
+  if (cb) cb();
+}
+// 事件触发检测（每帧，事件数量极少，开销可忽略）
 function showTutorialDialog() {
   const overlay = document.getElementById('tutorial-overlay');
   if (!overlay) return;
-  // 仅在正常游玩内置关卡 0/1/2 时显示（排除编辑器测试、大厅关卡、自定义关卡）
-  if (isCustomLevel || isEditorTest || isFromLobby) {
+  // V10.17: 剧情来源统一为 currentLevel.story（编码携带/试玩挂载/内置覆盖均可）；
+  // 无剧情的自定义/试玩/大厅关仍保持旧行为（不显示）
+  const story = (currentLevel && currentLevel.story) || null;
+  storyDiag('开局检测 story=' + !!story + ' intro=' + (story && story.intro ? story.intro.length : 0) + ' test=' + !!isEditorTest);
+  if (!story || !story.intro || !story.intro.length) {
     overlay.classList.remove('active');
     return;
   }
-  const line = getTutorialLine(currentLevelIdx);
-  if (line == null) {
-    overlay.classList.remove('active');
-    return;
-  }
-  document.getElementById('tutorial-text').textContent = line;
-  overlay.classList.add('active');
+  playStoryLines(story.intro); // 开局对话链（多句点击逐句推进）
 }
 function closeTutorialDialog() {
   const overlay = document.getElementById('tutorial-overlay');
   if (overlay) overlay.classList.remove('active');
 }
-document.getElementById('tutorial-dialog').addEventListener('click', closeTutorialDialog);
+document.getElementById('tutorial-dialog').addEventListener('click', () => {
+  if (storyDialogQueue && storyDialogQueue.length) advanceStoryDialog();
+  else closeTutorialDialog();
+});
 // 给教程弹窗添加独立触摸处理（阻止传播到 game-container，避免被多指触控拦截）
 const tutorialDialogEl = document.getElementById('tutorial-dialog');
 if (tutorialDialogEl) {
   tutorialDialogEl.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
-  tutorialDialogEl.addEventListener('touchend', (e) => { e.stopPropagation(); closeTutorialDialog(); }, { passive: true });
+  // V10.27: 触屏点一次会触发 touchend + 合成 click 两次推进（跳句）；
+  // 这里 preventDefault 吃掉合成 click，且必须非 passive 才能 preventDefault
+  tutorialDialogEl.addEventListener('touchend', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (storyDialogQueue && storyDialogQueue.length) advanceStoryDialog();
+    else closeTutorialDialog();
+  });
 }
 // 双世界切换：判断玩家当前像素位置是否落在目标世界实心格内
 function isPlayerEmbedded(level) {
@@ -15133,9 +15455,11 @@ async function importEditorCode(code) {
   editorDualGroups = [];
   editorTestWon = false;
   // 关卡名统一到发布页填写，导入时不设置
-  const ox = level.spawn ? level.spawn.x : 0;
-  const oy = level.spawn ? level.spawn.y : 0;
-  editorSpawn = { x: ox, y: oy };
+  // V10.30: 导入保留当前图纸锚点——出生点不动，关卡按当前出生点+相对坐标落格（修复"导入后整图漂移错位/找不到开关"）
+  const _ax = editorSpawn.x, _ay = editorSpawn.y;
+  const ox = _ax - (level.spawn ? level.spawn.x : 0);
+  const oy = _ay - (level.spawn ? level.spawn.y : 0);
+  editorSpawn = { x: _ax, y: _ay };
   for (let l of level.lands || []) {
     for (let dy = 0; dy < l.h; dy++) {
       for (let dx = 0; dx < l.w; dx++) {
@@ -15190,6 +15514,11 @@ async function importEditorCode(code) {
   for (let t of level.iceTiles || []) getEditorCells().set((t.x + ox) + ',' + (t.y + oy), TILE_ICE);
   for (let t of level.stickyWalls || []) getEditorCells().set((t.x + ox) + ',' + (t.y + oy), TILE_STICKY_WALL);
   for (let t of level.oneWayPlatforms || []) getEditorCells().set((t.x + ox) + ',' + (t.y + oy), TILE_ONE_WAY);
+  // V10.28: 开关/门导入回补
+  const _swTile = { r: TILE_SWITCH_R, b: TILE_SWITCH_B, g: TILE_SWITCH_G, y: TILE_SWITCH_Y };
+  const _doorTile = { r: TILE_DOOR_R, b: TILE_DOOR_B, g: TILE_DOOR_G, y: TILE_DOOR_Y };
+  for (let s of level.switches || []) getEditorCells().set((s.x + ox) + ',' + (s.y + oy), _swTile[s.color] || TILE_SWITCH_R);
+  for (let d of level.doors || []) getEditorCells().set((d.x + ox) + ',' + (d.y + oy), _doorTile[d.color] || TILE_DOOR_R);
   // FIX: 导入触发方块组 / 双重方块组
   for (let g of level.triggerGroups || []) {
     editorTriggerGroups.push({ name: g.name, cells: (g.cells || []).map(c => (c.x + ox) + ',' + (c.y + oy)) });
@@ -15242,8 +15571,18 @@ async function importEditorCode(code) {
       editorTrajectories.push({ cells, path, speed: t.speed || 1.5, wait: t.wait || 0 });
     }
   }
+  // V10.18: 回补剧情与关卡名（编码里有的，导入后回显到「其他」面板）
+  editorStory = (level.story && typeof level.story === 'object') ? JSON.parse(JSON.stringify(level.story)) : { intro: [], events: [] };
+  editorStory.intro = editorStory.intro || [];
+  editorStory.events = (editorStory.events || []).map(e => ({ ...e }));
+  editorLevelName = level.name || '';
+  if (typeof storyEditorRender === 'function') storyEditorRender();
   // FIX: 导入双世界 B（V9 双宇宙关卡）；与 A 世界共用出生点偏移
-  editorDualEnabled = !!level.worldB;
+  // V10.20: 用 flags 位判定——V9 解码恒构造 worldB 对象，!!level.worldB 会把非双世界码误判为双世界
+  editorDualEnabled = level.dualEnabled === true || (level.worldB && level.worldB.lands && level.worldB.lands.length > 0);
+  // V10.21: 导入后同步双世界开关 UI（复用自动保存的同步逻辑）
+  { const _dc = document.getElementById('opt-dual-world'); if (_dc) _dc.checked = editorDualEnabled;
+    const _sw = document.getElementById('btn-switch-world'); if (_sw) _sw.style.display = editorDualEnabled ? 'block' : 'none'; }
   if (level.worldB) {
     const wb = level.worldB;
     for (let l of wb.lands || []) {
@@ -15268,6 +15607,8 @@ async function importEditorCode(code) {
     for (let t of wb.iceTiles || []) editorCellsB.set((t.x + ox) + ',' + (t.y + oy), TILE_ICE);
     for (let t of wb.stickyWalls || []) editorCellsB.set((t.x + ox) + ',' + (t.y + oy), TILE_STICKY_WALL);
     for (let t of wb.oneWayPlatforms || []) editorCellsB.set((t.x + ox) + ',' + (t.y + oy), TILE_ONE_WAY);
+    for (let s of wb.switches || []) editorCellsB.set((s.x + ox) + ',' + (s.y + oy), _swTile[s.color] || TILE_SWITCH_R);
+    for (let d of wb.doors || []) editorCellsB.set((d.x + ox) + ',' + (d.y + oy), _doorTile[d.color] || TILE_DOOR_R);
     for (let g of wb.triggerGroups || []) {
       editorTriggerGroups.push({ name: g.name, cells: (g.cells || []).map(c => (c.x + ox) + ',' + (c.y + oy)) });
     }
@@ -15810,7 +16151,12 @@ async function renderPublicLevels(filter = '') {
     const key = l.code || '';
     if (key && _lobbyMinimapCache[key]) return _lobbyMinimapCache[key];
     const url = generateCardMinimap(l.code) || '';
-    if (key && url) _lobbyMinimapCache[key] = url;
+    if (key && url) {
+      // V10.10 防卡死：缓存设 LRU 上限（JS 对象字符串键保持插入序，keys[0] 即最旧），防大厅久逛内存膨胀
+      const _ck = Object.keys(_lobbyMinimapCache);
+      if (_ck.length >= 120) delete _lobbyMinimapCache[_ck[0]];
+      _lobbyMinimapCache[key] = url;
+    }
     return url;
   };
   const cardHtml = l => {
@@ -15881,7 +16227,12 @@ async function renderMyLevels(filter = '') {
     const key = code || '';
     if (key && _lobbyMinimapCache[key]) return _lobbyMinimapCache[key];
     const url = generateCardMinimap(code) || '';
-    if (key && url) _lobbyMinimapCache[key] = url;
+    if (key && url) {
+      // V10.10 防卡死：缓存设 LRU 上限（JS 对象字符串键保持插入序，keys[0] 即最旧），防大厅久逛内存膨胀
+      const _ck = Object.keys(_lobbyMinimapCache);
+      if (_ck.length >= 120) delete _lobbyMinimapCache[_ck[0]];
+      _lobbyMinimapCache[key] = url;
+    }
     return url;
   };
   if (currentUser && currentUser.username) {
@@ -16962,7 +17313,7 @@ function connectOnlineRoom(room) {
     password: cfg.password,
     clientId: `sjyw_${Math.random().toString(36).slice(2, 10)}`,
     protocolVersion: 4,
-    reconnectPeriod: 3000,
+    reconnectPeriod: 8000, // V10.10 防卡死：broker 不可达时降低重连风暴频率
     connectTimeout: 10000
   });
   room.client = client;
@@ -17241,6 +17592,7 @@ document.getElementById('btn-changelog-back').addEventListener('click', () => {
     editorTestWon = false;
     isEditorTest = true;
     const levelData = buildLevelFromEditor();
+    try { storyDiag('测试点击 story=' + !!levelData.story + ' intro=' + (levelData.story ? levelData.story.intro.length : 0)); } catch (e) {}
     loadCustomLevel(levelData);
     startGame();
   });
@@ -17922,6 +18274,16 @@ function sendBroadcast(name) {
 
     // 派发方块事件：切换隐藏/显示、移动到固定点、两点间往返
     dispatchCellEvents(lvl, name);
+  }
+
+  // V10.16 剧情事件改广播触发：当前关卡挂载的 storyEvents 里 bcast 匹配且未触发过 → 播放对话（每局一次）
+  if (currentLevel && currentLevel.storyEvents && currentLevel.storyEvents.length && typeof playStoryLines === 'function') {
+    for (const ev of currentLevel.storyEvents) {
+      if (!ev || ev.fired || ev.bcast !== name) continue;
+      ev.fired = true;
+      playStoryLines(ev.lines || []);
+      break;
+    }
   }
 }
 
